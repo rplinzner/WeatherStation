@@ -19,7 +19,7 @@ UWAGA - PEŁNĄ DOKUMENTACJĘ MOŻNA ZNALEŹĆ W PLIKU PDF DOSTĘPNYM W DOKUMENT
     - [3.2. Obsługa magistrali I2C](#32-obsługa-magistrali-i2c)
     - [3.3. Obsługa pamięci EEPROM](#33-obsługa-pamięci-eeprom)
     - [3.4. Obsługa termometru i higroskopu zewnętrznego DHT11](#34-obsługa-termometru-i-higroskopu-zewnętrznego-dht11)
-    - [3.5. Obsługa indywidualnego interfejsu czujnika DHT11.............................................................](#35-obsługa-indywidualnego-interfejsu-czujnika-dht11)
+    - [3.5. Obsługa indywidualnego interfejsu czujnika DHT11](#35-obsługa-indywidualnego-interfejsu-czujnika-dht11)
     - [3.6. Obsługa RTC (Real Time Clock)](#36-obsługa-rtc-real-time-clock)
     - [3.7. Obsługa Timera](#37-obsługa-timera)
     - [3.8. Obsługa przerwań](#38-obsługa-przerwań)
@@ -386,7 +386,7 @@ pomocą indywidualnego interfejsu dla tego czujnika. Szczegółowe informacje o 
 działania przedstawiamy w punkcie dotyczącym obsługi tego interfejsu (3.5).
 
 
-### 3.5. Obsługa indywidualnego interfejsu czujnika DHT11.............................................................
+### 3.5. Obsługa indywidualnego interfejsu czujnika DHT11
 
 
 Działanie interfejsu czujnika DHT11 składa się z kilku etapów:
