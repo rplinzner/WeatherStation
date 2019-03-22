@@ -1,0 +1,2702 @@
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu arm7tdmi
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"eeprom.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.align	1
+  20              		.global	eepromPoll
+  21              		.code	16
+  22              		.thumb_func
+  23              		.type	eepromPoll, %function
+  24              	eepromPoll:
+  25              	.LFB0:
+  26              		.file 1 "eeprom.c"
+   1:eeprom.c      **** #include "general.h"
+   2:eeprom.c      **** #include "i2c.h"
+   3:eeprom.c      **** 
+   4:eeprom.c      **** 
+   5:eeprom.c      **** #define EEPROM_SIZE       0x0100
+   6:eeprom.c      **** #define LOCAL_EEPROM_ADDR 0x0
+   7:eeprom.c      **** #define EEPROM_ADDR       0xA0
+   8:eeprom.c      **** 
+   9:eeprom.c      **** #define I2C_EEPROM_ADDR   (EEPROM_ADDR + (LOCAL_EEPROM_ADDR << 1)) //adres pamieci eeprom potrzebny
+  10:eeprom.c      **** #define I2C_EEPROM_RCV    (EEPROM_ADDR + (LOCAL_EEPROM_ADDR << 1) + 0x01) // flaga transimisji - od
+  11:eeprom.c      **** #define I2C_EEPROM_SND    (EEPROM_ADDR + (LOCAL_EEPROM_ADDR << 1) + 0x00) // flaga transmisji - wys
+  12:eeprom.c      **** 
+  13:eeprom.c      **** //-------------------------------------------------------------------------- FUNKCJE --------------
+  14:eeprom.c      **** 
+  15:eeprom.c      **** /******************************************************************************
+  16:eeprom.c      ****  *
+  17:eeprom.c      ****  * Opis:
+  18:eeprom.c      ****  *    Oczekiwanie na zwrot ACK przez i2c
+  19:eeprom.c      ****  *
+  20:eeprom.c      ****  * Zwraca:
+  21:eeprom.c      ****  *    I2C_CODE_OK lub I2C_CODE_ERROR
+  22:eeprom.c      ****  *
+  23:eeprom.c      ****  *****************************************************************************/
+  24:eeprom.c      **** tS8 eepromPoll(void)
+  25:eeprom.c      **** {
+  27              		.loc 1 25 0
+  28              		.cfi_startproc
+  29              		@ Function supports interworking.
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 70B5     		push	{r4, r5, r6, lr}
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 2
+
+
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 16
+  35              		.cfi_offset 4, -16
+  36              		.cfi_offset 5, -12
+  37              		.cfi_offset 6, -8
+  38              		.cfi_offset 14, -4
+  39              	.L5:
+  40              	.LVL0:
+  26:eeprom.c      ****   tS8 retCode  = I2C_CODE_OK;
+  27:eeprom.c      ****   tU8 status   = 0;
+  28:eeprom.c      ****   tBool burnEnd = FALSE;
+  29:eeprom.c      **** 
+  30:eeprom.c      ****   while(burnEnd == FALSE)
+  31:eeprom.c      ****   {
+  32:eeprom.c      ****     retCode = i2cStart(); //generuj sygnal start
+  41              		.loc 1 32 0
+  42 0002 FFF7FEFF 		bl	i2cStart
+  43              	.LVL1:
+  44 0006 0025     		movs	r5, #0
+  45 0008 0400     		movs	r4, r0
+  46              	.LVL2:
+  33:eeprom.c      **** 
+  34:eeprom.c      ****     /* Wyslij SLA+W */
+  35:eeprom.c      ****     if(retCode == I2C_CODE_OK)
+  47              		.loc 1 35 0
+  48 000a 0128     		cmp	r0, #1
+  49 000c 14D1     		bne	.L2
+  50              	.LVL3:
+  51              	.L4:
+  36:eeprom.c      ****     {
+  37:eeprom.c      ****       /* Zapisz SLA+W */
+  38:eeprom.c      ****       retCode = i2cPutChar(I2C_EEPROM_SND);
+  39:eeprom.c      ****       while(retCode == I2C_CODE_BUSY)
+  40:eeprom.c      ****       {
+  41:eeprom.c      ****         retCode = i2cPutChar(I2C_EEPROM_SND);
+  52              		.loc 1 41 0
+  53 000e A020     		movs	r0, #160
+  54 0010 FFF7FEFF 		bl	i2cPutChar
+  55              	.LVL4:
+  56 0014 0400     		movs	r4, r0
+  57              	.LVL5:
+  39:eeprom.c      ****       {
+  58              		.loc 1 39 0
+  59 0016 031D     		adds	r3, r0, #4
+  60 0018 F9D0     		beq	.L4
+  61 001a 0025     		movs	r5, #0
+  42:eeprom.c      ****       }
+  43:eeprom.c      ****     }
+  44:eeprom.c      **** 
+  45:eeprom.c      ****     if(retCode == I2C_CODE_OK)
+  62              		.loc 1 45 0
+  63 001c 0128     		cmp	r0, #1
+  64 001e 0BD1     		bne	.L2
+  46:eeprom.c      ****     {
+  47:eeprom.c      ****       /* czekaj dopoki SLA+W wyslany */
+  48:eeprom.c      ****       status = i2cCheckStatus(); // odczytaj aktualny status i2c
+  65              		.loc 1 48 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 3
+
+
+  66 0020 FFF7FEFF 		bl	i2cCheckStatus
+  67              	.LVL6:
+  49:eeprom.c      **** 
+  50:eeprom.c      ****       if(status == 0x18) //jesli dane przeslano z powodzeniem i otrzymano 
+  68              		.loc 1 50 0
+  69 0024 1828     		cmp	r0, #24
+  70 0026 06D0     		beq	.L8
+  51:eeprom.c      ****       {
+  52:eeprom.c      ****         burnEnd = TRUE;
+  53:eeprom.c      ****       }
+  54:eeprom.c      ****       else if(status == 0x20)
+  71              		.loc 1 54 0
+  72 0028 2028     		cmp	r0, #32
+  73 002a 05D0     		beq	.L2
+  55:eeprom.c      ****       {
+  56:eeprom.c      ****         // dane wyslane i bit ACK otrzymany
+  57:eeprom.c      ****         // wyslij bit startu, start ponownie
+  58:eeprom.c      ****         burnEnd = FALSE;
+  59:eeprom.c      ****       }
+  60:eeprom.c      ****       else if( status != 0xf8 ) // BLAD
+  74              		.loc 1 60 0
+  75 002c F828     		cmp	r0, #248
+  76 002e 03D0     		beq	.L2
+  61:eeprom.c      ****       {
+  62:eeprom.c      ****         retCode = I2C_CODE_ERROR;
+  63:eeprom.c      ****         burnEnd = TRUE;
+  77              		.loc 1 63 0
+  78 0030 2500     		movs	r5, r4
+  62:eeprom.c      ****         burnEnd = TRUE;
+  79              		.loc 1 62 0
+  80 0032 023C     		subs	r4, r4, #2
+  81 0034 00E0     		b	.L2
+  82              	.L8:
+  52:eeprom.c      ****       }
+  83              		.loc 1 52 0
+  84 0036 2500     		movs	r5, r4
+  85              	.LVL7:
+  86              	.L2:
+  64:eeprom.c      ****       }
+  65:eeprom.c      ****     }
+  66:eeprom.c      **** 
+  67:eeprom.c      ****     i2cStop(); // generowanie sygnalu stop
+  87              		.loc 1 67 0
+  88 0038 FFF7FEFF 		bl	i2cStop
+  89              	.LVL8:
+  30:eeprom.c      ****   {
+  90              		.loc 1 30 0
+  91 003c 002D     		cmp	r5, #0
+  92 003e E0D0     		beq	.L5
+  68:eeprom.c      ****   } 
+  69:eeprom.c      **** 
+  70:eeprom.c      **** 
+  71:eeprom.c      ****   return retCode;
+  72:eeprom.c      **** 
+  73:eeprom.c      **** }
+  93              		.loc 1 73 0
+  94 0040 2000     		movs	r0, r4
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 4
+
+
+  95              		@ sp needed
+  96              	.LVL9:
+  97 0042 70BC     		pop	{r4, r5, r6}
+  98 0044 02BC     		pop	{r1}
+  99 0046 0847     		bx	r1
+ 100              		.cfi_endproc
+ 101              	.LFE0:
+ 102              		.size	eepromPoll, .-eepromPoll
+ 103              		.align	1
+ 104              		.global	eepromStartRead
+ 105              		.code	16
+ 106              		.thumb_func
+ 107              		.type	eepromStartRead, %function
+ 108              	eepromStartRead:
+ 109              	.LFB1:
+  74:eeprom.c      **** 
+  75:eeprom.c      **** /******************************************************************************
+  76:eeprom.c      ****  *
+  77:eeprom.c      ****  * Opis:
+  78:eeprom.c      ****  *    Rozpocznij odczyt
+  79:eeprom.c      ****  *
+  80:eeprom.c      ****  * Parametry:
+  81:eeprom.c      ****  *    [in] devAddr - adres urzadzenia z ktorego odbywa sie odczyt
+  82:eeprom.c      ****  *    [in] address - adres pamieci eeprom
+  83:eeprom.c      ****  *
+  84:eeprom.c      ****  * Zwraca:
+  85:eeprom.c      ****  *    I2C_CODE_OK lub I2C_CODE_ERROR
+  86:eeprom.c      ****  *
+  87:eeprom.c      ****  *****************************************************************************/
+  88:eeprom.c      **** tS8 eepromStartRead(tU8  devAddr, tU16 address)
+  89:eeprom.c      **** {
+ 110              		.loc 1 89 0
+ 111              		.cfi_startproc
+ 112              		@ Function supports interworking.
+ 113              		@ args = 0, pretend = 0, frame = 0
+ 114              		@ frame_needed = 0, uses_anonymous_args = 0
+ 115              	.LVL10:
+ 116 0048 70B5     		push	{r4, r5, r6, lr}
+ 117              	.LCFI1:
+ 118              		.cfi_def_cfa_offset 16
+ 119              		.cfi_offset 4, -16
+ 120              		.cfi_offset 5, -12
+ 121              		.cfi_offset 6, -8
+ 122              		.cfi_offset 14, -4
+ 123              		.loc 1 89 0
+ 124 004a 0400     		movs	r4, r0
+ 125 004c 0D00     		movs	r5, r1
+  90:eeprom.c      ****   tS8 retCode = 0;
+  91:eeprom.c      ****   tU8 status  = 0;
+  92:eeprom.c      ****   
+  93:eeprom.c      ****   retCode = i2cStart(); // generowanie komunikatu start
+ 126              		.loc 1 93 0
+ 127 004e FFF7FEFF 		bl	i2cStart
+ 128              	.LVL11:
+  94:eeprom.c      **** 
+  95:eeprom.c      ****   //Wyslij adres
+  96:eeprom.c      ****   if(retCode == I2C_CODE_OK )
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 5
+
+
+ 129              		.loc 1 96 0
+ 130 0052 0128     		cmp	r0, #1
+ 131 0054 16D1     		bne	.L19
+ 132              	.L17:
+  97:eeprom.c      ****   {
+  98:eeprom.c      ****     /* Wyslij SLA+W */
+  99:eeprom.c      ****     retCode = i2cPutChar(devAddr);
+ 100:eeprom.c      ****     while( retCode == I2C_CODE_BUSY )
+ 101:eeprom.c      ****     {
+ 102:eeprom.c      ****       retCode = i2cPutChar( devAddr );
+ 133              		.loc 1 102 0
+ 134 0056 2000     		movs	r0, r4
+ 135              	.LVL12:
+ 136 0058 FFF7FEFF 		bl	i2cPutChar
+ 137              	.LVL13:
+ 100:eeprom.c      ****     {
+ 138              		.loc 1 100 0
+ 139 005c 031D     		adds	r3, r0, #4
+ 140 005e FAD0     		beq	.L17
+ 141 0060 2BE0     		b	.L40
+ 142              	.LVL14:
+ 143              	.L20:
+ 103:eeprom.c      ****     }
+ 104:eeprom.c      ****   }
+ 105:eeprom.c      **** 
+ 106:eeprom.c      ****   if( retCode == I2C_CODE_OK )
+ 107:eeprom.c      ****   {
+ 108:eeprom.c      **** #if 0
+ 109:eeprom.c      ****     // oczekuj dopoki dane zostana wyslane
+ 110:eeprom.c      ****     while(1)
+ 111:eeprom.c      ****     {
+ 112:eeprom.c      ****       status = i2cCheckStatus();
+ 113:eeprom.c      **** 
+ 114:eeprom.c      ****       if( (status == 0x18) || (status == 0x28) )
+ 115:eeprom.c      ****       {
+ 116:eeprom.c      ****         //Dane wyslane i bit ACK otrzymany
+ 117:eeprom.c      **** 
+ 118:eeprom.c      **** 
+ 119:eeprom.c      ****         // Zapisz dane
+ 120:eeprom.c      ****         retCode = i2cPutChar( (tU8)(address >> 8) );
+ 121:eeprom.c      ****         while(retCode == I2C_CODE_BUSY)
+ 122:eeprom.c      ****         {
+ 123:eeprom.c      ****           retCode = i2cPutChar( (tU8)(address >> 8) );
+ 124:eeprom.c      ****         }
+ 125:eeprom.c      ****         break;
+ 126:eeprom.c      ****       }
+ 127:eeprom.c      ****       else if(status != 0xf8) // BLAD
+ 128:eeprom.c      ****       {
+ 129:eeprom.c      ****         retCode = I2C_CODE_ERROR;
+ 130:eeprom.c      ****         break;
+ 131:eeprom.c      ****       }
+ 132:eeprom.c      ****     }
+ 133:eeprom.c      **** #endif
+ 134:eeprom.c      **** 
+ 135:eeprom.c      ****     if(retCode == I2C_CODE_OK)
+ 136:eeprom.c      ****     {
+ 137:eeprom.c      ****       // oczekuj dopoki dane zostana wyslane
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 6
+
+
+ 138:eeprom.c      ****       while(1)
+ 139:eeprom.c      ****       {
+ 140:eeprom.c      ****         status = i2cCheckStatus(); // odczytaj aktualny status i2c
+ 141:eeprom.c      **** 
+ 142:eeprom.c      ****         if( (status == 0x18) || (status == 0x28) )
+ 143:eeprom.c      ****         {
+ 144:eeprom.c      ****           // Dane wyslane i bit ACK otrzymany
+ 145:eeprom.c      **** 
+ 146:eeprom.c      ****           // Zapisz dane
+ 147:eeprom.c      ****           retCode = i2cPutChar( (tU8)(address & 0xff) );
+ 148:eeprom.c      ****           while( retCode == I2C_CODE_BUSY )
+ 149:eeprom.c      ****           {
+ 150:eeprom.c      ****             retCode = i2cPutChar( (tU8)(address & 0xff) );
+ 151:eeprom.c      ****           }
+ 152:eeprom.c      **** 
+ 153:eeprom.c      ****           break;
+ 154:eeprom.c      ****         }
+ 155:eeprom.c      ****         else if( status != 0xf8 ) // BLAD
+ 144              		.loc 1 155 0
+ 145 0062 F828     		cmp	r0, #248
+ 146 0064 0ED1     		bne	.L19
+ 147              	.LVL15:
+ 148              	.L38:
+ 140:eeprom.c      **** 
+ 149              		.loc 1 140 0
+ 150 0066 FFF7FEFF 		bl	i2cCheckStatus
+ 151              	.LVL16:
+ 142:eeprom.c      ****         {
+ 152              		.loc 1 142 0
+ 153 006a 0300     		movs	r3, r0
+ 154 006c 183B     		subs	r3, r3, #24
+ 155 006e B343     		bics	r3, r6
+ 156 0070 1B06     		lsls	r3, r3, #24
+ 157 0072 1B0E     		lsrs	r3, r3, #24
+ 158 0074 F5D1     		bne	.L20
+ 147:eeprom.c      ****           while( retCode == I2C_CODE_BUSY )
+ 159              		.loc 1 147 0
+ 160 0076 2D06     		lsls	r5, r5, #24
+ 161 0078 2D0E     		lsrs	r5, r5, #24
+ 162              	.LVL17:
+ 163              	.L22:
+ 150:eeprom.c      ****           }
+ 164              		.loc 1 150 0
+ 165 007a 2800     		movs	r0, r5
+ 166 007c FFF7FEFF 		bl	i2cPutChar
+ 167              	.LVL18:
+ 148:eeprom.c      ****           {
+ 168              		.loc 1 148 0
+ 169 0080 031D     		adds	r3, r0, #4
+ 170 0082 FAD0     		beq	.L22
+ 171              	.LVL19:
+ 172              	.L19:
+ 156:eeprom.c      ****         {
+ 157:eeprom.c      ****           retCode = I2C_CODE_ERROR;
+ 158:eeprom.c      ****           break;
+ 159:eeprom.c      ****         }
+ 160:eeprom.c      ****       }
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 7
+
+
+ 161:eeprom.c      ****     }
+ 162:eeprom.c      ****   }
+ 163:eeprom.c      **** 
+ 164:eeprom.c      ****   // oczekuj dopoki dane zostana wyslane
+ 165:eeprom.c      ****   while(1)
+ 166:eeprom.c      ****   {
+ 167:eeprom.c      ****     status = i2cCheckStatus(); // odczytaj aktualny status i2c
+ 173              		.loc 1 167 0
+ 174 0084 FFF7FEFF 		bl	i2cCheckStatus
+ 175              	.LVL20:
+ 168:eeprom.c      **** 
+ 169:eeprom.c      ****     if(status == 0x28)
+ 170:eeprom.c      ****     {
+ 171:eeprom.c      ****       // dane wyslane i bit ACK otrzymany
+ 172:eeprom.c      ****       break;
+ 173:eeprom.c      ****     }
+ 174:eeprom.c      ****     else if( status != 0xf8 ) // BLAD
+ 176              		.loc 1 174 0
+ 177 0088 F828     		cmp	r0, #248
+ 178 008a FBD0     		beq	.L19
+ 175:eeprom.c      ****     {
+ 176:eeprom.c      ****       retCode = I2C_CODE_ERROR;
+ 177:eeprom.c      ****       break;
+ 178:eeprom.c      ****     }
+ 179:eeprom.c      ****   }
+ 180:eeprom.c      **** 
+ 181:eeprom.c      ****   retCode = i2cRepeatStart(); // generowanie komunikatu start
+ 179              		.loc 1 181 0
+ 180 008c FFF7FEFF 		bl	i2cRepeatStart
+ 181              	.LVL21:
+ 182 0090 0500     		movs	r5, r0
+ 183              	.LVL22:
+ 182:eeprom.c      **** 
+ 183:eeprom.c      ****   if( retCode == I2C_CODE_OK) //jesli brak bledow to wyslij adres 
+ 184              		.loc 1 183 0
+ 185 0092 0128     		cmp	r0, #1
+ 186 0094 08D1     		bne	.L28
+ 184:eeprom.c      ****   {
+ 185:eeprom.c      ****     /* Wyslij SLA+R */
+ 186:eeprom.c      ****     retCode = i2cPutChar( devAddr + 0x01 );
+ 187              		.loc 1 186 0
+ 188 0096 0134     		adds	r4, r4, #1
+ 189 0098 2406     		lsls	r4, r4, #24
+ 190 009a 240E     		lsrs	r4, r4, #24
+ 191              	.LVL23:
+ 192              	.L26:
+ 187:eeprom.c      ****     while( retCode == I2C_CODE_BUSY )
+ 188:eeprom.c      ****     {
+ 189:eeprom.c      ****       retCode = i2cPutChar( devAddr + 0x01 );
+ 193              		.loc 1 189 0
+ 194 009c 2000     		movs	r0, r4
+ 195 009e FFF7FEFF 		bl	i2cPutChar
+ 196              	.LVL24:
+ 197 00a2 0500     		movs	r5, r0
+ 198              	.LVL25:
+ 187:eeprom.c      ****     while( retCode == I2C_CODE_BUSY )
+ 199              		.loc 1 187 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 8
+
+
+ 200 00a4 031D     		adds	r3, r0, #4
+ 201 00a6 F9D0     		beq	.L26
+ 202              	.LVL26:
+ 203              	.L28:
+ 190:eeprom.c      ****     }
+ 191:eeprom.c      ****   }
+ 192:eeprom.c      **** 
+ 193:eeprom.c      ****   /* Czekaj dopoki SLA+R wyslany */
+ 194:eeprom.c      ****   while(1)
+ 195:eeprom.c      ****   {
+ 196:eeprom.c      ****     status = i2cCheckStatus(); // odczytaj aktualny status i2c
+ 204              		.loc 1 196 0
+ 205 00a8 FFF7FEFF 		bl	i2cCheckStatus
+ 206              	.LVL27:
+ 197:eeprom.c      **** 
+ 198:eeprom.c      ****     if(status == 0x40)
+ 207              		.loc 1 198 0
+ 208 00ac 4028     		cmp	r0, #64
+ 209 00ae 08D0     		beq	.L33
+ 199:eeprom.c      ****     {
+ 200:eeprom.c      ****       // Dane wyslane i bit ACK otrzymany
+ 201:eeprom.c      ****       break;
+ 202:eeprom.c      ****     }
+ 203:eeprom.c      ****     else if(status != 0xf8) //BLAD
+ 210              		.loc 1 203 0
+ 211 00b0 F828     		cmp	r0, #248
+ 212 00b2 F9D0     		beq	.L28
+ 204:eeprom.c      ****     {
+ 205:eeprom.c      ****       retCode = I2C_CODE_ERROR;
+ 213              		.loc 1 205 0
+ 214 00b4 0125     		movs	r5, #1
+ 215              	.LVL28:
+ 216 00b6 6D42     		rsbs	r5, r5, #0
+ 206:eeprom.c      ****       break;
+ 207:eeprom.c      ****     }
+ 208:eeprom.c      ****   }
+ 209:eeprom.c      **** 
+ 210:eeprom.c      **** 
+ 211:eeprom.c      ****   return retCode;
+ 217              		.loc 1 211 0
+ 218 00b8 03E0     		b	.L33
+ 219              	.LVL29:
+ 220              	.L40:
+ 142:eeprom.c      ****         {
+ 221              		.loc 1 142 0
+ 222 00ba 1026     		movs	r6, #16
+ 106:eeprom.c      ****   {
+ 223              		.loc 1 106 0
+ 224 00bc 0128     		cmp	r0, #1
+ 225 00be D2D0     		beq	.L38
+ 226 00c0 E0E7     		b	.L19
+ 227              	.LVL30:
+ 228              	.L33:
+ 212:eeprom.c      **** }
+ 229              		.loc 1 212 0
+ 230 00c2 2800     		movs	r0, r5
+ 231              	.LVL31:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 9
+
+
+ 232              		@ sp needed
+ 233 00c4 70BC     		pop	{r4, r5, r6}
+ 234 00c6 02BC     		pop	{r1}
+ 235 00c8 0847     		bx	r1
+ 236              		.cfi_endproc
+ 237              	.LFE1:
+ 238              		.size	eepromStartRead, .-eepromStartRead
+ 239              		.align	1
+ 240              		.global	eepromPageRead
+ 241              		.code	16
+ 242              		.thumb_func
+ 243              		.type	eepromPageRead, %function
+ 244              	eepromPageRead:
+ 245              	.LFB2:
+ 213:eeprom.c      **** 
+ 214:eeprom.c      **** //-------------------------------------------------------------
+ 215:eeprom.c      **** // BUFOR DO ODCZYTU:
+ 216:eeprom.c      **** // Bajt 00: Adres urzadzenia R/Wn=0 (WRITE)			(tryb zapisu)
+ 217:eeprom.c      **** ////////// Bajt 01: EEPROM Address MSB   (A14..A08) (najbardziej znaczacy bajt adresu pamieci eepro
+ 218:eeprom.c      **** // Bajt 02: EEPROM Address LSB   (A07..A00)			(najmniej znaczacy  bajt adresu pamieci eeprom)
+ 219:eeprom.c      **** // Bajt 03: Adres urzadzenia R/Wn=1 (READ)			(tryb odczytu)
+ 220:eeprom.c      **** // Bajt 04 do 67: Buffer for data read from EEPROM  (bufor do odczytu danych z pamieci)
+ 221:eeprom.c      **** //-------------------------------------------------------------
+ 222:eeprom.c      **** //  Parametry:
+ 223:eeprom.c      **** //      pRxData     wskaznik do bufora sluzacego do odbioru danych
+ 224:eeprom.c      **** //      Length      ilosc bajtow do odbioru
+ 225:eeprom.c      **** //
+ 226:eeprom.c      **** //  Zwraca:
+ 227:eeprom.c      **** //      MA_OK lub kod statusu I2C 
+ 228:eeprom.c      **** //
+ 229:eeprom.c      **** //-------------------------------------------------------------
+ 230:eeprom.c      **** tS8 eepromPageRead(tU16 address, tU8* pBuf, tU16 len) 
+ 231:eeprom.c      **** {
+ 246              		.loc 1 231 0
+ 247              		.cfi_startproc
+ 248              		@ Function supports interworking.
+ 249              		@ args = 0, pretend = 0, frame = 0
+ 250              		@ frame_needed = 0, uses_anonymous_args = 0
+ 251              	.LVL32:
+ 252 00ca F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 253              	.LCFI2:
+ 254              		.cfi_def_cfa_offset 24
+ 255              		.cfi_offset 3, -24
+ 256              		.cfi_offset 4, -20
+ 257              		.cfi_offset 5, -16
+ 258              		.cfi_offset 6, -12
+ 259              		.cfi_offset 7, -8
+ 260              		.cfi_offset 14, -4
+ 261              		.loc 1 231 0
+ 262 00cc 0E00     		movs	r6, r1
+ 232:eeprom.c      ****   tS8  retCode = 0;
+ 233:eeprom.c      ****   tU8  status  = 0;
+ 234:eeprom.c      ****   tU16 i       = 0;
+ 235:eeprom.c      **** 
+ 236:eeprom.c      ****   /* Write 4 bytes, see 24C256 Random Read */
+ 237:eeprom.c      ****   retCode = eepromStartRead(I2C_EEPROM_ADDR, address);
+ 263              		.loc 1 237 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 10
+
+
+ 264 00ce 0100     		movs	r1, r0
+ 265              	.LVL33:
+ 266 00d0 A020     		movs	r0, #160
+ 267              	.LVL34:
+ 231:eeprom.c      ****   tS8  retCode = 0;
+ 268              		.loc 1 231 0
+ 269 00d2 1700     		movs	r7, r2
+ 270              		.loc 1 237 0
+ 271 00d4 FFF7FEFF 		bl	eepromStartRead
+ 272              	.LVL35:
+ 273 00d8 0500     		movs	r5, r0
+ 274              	.LVL36:
+ 275 00da 0400     		movs	r4, r0
+ 238:eeprom.c      **** 
+ 239:eeprom.c      **** 
+ 240:eeprom.c      ****   if( retCode == I2C_CODE_OK )
+ 276              		.loc 1 240 0
+ 277 00dc 0128     		cmp	r0, #1
+ 278 00de 25D1     		bne	.L42
+ 279              	.LVL37:
+ 280              	.L43:
+ 241:eeprom.c      ****   {
+ 242:eeprom.c      ****     // oczekuj dopoki wyslany zostanie adres i odbieraj dane
+ 243:eeprom.c      ****     for(i = 1; i <= len; i++ )
+ 281              		.loc 1 243 0 discriminator 1
+ 282 00e0 BC42     		cmp	r4, r7
+ 283 00e2 23D8     		bhi	.L42
+ 284              	.L55:
+ 244:eeprom.c      ****     {
+ 245:eeprom.c      ****       //oczekuj dopoki wyslane zostana wszystkie bajty danych 
+ 246:eeprom.c      ****       while(1)
+ 247:eeprom.c      ****       {
+ 248:eeprom.c      ****         status = i2cCheckStatus(); //odczytaj aktualny status i2c
+ 285              		.loc 1 248 0
+ 286 00e4 FFF7FEFF 		bl	i2cCheckStatus
+ 287              	.LVL38:
+ 249:eeprom.c      **** 
+ 250:eeprom.c      ****         if(( status == 0x40 ) || ( status == 0x48 ) || ( status == 0x50 ))
+ 288              		.loc 1 250 0
+ 289 00e8 0822     		movs	r2, #8
+ 290 00ea 0300     		movs	r3, r0
+ 291 00ec 9343     		bics	r3, r2
+ 292 00ee 1B06     		lsls	r3, r3, #24
+ 293 00f0 1B0E     		lsrs	r3, r3, #24
+ 294 00f2 402B     		cmp	r3, #64
+ 295 00f4 01D0     		beq	.L44
+ 296              		.loc 1 250 0 is_stmt 0 discriminator 2
+ 297 00f6 5028     		cmp	r0, #80
+ 298 00f8 0FD1     		bne	.L45
+ 299              	.L44:
+ 251:eeprom.c      ****         {
+ 252:eeprom.c      **** 			// dane otrzymane
+ 253:eeprom.c      **** 
+ 254:eeprom.c      ****           if(i == len )
+ 255:eeprom.c      ****           {
+ 256:eeprom.c      **** 			//generowanie bitu NACK gdy otrzymano wszystkie bajty
+ 257:eeprom.c      ****             retCode = i2cGetChar( I2C_MODE_ACK1, pBuf );
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 11
+
+
+ 300              		.loc 1 257 0 is_stmt 1
+ 301 00fa 3100     		movs	r1, r6
+ 302 00fc 0120     		movs	r0, #1
+ 303              	.LVL39:
+ 254:eeprom.c      ****           {
+ 304              		.loc 1 254 0
+ 305 00fe BC42     		cmp	r4, r7
+ 306 0100 00D0     		beq	.L58
+ 307              	.LVL40:
+ 258:eeprom.c      ****           }
+ 259:eeprom.c      ****           else
+ 260:eeprom.c      ****           {
+ 261:eeprom.c      ****             retCode = i2cGetChar( I2C_MODE_ACK0, pBuf );
+ 308              		.loc 1 261 0
+ 309 0102 0020     		movs	r0, #0
+ 310              	.L58:
+ 311 0104 FFF7FEFF 		bl	i2cGetChar
+ 312              	.LVL41:
+ 313              	.L49:
+ 262:eeprom.c      ****           }
+ 263:eeprom.c      **** 
+ 264:eeprom.c      **** 		//odczytaj dane
+ 265:eeprom.c      ****           retCode = i2cGetChar( I2C_MODE_READ, pBuf );
+ 266:eeprom.c      ****           while( retCode == I2C_CODE_EMPTY )
+ 267:eeprom.c      ****           {
+ 268:eeprom.c      ****             retCode = i2cGetChar( I2C_MODE_READ, pBuf );
+ 314              		.loc 1 268 0
+ 315 0108 3100     		movs	r1, r6
+ 316 010a 0220     		movs	r0, #2
+ 317 010c FFF7FEFF 		bl	i2cGetChar
+ 318              	.LVL42:
+ 319 0110 0500     		movs	r5, r0
+ 320              	.LVL43:
+ 266:eeprom.c      ****           {
+ 321              		.loc 1 266 0
+ 322 0112 C31C     		adds	r3, r0, #3
+ 323 0114 F8D0     		beq	.L49
+ 269:eeprom.c      ****           }
+ 270:eeprom.c      ****           pBuf++;
+ 324              		.loc 1 270 0
+ 325 0116 0136     		adds	r6, r6, #1
+ 326              	.LVL44:
+ 271:eeprom.c      **** 
+ 272:eeprom.c      ****           break;
+ 327              		.loc 1 272 0
+ 328 0118 04E0     		b	.L50
+ 329              	.LVL45:
+ 330              	.L45:
+ 273:eeprom.c      ****         }
+ 274:eeprom.c      ****         else if( status != 0xf8 ) //BLAD
+ 331              		.loc 1 274 0
+ 332 011a F828     		cmp	r0, #248
+ 333 011c E2D0     		beq	.L55
+ 275:eeprom.c      ****         {
+ 276:eeprom.c      ****           i = len;
+ 277:eeprom.c      ****           retCode = I2C_CODE_ERROR;
+ 334              		.loc 1 277 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 12
+
+
+ 335 011e 0125     		movs	r5, #1
+ 336              	.LVL46:
+ 337 0120 3C00     		movs	r4, r7
+ 338              	.LVL47:
+ 339 0122 6D42     		rsbs	r5, r5, #0
+ 340              	.LVL48:
+ 341              	.L50:
+ 243:eeprom.c      ****     {
+ 342              		.loc 1 243 0 discriminator 2
+ 343 0124 0134     		adds	r4, r4, #1
+ 344              	.LVL49:
+ 345 0126 2404     		lsls	r4, r4, #16
+ 346 0128 240C     		lsrs	r4, r4, #16
+ 347              	.LVL50:
+ 348 012a D9E7     		b	.L43
+ 349              	.LVL51:
+ 350              	.L42:
+ 278:eeprom.c      ****           break;
+ 279:eeprom.c      ****         }
+ 280:eeprom.c      ****       }
+ 281:eeprom.c      ****     }
+ 282:eeprom.c      ****   }
+ 283:eeprom.c      **** 
+ 284:eeprom.c      ****   i2cStop(); //generowanie sygnalu stop
+ 351              		.loc 1 284 0
+ 352 012c FFF7FEFF 		bl	i2cStop
+ 353              	.LVL52:
+ 285:eeprom.c      **** 
+ 286:eeprom.c      ****   return retCode;
+ 287:eeprom.c      **** 
+ 288:eeprom.c      **** }
+ 354              		.loc 1 288 0
+ 355              		@ sp needed
+ 356 0130 2800     		movs	r0, r5
+ 357              	.LVL53:
+ 358              	.LVL54:
+ 359 0132 F8BC     		pop	{r3, r4, r5, r6, r7}
+ 360 0134 02BC     		pop	{r1}
+ 361 0136 0847     		bx	r1
+ 362              		.cfi_endproc
+ 363              	.LFE2:
+ 364              		.size	eepromPageRead, .-eepromPageRead
+ 365              		.align	1
+ 366              		.global	eepromWrite
+ 367              		.code	16
+ 368              		.thumb_func
+ 369              		.type	eepromWrite, %function
+ 370              	eepromWrite:
+ 371              	.LFB3:
+ 289:eeprom.c      **** 
+ 290:eeprom.c      **** tS8 eepromWrite(tU16 addr, tU8* pData, tU16 len)
+ 291:eeprom.c      **** {
+ 372              		.loc 1 291 0
+ 373              		.cfi_startproc
+ 374              		@ Function supports interworking.
+ 375              		@ args = 0, pretend = 0, frame = 0
+ 376              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 13
+
+
+ 377              	.LVL55:
+ 378 0138 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 379              	.LCFI3:
+ 380              		.cfi_def_cfa_offset 24
+ 381              		.cfi_offset 3, -24
+ 382              		.cfi_offset 4, -20
+ 383              		.cfi_offset 5, -16
+ 384              		.cfi_offset 6, -12
+ 385              		.cfi_offset 7, -8
+ 386              		.cfi_offset 14, -4
+ 387              		.loc 1 291 0
+ 388 013a 0700     		movs	r7, r0
+ 389 013c 0E00     		movs	r6, r1
+ 390 013e 1500     		movs	r5, r2
+ 292:eeprom.c      ****   tS8 retCode = 0;
+ 293:eeprom.c      ****   tU8 i       = 0;
+ 294:eeprom.c      **** 
+ 295:eeprom.c      ****   do
+ 296:eeprom.c      ****   {
+ 297:eeprom.c      ****     retCode = i2cStart(); // wyslanie komunikatu start
+ 391              		.loc 1 297 0
+ 392 0140 FFF7FEFF 		bl	i2cStart
+ 393              	.LVL56:
+ 394 0144 0400     		movs	r4, r0
+ 395              	.LVL57:
+ 298:eeprom.c      ****     if(retCode != I2C_CODE_OK)
+ 396              		.loc 1 298 0
+ 397 0146 0128     		cmp	r0, #1
+ 398 0148 18D1     		bne	.L60
+ 299:eeprom.c      ****       break;
+ 300:eeprom.c      **** 
+ 301:eeprom.c      **** 
+ 302:eeprom.c      ****     // zapisz EEPROM I2C adres */
+ 303:eeprom.c      ****     retCode = i2cWriteWithWait(I2C_EEPROM_ADDR);
+ 399              		.loc 1 303 0
+ 400 014a A020     		movs	r0, #160
+ 401              	.LVL58:
+ 402 014c FFF7FEFF 		bl	i2cWriteWithWait
+ 403              	.LVL59:
+ 404 0150 0400     		movs	r4, r0
+ 405              	.LVL60:
+ 304:eeprom.c      ****     if(retCode != I2C_CODE_OK)
+ 406              		.loc 1 304 0
+ 407 0152 0128     		cmp	r0, #1
+ 408 0154 12D1     		bne	.L60
+ 305:eeprom.c      ****       break;
+ 306:eeprom.c      **** 
+ 307:eeprom.c      **** #if 0
+ 308:eeprom.c      ****     // zapis offsetu high w przestrzeni EEPROM 
+ 309:eeprom.c      ****     retCode = i2cWriteWithWait( (tU8)(addr >> 8));
+ 310:eeprom.c      ****     if(retCode != I2C_CODE_OK)
+ 311:eeprom.c      ****       break;
+ 312:eeprom.c      **** #endif
+ 313:eeprom.c      **** 
+ 314:eeprom.c      ****     // zapis offsetu low w przestrzeni EEPROM 
+ 315:eeprom.c      ****     retCode = i2cWriteWithWait( (tU8)(addr & 0xFF));
+ 409              		.loc 1 315 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 14
+
+
+ 410 0156 3806     		lsls	r0, r7, #24
+ 411              	.LVL61:
+ 412 0158 000E     		lsrs	r0, r0, #24
+ 413 015a FFF7FEFF 		bl	i2cWriteWithWait
+ 414              	.LVL62:
+ 415 015e 0027     		movs	r7, #0
+ 416 0160 0400     		movs	r4, r0
+ 417              	.LVL63:
+ 316:eeprom.c      ****     if(retCode != I2C_CODE_OK)
+ 418              		.loc 1 316 0
+ 419 0162 0128     		cmp	r0, #1
+ 420 0164 0AD1     		bne	.L60
+ 421              	.LVL64:
+ 422              	.L62:
+ 317:eeprom.c      ****       break;
+ 318:eeprom.c      **** 
+ 319:eeprom.c      **** 	// zapis danych
+ 320:eeprom.c      ****     for(i = 0; i <len; i++) 
+ 423              		.loc 1 320 0 discriminator 1
+ 424 0166 3B06     		lsls	r3, r7, #24
+ 425 0168 1B0E     		lsrs	r3, r3, #24
+ 426 016a AB42     		cmp	r3, r5
+ 427 016c 06D2     		bcs	.L60
+ 321:eeprom.c      ****     {
+ 322:eeprom.c      ****       retCode = i2cWriteWithWait(*pData);
+ 428              		.loc 1 322 0
+ 429 016e F05D     		ldrb	r0, [r6, r7]
+ 430 0170 FFF7FEFF 		bl	i2cWriteWithWait
+ 431              	.LVL65:
+ 432 0174 0137     		adds	r7, r7, #1
+ 433              	.LVL66:
+ 323:eeprom.c      ****       if(retCode != I2C_CODE_OK)
+ 434              		.loc 1 323 0
+ 435 0176 0128     		cmp	r0, #1
+ 436 0178 F5D0     		beq	.L62
+ 322:eeprom.c      ****       if(retCode != I2C_CODE_OK)
+ 437              		.loc 1 322 0
+ 438 017a 0400     		movs	r4, r0
+ 439              	.LVL67:
+ 440              	.L60:
+ 324:eeprom.c      ****         break;
+ 325:eeprom.c      **** 
+ 326:eeprom.c      ****       pData++;
+ 327:eeprom.c      ****     }
+ 328:eeprom.c      **** 
+ 329:eeprom.c      ****   } while(0);
+ 330:eeprom.c      **** 
+ 331:eeprom.c      ****   i2cStop(); //generowanie komunikatu stop
+ 441              		.loc 1 331 0
+ 442 017c FFF7FEFF 		bl	i2cStop
+ 443              	.LVL68:
+ 332:eeprom.c      **** 
+ 333:eeprom.c      ****   return retCode;
+ 334:eeprom.c      **** }
+ 444              		.loc 1 334 0
+ 445              		@ sp needed
+ 446 0180 2000     		movs	r0, r4
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 15
+
+
+ 447              	.LVL69:
+ 448 0182 F8BC     		pop	{r3, r4, r5, r6, r7}
+ 449 0184 02BC     		pop	{r1}
+ 450 0186 0847     		bx	r1
+ 451              		.cfi_endproc
+ 452              	.LFE3:
+ 453              		.size	eepromWrite, .-eepromWrite
+ 454              		.align	1
+ 455              		.global	lm75Read
+ 456              		.code	16
+ 457              		.thumb_func
+ 458              		.type	lm75Read, %function
+ 459              	lm75Read:
+ 460              	.LFB4:
+ 335:eeprom.c      **** /******************************************************************************
+ 336:eeprom.c      ****  *
+ 337:eeprom.c      ****  * Opis:
+ 338:eeprom.c      ****  *    Odczyt temperatury z czujnika LM75
+ 339:eeprom.c      ****  *
+ 340:eeprom.c      ****  * Parametry:
+ 341:eeprom.c      ****  *    devAddr - adres urzadzenia z ktorego odbywa sie odczyt
+ 342:eeprom.c      ****  *    pBuf    - bufor do przechowywania danych
+ 343:eeprom.c      ****  *    len     - ilosc przesylanych bajtow
+ 344:eeprom.c      ****  *
+ 345:eeprom.c      ****  * Zwraca:
+ 346:eeprom.c      ****  *    I2C_CODE_OK lub I2C_CODE_ERROR
+ 347:eeprom.c      ****  *
+ 348:eeprom.c      ****  *****************************************************************************/
+ 349:eeprom.c      **** tS8 lm75Read(tU8 address, tU8* pBuf, tU16 len) 
+ 350:eeprom.c      **** {
+ 461              		.loc 1 350 0
+ 462              		.cfi_startproc
+ 463              		@ Function supports interworking.
+ 464              		@ args = 0, pretend = 0, frame = 0
+ 465              		@ frame_needed = 0, uses_anonymous_args = 0
+ 466              	.LVL70:
+ 467 0188 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 468              	.LCFI4:
+ 469              		.cfi_def_cfa_offset 24
+ 470              		.cfi_offset 3, -24
+ 471              		.cfi_offset 4, -20
+ 472              		.cfi_offset 5, -16
+ 473              		.cfi_offset 6, -12
+ 474              		.cfi_offset 7, -8
+ 475              		.cfi_offset 14, -4
+ 476              		.loc 1 350 0
+ 477 018a 0E00     		movs	r6, r1
+ 351:eeprom.c      ****   tS8  retCode = 0;
+ 352:eeprom.c      ****   tU8  status  = 0;
+ 353:eeprom.c      ****   tU16 i       = 0;
+ 354:eeprom.c      **** 
+ 355:eeprom.c      ****   retCode = eepromStartRead(address, 0);
+ 478              		.loc 1 355 0
+ 479 018c 0021     		movs	r1, #0
+ 480              	.LVL71:
+ 350:eeprom.c      ****   tS8  retCode = 0;
+ 481              		.loc 1 350 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 16
+
+
+ 482 018e 1700     		movs	r7, r2
+ 483              		.loc 1 355 0
+ 484 0190 FFF7FEFF 		bl	eepromStartRead
+ 485              	.LVL72:
+ 486 0194 0500     		movs	r5, r0
+ 487              	.LVL73:
+ 488 0196 0400     		movs	r4, r0
+ 356:eeprom.c      **** 
+ 357:eeprom.c      ****   if( retCode == I2C_CODE_OK ) 
+ 489              		.loc 1 357 0
+ 490 0198 0128     		cmp	r0, #1
+ 491 019a 25D1     		bne	.L66
+ 492              	.LVL74:
+ 493              	.L67:
+ 358:eeprom.c      ****   {
+ 359:eeprom.c      ****     for(i = 1; i <= len; i++ ) // oczekuj az adres zostanie wyslany i odbieraj dane
+ 494              		.loc 1 359 0 discriminator 1
+ 495 019c BC42     		cmp	r4, r7
+ 496 019e 23D8     		bhi	.L66
+ 497              	.L79:
+ 360:eeprom.c      **** 
+ 361:eeprom.c      ****     {
+ 362:eeprom.c      **** 		// oczekuj dopoki dane zostana wyslane
+ 363:eeprom.c      ****       while(1)
+ 364:eeprom.c      ****       {
+ 365:eeprom.c      ****         status = i2cCheckStatus(); //sprawdz status i2c
+ 498              		.loc 1 365 0
+ 499 01a0 FFF7FEFF 		bl	i2cCheckStatus
+ 500              	.LVL75:
+ 366:eeprom.c      **** 
+ 367:eeprom.c      ****         if(( status == 0x40 ) || ( status == 0x48 ) || ( status == 0x50 ))
+ 501              		.loc 1 367 0
+ 502 01a4 0822     		movs	r2, #8
+ 503 01a6 0300     		movs	r3, r0
+ 504 01a8 9343     		bics	r3, r2
+ 505 01aa 1B06     		lsls	r3, r3, #24
+ 506 01ac 1B0E     		lsrs	r3, r3, #24
+ 507 01ae 402B     		cmp	r3, #64
+ 508 01b0 01D0     		beq	.L68
+ 509              		.loc 1 367 0 is_stmt 0 discriminator 2
+ 510 01b2 5028     		cmp	r0, #80
+ 511 01b4 0FD1     		bne	.L69
+ 512              	.L68:
+ 368:eeprom.c      ****         {
+ 369:eeprom.c      **** 	      // jesli dane otrzymane
+ 370:eeprom.c      ****           if(i == len )
+ 371:eeprom.c      ****           {
+ 372:eeprom.c      ****             retCode = i2cGetChar( I2C_MODE_ACK1, pBuf ); //jesli wszystkie dane odebrane to wysylam
+ 513              		.loc 1 372 0 is_stmt 1
+ 514 01b6 3100     		movs	r1, r6
+ 515 01b8 0120     		movs	r0, #1
+ 516              	.LVL76:
+ 370:eeprom.c      ****           {
+ 517              		.loc 1 370 0
+ 518 01ba BC42     		cmp	r4, r7
+ 519 01bc 00D0     		beq	.L82
+ 520              	.LVL77:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 17
+
+
+ 373:eeprom.c      ****           }
+ 374:eeprom.c      ****           else
+ 375:eeprom.c      ****           {
+ 376:eeprom.c      ****             retCode = i2cGetChar( I2C_MODE_ACK0, pBuf ); //jesli nie to wysylamy bit ACK
+ 521              		.loc 1 376 0
+ 522 01be 0020     		movs	r0, #0
+ 523              	.L82:
+ 524 01c0 FFF7FEFF 		bl	i2cGetChar
+ 525              	.LVL78:
+ 526              	.L73:
+ 377:eeprom.c      ****           }
+ 378:eeprom.c      **** 		  
+ 379:eeprom.c      ****           retCode = i2cGetChar( I2C_MODE_READ, pBuf );  //ustawienie trybu odczytu 
+ 380:eeprom.c      ****          
+ 381:eeprom.c      **** 		 while( retCode == I2C_CODE_EMPTY )          
+ 382:eeprom.c      ****           {
+ 383:eeprom.c      ****             retCode = i2cGetChar( I2C_MODE_READ, pBuf );
+ 527              		.loc 1 383 0
+ 528 01c4 3100     		movs	r1, r6
+ 529 01c6 0220     		movs	r0, #2
+ 530 01c8 FFF7FEFF 		bl	i2cGetChar
+ 531              	.LVL79:
+ 532 01cc 0500     		movs	r5, r0
+ 533              	.LVL80:
+ 381:eeprom.c      ****           {
+ 534              		.loc 1 381 0
+ 535 01ce C31C     		adds	r3, r0, #3
+ 536 01d0 F8D0     		beq	.L73
+ 384:eeprom.c      ****           }
+ 385:eeprom.c      ****           pBuf++;
+ 537              		.loc 1 385 0
+ 538 01d2 0136     		adds	r6, r6, #1
+ 539              	.LVL81:
+ 386:eeprom.c      **** 
+ 387:eeprom.c      ****           break;
+ 540              		.loc 1 387 0
+ 541 01d4 04E0     		b	.L74
+ 542              	.LVL82:
+ 543              	.L69:
+ 388:eeprom.c      ****         }
+ 389:eeprom.c      ****         else if( status != 0xf8 ) //gdy BLAD
+ 544              		.loc 1 389 0
+ 545 01d6 F828     		cmp	r0, #248
+ 546 01d8 E2D0     		beq	.L79
+ 390:eeprom.c      ****         {
+ 391:eeprom.c      ****           i = len;
+ 392:eeprom.c      ****           retCode = I2C_CODE_ERROR;
+ 547              		.loc 1 392 0
+ 548 01da 0125     		movs	r5, #1
+ 549              	.LVL83:
+ 550 01dc 3C00     		movs	r4, r7
+ 551              	.LVL84:
+ 552 01de 6D42     		rsbs	r5, r5, #0
+ 553              	.LVL85:
+ 554              	.L74:
+ 359:eeprom.c      **** 
+ 555              		.loc 1 359 0 discriminator 2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 18
+
+
+ 556 01e0 0134     		adds	r4, r4, #1
+ 557              	.LVL86:
+ 558 01e2 2404     		lsls	r4, r4, #16
+ 559 01e4 240C     		lsrs	r4, r4, #16
+ 560              	.LVL87:
+ 561 01e6 D9E7     		b	.L67
+ 562              	.LVL88:
+ 563              	.L66:
+ 393:eeprom.c      ****           break;
+ 394:eeprom.c      ****         }
+ 395:eeprom.c      ****       }
+ 396:eeprom.c      ****     }
+ 397:eeprom.c      ****   }
+ 398:eeprom.c      **** 
+ 399:eeprom.c      ****   i2cStop(); //generowanie komunikatu stop
+ 564              		.loc 1 399 0
+ 565 01e8 FFF7FEFF 		bl	i2cStop
+ 566              	.LVL89:
+ 400:eeprom.c      **** 
+ 401:eeprom.c      ****   return retCode;
+ 402:eeprom.c      **** 
+ 403:eeprom.c      **** }
+ 567              		.loc 1 403 0
+ 568              		@ sp needed
+ 569 01ec 2800     		movs	r0, r5
+ 570              	.LVL90:
+ 571              	.LVL91:
+ 572 01ee F8BC     		pop	{r3, r4, r5, r6, r7}
+ 573 01f0 02BC     		pop	{r1}
+ 574 01f2 0847     		bx	r1
+ 575              		.cfi_endproc
+ 576              	.LFE4:
+ 577              		.size	lm75Read, .-lm75Read
+ 578              	.Letext0:
+ 579              		.file 2 "general.h"
+ 580              		.file 3 "i2c.h"
+ 581              		.section	.debug_info,"",%progbits
+ 582              	.Ldebug_info0:
+ 583 0000 78040000 		.4byte	0x478
+ 584 0004 0200     		.2byte	0x2
+ 585 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 586 000a 04       		.byte	0x4
+ 587 000b 01       		.uleb128 0x1
+ 588 000c 63010000 		.4byte	.LASF31
+ 589 0010 0C       		.byte	0xc
+ 590 0011 E3010000 		.4byte	.LASF32
+ 591 0015 ED000000 		.4byte	.LASF33
+ 592 0019 00000000 		.4byte	.Ltext0
+ 593 001d F4010000 		.4byte	.Letext0
+ 594 0021 00000000 		.4byte	.Ldebug_line0
+ 595 0025 02       		.uleb128 0x2
+ 596 0026 74553800 		.ascii	"tU8\000"
+ 597 002a 02       		.byte	0x2
+ 598 002b 12       		.byte	0x12
+ 599 002c 30000000 		.4byte	0x30
+ 600 0030 03       		.uleb128 0x3
+ 601 0031 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 19
+
+
+ 602 0032 08       		.byte	0x8
+ 603 0033 A8000000 		.4byte	.LASF1
+ 604 0037 04       		.uleb128 0x4
+ 605 0038 58010000 		.4byte	.LASF0
+ 606 003c 02       		.byte	0x2
+ 607 003d 13       		.byte	0x13
+ 608 003e 42000000 		.4byte	0x42
+ 609 0042 03       		.uleb128 0x3
+ 610 0043 02       		.byte	0x2
+ 611 0044 07       		.byte	0x7
+ 612 0045 25010000 		.4byte	.LASF2
+ 613 0049 03       		.uleb128 0x3
+ 614 004a 04       		.byte	0x4
+ 615 004b 07       		.byte	0x7
+ 616 004c 1D000000 		.4byte	.LASF3
+ 617 0050 03       		.uleb128 0x3
+ 618 0051 08       		.byte	0x8
+ 619 0052 07       		.byte	0x7
+ 620 0053 76000000 		.4byte	.LASF4
+ 621 0057 02       		.uleb128 0x2
+ 622 0058 74533800 		.ascii	"tS8\000"
+ 623 005c 02       		.byte	0x2
+ 624 005d 16       		.byte	0x16
+ 625 005e 62000000 		.4byte	0x62
+ 626 0062 03       		.uleb128 0x3
+ 627 0063 01       		.byte	0x1
+ 628 0064 06       		.byte	0x6
+ 629 0065 38010000 		.4byte	.LASF5
+ 630 0069 03       		.uleb128 0x3
+ 631 006a 02       		.byte	0x2
+ 632 006b 05       		.byte	0x5
+ 633 006c DB000000 		.4byte	.LASF6
+ 634 0070 05       		.uleb128 0x5
+ 635 0071 04       		.byte	0x4
+ 636 0072 05       		.byte	0x5
+ 637 0073 696E7400 		.ascii	"int\000"
+ 638 0077 03       		.uleb128 0x3
+ 639 0078 08       		.byte	0x8
+ 640 0079 05       		.byte	0x5
+ 641 007a 00000000 		.4byte	.LASF7
+ 642 007e 06       		.uleb128 0x6
+ 643 007f 01       		.byte	0x1
+ 644 0080 30000000 		.4byte	0x30
+ 645 0084 02       		.byte	0x2
+ 646 0085 1A       		.byte	0x1a
+ 647 0086 97000000 		.4byte	0x97
+ 648 008a 07       		.uleb128 0x7
+ 649 008b 59000000 		.4byte	.LASF8
+ 650 008f 00       		.byte	0
+ 651 0090 07       		.uleb128 0x7
+ 652 0091 B6000000 		.4byte	.LASF9
+ 653 0095 01       		.byte	0x1
+ 654 0096 00       		.byte	0
+ 655 0097 04       		.uleb128 0x4
+ 656 0098 5D010000 		.4byte	.LASF10
+ 657 009c 02       		.byte	0x2
+ 658 009d 1B       		.byte	0x1b
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 20
+
+
+ 659 009e 7E000000 		.4byte	0x7e
+ 660 00a2 08       		.uleb128 0x8
+ 661 00a3 01       		.byte	0x1
+ 662 00a4 44010000 		.4byte	.LASF14
+ 663 00a8 01       		.byte	0x1
+ 664 00a9 18       		.byte	0x18
+ 665 00aa 01       		.byte	0x1
+ 666 00ab 57000000 		.4byte	0x57
+ 667 00af 00000000 		.4byte	.LFB0
+ 668 00b3 48000000 		.4byte	.LFE0
+ 669 00b7 00000000 		.4byte	.LLST0
+ 670 00bb 01       		.byte	0x1
+ 671 00bc 1D010000 		.4byte	0x11d
+ 672 00c0 09       		.uleb128 0x9
+ 673 00c1 41000000 		.4byte	.LASF11
+ 674 00c5 01       		.byte	0x1
+ 675 00c6 1A       		.byte	0x1a
+ 676 00c7 57000000 		.4byte	0x57
+ 677 00cb 20000000 		.4byte	.LLST1
+ 678 00cf 09       		.uleb128 0x9
+ 679 00d0 5F000000 		.4byte	.LASF12
+ 680 00d4 01       		.byte	0x1
+ 681 00d5 1B       		.byte	0x1b
+ 682 00d6 25000000 		.4byte	0x25
+ 683 00da 55000000 		.4byte	.LLST2
+ 684 00de 09       		.uleb128 0x9
+ 685 00df E5000000 		.4byte	.LASF13
+ 686 00e3 01       		.byte	0x1
+ 687 00e4 1C       		.byte	0x1c
+ 688 00e5 97000000 		.4byte	0x97
+ 689 00e9 68000000 		.4byte	.LLST3
+ 690 00ed 0A       		.uleb128 0xa
+ 691 00ee 06000000 		.4byte	.LVL1
+ 692 00f2 20040000 		.4byte	0x420
+ 693 00f6 0B       		.uleb128 0xb
+ 694 00f7 14000000 		.4byte	.LVL4
+ 695 00fb 2D040000 		.4byte	0x42d
+ 696 00ff 0A010000 		.4byte	0x10a
+ 697 0103 0C       		.uleb128 0xc
+ 698 0104 01       		.byte	0x1
+ 699 0105 50       		.byte	0x50
+ 700 0106 02       		.byte	0x2
+ 701 0107 09       		.byte	0x9
+ 702 0108 A0       		.byte	0xa0
+ 703 0109 00       		.byte	0
+ 704 010a 0A       		.uleb128 0xa
+ 705 010b 24000000 		.4byte	.LVL6
+ 706 010f 3A040000 		.4byte	0x43a
+ 707 0113 0A       		.uleb128 0xa
+ 708 0114 3C000000 		.4byte	.LVL8
+ 709 0118 47040000 		.4byte	0x447
+ 710 011c 00       		.byte	0
+ 711 011d 08       		.uleb128 0x8
+ 712 011e 01       		.byte	0x1
+ 713 011f 49000000 		.4byte	.LASF15
+ 714 0123 01       		.byte	0x1
+ 715 0124 58       		.byte	0x58
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 21
+
+
+ 716 0125 01       		.byte	0x1
+ 717 0126 57000000 		.4byte	0x57
+ 718 012a 48000000 		.4byte	.LFB1
+ 719 012e CA000000 		.4byte	.LFE1
+ 720 0132 7C000000 		.4byte	.LLST4
+ 721 0136 01       		.byte	0x1
+ 722 0137 E1010000 		.4byte	0x1e1
+ 723 013b 0D       		.uleb128 0xd
+ 724 013c 8D000000 		.4byte	.LASF16
+ 725 0140 01       		.byte	0x1
+ 726 0141 58       		.byte	0x58
+ 727 0142 25000000 		.4byte	0x25
+ 728 0146 9C000000 		.4byte	.LLST5
+ 729 014a 0D       		.uleb128 0xd
+ 730 014b 66000000 		.4byte	.LASF17
+ 731 014f 01       		.byte	0x1
+ 732 0150 58       		.byte	0x58
+ 733 0151 37000000 		.4byte	0x37
+ 734 0155 BD000000 		.4byte	.LLST6
+ 735 0159 09       		.uleb128 0x9
+ 736 015a 41000000 		.4byte	.LASF11
+ 737 015e 01       		.byte	0x1
+ 738 015f 5A       		.byte	0x5a
+ 739 0160 57000000 		.4byte	0x57
+ 740 0164 DE000000 		.4byte	.LLST7
+ 741 0168 09       		.uleb128 0x9
+ 742 0169 5F000000 		.4byte	.LASF12
+ 743 016d 01       		.byte	0x1
+ 744 016e 5B       		.byte	0x5b
+ 745 016f 25000000 		.4byte	0x25
+ 746 0173 3F010000 		.4byte	.LLST8
+ 747 0177 0A       		.uleb128 0xa
+ 748 0178 52000000 		.4byte	.LVL11
+ 749 017c 20040000 		.4byte	0x420
+ 750 0180 0B       		.uleb128 0xb
+ 751 0181 5C000000 		.4byte	.LVL13
+ 752 0185 2D040000 		.4byte	0x42d
+ 753 0189 94010000 		.4byte	0x194
+ 754 018d 0C       		.uleb128 0xc
+ 755 018e 01       		.byte	0x1
+ 756 018f 50       		.byte	0x50
+ 757 0190 02       		.byte	0x2
+ 758 0191 74       		.byte	0x74
+ 759 0192 00       		.sleb128 0
+ 760 0193 00       		.byte	0
+ 761 0194 0A       		.uleb128 0xa
+ 762 0195 6A000000 		.4byte	.LVL16
+ 763 0199 3A040000 		.4byte	0x43a
+ 764 019d 0B       		.uleb128 0xb
+ 765 019e 80000000 		.4byte	.LVL18
+ 766 01a2 2D040000 		.4byte	0x42d
+ 767 01a6 B1010000 		.4byte	0x1b1
+ 768 01aa 0C       		.uleb128 0xc
+ 769 01ab 01       		.byte	0x1
+ 770 01ac 50       		.byte	0x50
+ 771 01ad 02       		.byte	0x2
+ 772 01ae 75       		.byte	0x75
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 22
+
+
+ 773 01af 00       		.sleb128 0
+ 774 01b0 00       		.byte	0
+ 775 01b1 0A       		.uleb128 0xa
+ 776 01b2 88000000 		.4byte	.LVL20
+ 777 01b6 3A040000 		.4byte	0x43a
+ 778 01ba 0A       		.uleb128 0xa
+ 779 01bb 90000000 		.4byte	.LVL21
+ 780 01bf 54040000 		.4byte	0x454
+ 781 01c3 0B       		.uleb128 0xb
+ 782 01c4 A2000000 		.4byte	.LVL24
+ 783 01c8 2D040000 		.4byte	0x42d
+ 784 01cc D7010000 		.4byte	0x1d7
+ 785 01d0 0C       		.uleb128 0xc
+ 786 01d1 01       		.byte	0x1
+ 787 01d2 50       		.byte	0x50
+ 788 01d3 02       		.byte	0x2
+ 789 01d4 74       		.byte	0x74
+ 790 01d5 00       		.sleb128 0
+ 791 01d6 00       		.byte	0
+ 792 01d7 0A       		.uleb128 0xa
+ 793 01d8 AC000000 		.4byte	.LVL27
+ 794 01dc 3A040000 		.4byte	0x43a
+ 795 01e0 00       		.byte	0
+ 796 01e1 08       		.uleb128 0x8
+ 797 01e2 01       		.byte	0x1
+ 798 01e3 0B010000 		.4byte	.LASF18
+ 799 01e7 01       		.byte	0x1
+ 800 01e8 E6       		.byte	0xe6
+ 801 01e9 01       		.byte	0x1
+ 802 01ea 57000000 		.4byte	0x57
+ 803 01ee CA000000 		.4byte	.LFB2
+ 804 01f2 38010000 		.4byte	.LFE2
+ 805 01f6 96010000 		.4byte	.LLST9
+ 806 01fa 01       		.byte	0x1
+ 807 01fb A0020000 		.4byte	0x2a0
+ 808 01ff 0D       		.uleb128 0xd
+ 809 0200 66000000 		.4byte	.LASF17
+ 810 0204 01       		.byte	0x1
+ 811 0205 E6       		.byte	0xe6
+ 812 0206 37000000 		.4byte	0x37
+ 813 020a B6010000 		.4byte	.LLST10
+ 814 020e 0D       		.uleb128 0xd
+ 815 020f A3000000 		.4byte	.LASF19
+ 816 0213 01       		.byte	0x1
+ 817 0214 E6       		.byte	0xe6
+ 818 0215 A0020000 		.4byte	0x2a0
+ 819 0219 D7010000 		.4byte	.LLST11
+ 820 021d 0E       		.uleb128 0xe
+ 821 021e 6C656E00 		.ascii	"len\000"
+ 822 0222 01       		.byte	0x1
+ 823 0223 E6       		.byte	0xe6
+ 824 0224 37000000 		.4byte	0x37
+ 825 0228 0B020000 		.4byte	.LLST12
+ 826 022c 09       		.uleb128 0x9
+ 827 022d 41000000 		.4byte	.LASF11
+ 828 0231 01       		.byte	0x1
+ 829 0232 E8       		.byte	0xe8
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 23
+
+
+ 830 0233 57000000 		.4byte	0x57
+ 831 0237 2C020000 		.4byte	.LLST13
+ 832 023b 09       		.uleb128 0x9
+ 833 023c 5F000000 		.4byte	.LASF12
+ 834 0240 01       		.byte	0x1
+ 835 0241 E9       		.byte	0xe9
+ 836 0242 25000000 		.4byte	0x25
+ 837 0246 77020000 		.4byte	.LLST14
+ 838 024a 0F       		.uleb128 0xf
+ 839 024b 6900     		.ascii	"i\000"
+ 840 024d 01       		.byte	0x1
+ 841 024e EA       		.byte	0xea
+ 842 024f 37000000 		.4byte	0x37
+ 843 0253 A1020000 		.4byte	.LLST15
+ 844 0257 0B       		.uleb128 0xb
+ 845 0258 D8000000 		.4byte	.LVL35
+ 846 025c 1D010000 		.4byte	0x11d
+ 847 0260 6B020000 		.4byte	0x26b
+ 848 0264 0C       		.uleb128 0xc
+ 849 0265 01       		.byte	0x1
+ 850 0266 50       		.byte	0x50
+ 851 0267 02       		.byte	0x2
+ 852 0268 09       		.byte	0x9
+ 853 0269 A0       		.byte	0xa0
+ 854 026a 00       		.byte	0
+ 855 026b 0A       		.uleb128 0xa
+ 856 026c E8000000 		.4byte	.LVL38
+ 857 0270 3A040000 		.4byte	0x43a
+ 858 0274 0A       		.uleb128 0xa
+ 859 0275 08010000 		.4byte	.LVL41
+ 860 0279 61040000 		.4byte	0x461
+ 861 027d 0B       		.uleb128 0xb
+ 862 027e 10010000 		.4byte	.LVL42
+ 863 0282 61040000 		.4byte	0x461
+ 864 0286 96020000 		.4byte	0x296
+ 865 028a 0C       		.uleb128 0xc
+ 866 028b 01       		.byte	0x1
+ 867 028c 50       		.byte	0x50
+ 868 028d 01       		.byte	0x1
+ 869 028e 32       		.byte	0x32
+ 870 028f 0C       		.uleb128 0xc
+ 871 0290 01       		.byte	0x1
+ 872 0291 51       		.byte	0x51
+ 873 0292 02       		.byte	0x2
+ 874 0293 76       		.byte	0x76
+ 875 0294 00       		.sleb128 0
+ 876 0295 00       		.byte	0
+ 877 0296 0A       		.uleb128 0xa
+ 878 0297 30010000 		.4byte	.LVL52
+ 879 029b 47040000 		.4byte	0x447
+ 880 029f 00       		.byte	0
+ 881 02a0 10       		.uleb128 0x10
+ 882 02a1 04       		.byte	0x4
+ 883 02a2 25000000 		.4byte	0x25
+ 884 02a6 11       		.uleb128 0x11
+ 885 02a7 01       		.byte	0x1
+ 886 02a8 2A000000 		.4byte	.LASF20
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 24
+
+
+ 887 02ac 01       		.byte	0x1
+ 888 02ad 2201     		.2byte	0x122
+ 889 02af 01       		.byte	0x1
+ 890 02b0 57000000 		.4byte	0x57
+ 891 02b4 38010000 		.4byte	.LFB3
+ 892 02b8 88010000 		.4byte	.LFE3
+ 893 02bc D6020000 		.4byte	.LLST16
+ 894 02c0 01       		.byte	0x1
+ 895 02c1 5B030000 		.4byte	0x35b
+ 896 02c5 12       		.uleb128 0x12
+ 897 02c6 95000000 		.4byte	.LASF21
+ 898 02ca 01       		.byte	0x1
+ 899 02cb 2201     		.2byte	0x122
+ 900 02cd 37000000 		.4byte	0x37
+ 901 02d1 F6020000 		.4byte	.LLST17
+ 902 02d5 12       		.uleb128 0x12
+ 903 02d6 EC010000 		.4byte	.LASF22
+ 904 02da 01       		.byte	0x1
+ 905 02db 2201     		.2byte	0x122
+ 906 02dd A0020000 		.4byte	0x2a0
+ 907 02e1 17030000 		.4byte	.LLST18
+ 908 02e5 13       		.uleb128 0x13
+ 909 02e6 6C656E00 		.ascii	"len\000"
+ 910 02ea 01       		.byte	0x1
+ 911 02eb 2201     		.2byte	0x122
+ 912 02ed 37000000 		.4byte	0x37
+ 913 02f1 57030000 		.4byte	.LLST19
+ 914 02f5 14       		.uleb128 0x14
+ 915 02f6 41000000 		.4byte	.LASF11
+ 916 02fa 01       		.byte	0x1
+ 917 02fb 2401     		.2byte	0x124
+ 918 02fd 57000000 		.4byte	0x57
+ 919 0301 78030000 		.4byte	.LLST20
+ 920 0305 15       		.uleb128 0x15
+ 921 0306 6900     		.ascii	"i\000"
+ 922 0308 01       		.byte	0x1
+ 923 0309 2501     		.2byte	0x125
+ 924 030b 25000000 		.4byte	0x25
+ 925 030f E5030000 		.4byte	.LLST21
+ 926 0313 0A       		.uleb128 0xa
+ 927 0314 44010000 		.4byte	.LVL56
+ 928 0318 20040000 		.4byte	0x420
+ 929 031c 0B       		.uleb128 0xb
+ 930 031d 50010000 		.4byte	.LVL59
+ 931 0321 6E040000 		.4byte	0x46e
+ 932 0325 30030000 		.4byte	0x330
+ 933 0329 0C       		.uleb128 0xc
+ 934 032a 01       		.byte	0x1
+ 935 032b 50       		.byte	0x50
+ 936 032c 02       		.byte	0x2
+ 937 032d 09       		.byte	0x9
+ 938 032e A0       		.byte	0xa0
+ 939 032f 00       		.byte	0
+ 940 0330 0B       		.uleb128 0xb
+ 941 0331 5E010000 		.4byte	.LVL62
+ 942 0335 6E040000 		.4byte	0x46e
+ 943 0339 48030000 		.4byte	0x348
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 25
+
+
+ 944 033d 0C       		.uleb128 0xc
+ 945 033e 01       		.byte	0x1
+ 946 033f 50       		.byte	0x50
+ 947 0340 06       		.byte	0x6
+ 948 0341 77       		.byte	0x77
+ 949 0342 00       		.sleb128 0
+ 950 0343 48       		.byte	0x48
+ 951 0344 24       		.byte	0x24
+ 952 0345 48       		.byte	0x48
+ 953 0346 25       		.byte	0x25
+ 954 0347 00       		.byte	0
+ 955 0348 0A       		.uleb128 0xa
+ 956 0349 74010000 		.4byte	.LVL65
+ 957 034d 6E040000 		.4byte	0x46e
+ 958 0351 0A       		.uleb128 0xa
+ 959 0352 80010000 		.4byte	.LVL68
+ 960 0356 47040000 		.4byte	0x447
+ 961 035a 00       		.byte	0
+ 962 035b 11       		.uleb128 0x11
+ 963 035c 01       		.byte	0x1
+ 964 035d 4F010000 		.4byte	.LASF23
+ 965 0361 01       		.byte	0x1
+ 966 0362 5D01     		.2byte	0x15d
+ 967 0364 01       		.byte	0x1
+ 968 0365 57000000 		.4byte	0x57
+ 969 0369 88010000 		.4byte	.LFB4
+ 970 036d F4010000 		.4byte	.LFE4
+ 971 0371 04040000 		.4byte	.LLST22
+ 972 0375 01       		.byte	0x1
+ 973 0376 20040000 		.4byte	0x420
+ 974 037a 12       		.uleb128 0x12
+ 975 037b 66000000 		.4byte	.LASF17
+ 976 037f 01       		.byte	0x1
+ 977 0380 5D01     		.2byte	0x15d
+ 978 0382 25000000 		.4byte	0x25
+ 979 0386 24040000 		.4byte	.LLST23
+ 980 038a 12       		.uleb128 0x12
+ 981 038b A3000000 		.4byte	.LASF19
+ 982 038f 01       		.byte	0x1
+ 983 0390 5D01     		.2byte	0x15d
+ 984 0392 A0020000 		.4byte	0x2a0
+ 985 0396 45040000 		.4byte	.LLST24
+ 986 039a 13       		.uleb128 0x13
+ 987 039b 6C656E00 		.ascii	"len\000"
+ 988 039f 01       		.byte	0x1
+ 989 03a0 5D01     		.2byte	0x15d
+ 990 03a2 37000000 		.4byte	0x37
+ 991 03a6 79040000 		.4byte	.LLST25
+ 992 03aa 14       		.uleb128 0x14
+ 993 03ab 41000000 		.4byte	.LASF11
+ 994 03af 01       		.byte	0x1
+ 995 03b0 5F01     		.2byte	0x15f
+ 996 03b2 57000000 		.4byte	0x57
+ 997 03b6 9A040000 		.4byte	.LLST26
+ 998 03ba 14       		.uleb128 0x14
+ 999 03bb 5F000000 		.4byte	.LASF12
+ 1000 03bf 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 26
+
+
+ 1001 03c0 6001     		.2byte	0x160
+ 1002 03c2 25000000 		.4byte	0x25
+ 1003 03c6 E5040000 		.4byte	.LLST27
+ 1004 03ca 15       		.uleb128 0x15
+ 1005 03cb 6900     		.ascii	"i\000"
+ 1006 03cd 01       		.byte	0x1
+ 1007 03ce 6101     		.2byte	0x161
+ 1008 03d0 37000000 		.4byte	0x37
+ 1009 03d4 0F050000 		.4byte	.LLST28
+ 1010 03d8 0B       		.uleb128 0xb
+ 1011 03d9 94010000 		.4byte	.LVL72
+ 1012 03dd 1D010000 		.4byte	0x11d
+ 1013 03e1 EB030000 		.4byte	0x3eb
+ 1014 03e5 0C       		.uleb128 0xc
+ 1015 03e6 01       		.byte	0x1
+ 1016 03e7 51       		.byte	0x51
+ 1017 03e8 01       		.byte	0x1
+ 1018 03e9 30       		.byte	0x30
+ 1019 03ea 00       		.byte	0
+ 1020 03eb 0A       		.uleb128 0xa
+ 1021 03ec A4010000 		.4byte	.LVL75
+ 1022 03f0 3A040000 		.4byte	0x43a
+ 1023 03f4 0A       		.uleb128 0xa
+ 1024 03f5 C4010000 		.4byte	.LVL78
+ 1025 03f9 61040000 		.4byte	0x461
+ 1026 03fd 0B       		.uleb128 0xb
+ 1027 03fe CC010000 		.4byte	.LVL79
+ 1028 0402 61040000 		.4byte	0x461
+ 1029 0406 16040000 		.4byte	0x416
+ 1030 040a 0C       		.uleb128 0xc
+ 1031 040b 01       		.byte	0x1
+ 1032 040c 50       		.byte	0x50
+ 1033 040d 01       		.byte	0x1
+ 1034 040e 32       		.byte	0x32
+ 1035 040f 0C       		.uleb128 0xc
+ 1036 0410 01       		.byte	0x1
+ 1037 0411 51       		.byte	0x51
+ 1038 0412 02       		.byte	0x2
+ 1039 0413 76       		.byte	0x76
+ 1040 0414 00       		.sleb128 0
+ 1041 0415 00       		.byte	0
+ 1042 0416 0A       		.uleb128 0xa
+ 1043 0417 EC010000 		.4byte	.LVL89
+ 1044 041b 47040000 		.4byte	0x447
+ 1045 041f 00       		.byte	0
+ 1046 0420 16       		.uleb128 0x16
+ 1047 0421 01       		.byte	0x1
+ 1048 0422 01       		.byte	0x1
+ 1049 0423 9A000000 		.4byte	.LASF24
+ 1050 0427 9A000000 		.4byte	.LASF24
+ 1051 042b 03       		.byte	0x3
+ 1052 042c 58       		.byte	0x58
+ 1053 042d 16       		.uleb128 0x16
+ 1054 042e 01       		.byte	0x1
+ 1055 042f 01       		.byte	0x1
+ 1056 0430 1A010000 		.4byte	.LASF25
+ 1057 0434 1A010000 		.4byte	.LASF25
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 27
+
+
+ 1058 0438 03       		.byte	0x3
+ 1059 0439 5B       		.byte	0x5b
+ 1060 043a 16       		.uleb128 0x16
+ 1061 043b 01       		.byte	0x1
+ 1062 043c 01       		.byte	0x1
+ 1063 043d 0E000000 		.4byte	.LASF26
+ 1064 0441 0E000000 		.4byte	.LASF26
+ 1065 0445 03       		.byte	0x3
+ 1066 0446 56       		.byte	0x56
+ 1067 0447 16       		.uleb128 0x16
+ 1068 0448 01       		.byte	0x1
+ 1069 0449 01       		.byte	0x1
+ 1070 044a 6E000000 		.4byte	.LASF27
+ 1071 044e 6E000000 		.4byte	.LASF27
+ 1072 0452 03       		.byte	0x3
+ 1073 0453 5A       		.byte	0x5a
+ 1074 0454 16       		.uleb128 0x16
+ 1075 0455 01       		.byte	0x1
+ 1076 0456 01       		.byte	0x1
+ 1077 0457 CC000000 		.4byte	.LASF28
+ 1078 045b CC000000 		.4byte	.LASF28
+ 1079 045f 03       		.byte	0x3
+ 1080 0460 59       		.byte	0x59
+ 1081 0461 16       		.uleb128 0x16
+ 1082 0462 01       		.byte	0x1
+ 1083 0463 01       		.byte	0x1
+ 1084 0464 36000000 		.4byte	.LASF29
+ 1085 0468 36000000 		.4byte	.LASF29
+ 1086 046c 03       		.byte	0x3
+ 1087 046d 5C       		.byte	0x5c
+ 1088 046e 16       		.uleb128 0x16
+ 1089 046f 01       		.byte	0x1
+ 1090 0470 01       		.byte	0x1
+ 1091 0471 BB000000 		.4byte	.LASF30
+ 1092 0475 BB000000 		.4byte	.LASF30
+ 1093 0479 03       		.byte	0x3
+ 1094 047a 60       		.byte	0x60
+ 1095 047b 00       		.byte	0
+ 1096              		.section	.debug_abbrev,"",%progbits
+ 1097              	.Ldebug_abbrev0:
+ 1098 0000 01       		.uleb128 0x1
+ 1099 0001 11       		.uleb128 0x11
+ 1100 0002 01       		.byte	0x1
+ 1101 0003 25       		.uleb128 0x25
+ 1102 0004 0E       		.uleb128 0xe
+ 1103 0005 13       		.uleb128 0x13
+ 1104 0006 0B       		.uleb128 0xb
+ 1105 0007 03       		.uleb128 0x3
+ 1106 0008 0E       		.uleb128 0xe
+ 1107 0009 1B       		.uleb128 0x1b
+ 1108 000a 0E       		.uleb128 0xe
+ 1109 000b 11       		.uleb128 0x11
+ 1110 000c 01       		.uleb128 0x1
+ 1111 000d 12       		.uleb128 0x12
+ 1112 000e 01       		.uleb128 0x1
+ 1113 000f 10       		.uleb128 0x10
+ 1114 0010 06       		.uleb128 0x6
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 28
+
+
+ 1115 0011 00       		.byte	0
+ 1116 0012 00       		.byte	0
+ 1117 0013 02       		.uleb128 0x2
+ 1118 0014 16       		.uleb128 0x16
+ 1119 0015 00       		.byte	0
+ 1120 0016 03       		.uleb128 0x3
+ 1121 0017 08       		.uleb128 0x8
+ 1122 0018 3A       		.uleb128 0x3a
+ 1123 0019 0B       		.uleb128 0xb
+ 1124 001a 3B       		.uleb128 0x3b
+ 1125 001b 0B       		.uleb128 0xb
+ 1126 001c 49       		.uleb128 0x49
+ 1127 001d 13       		.uleb128 0x13
+ 1128 001e 00       		.byte	0
+ 1129 001f 00       		.byte	0
+ 1130 0020 03       		.uleb128 0x3
+ 1131 0021 24       		.uleb128 0x24
+ 1132 0022 00       		.byte	0
+ 1133 0023 0B       		.uleb128 0xb
+ 1134 0024 0B       		.uleb128 0xb
+ 1135 0025 3E       		.uleb128 0x3e
+ 1136 0026 0B       		.uleb128 0xb
+ 1137 0027 03       		.uleb128 0x3
+ 1138 0028 0E       		.uleb128 0xe
+ 1139 0029 00       		.byte	0
+ 1140 002a 00       		.byte	0
+ 1141 002b 04       		.uleb128 0x4
+ 1142 002c 16       		.uleb128 0x16
+ 1143 002d 00       		.byte	0
+ 1144 002e 03       		.uleb128 0x3
+ 1145 002f 0E       		.uleb128 0xe
+ 1146 0030 3A       		.uleb128 0x3a
+ 1147 0031 0B       		.uleb128 0xb
+ 1148 0032 3B       		.uleb128 0x3b
+ 1149 0033 0B       		.uleb128 0xb
+ 1150 0034 49       		.uleb128 0x49
+ 1151 0035 13       		.uleb128 0x13
+ 1152 0036 00       		.byte	0
+ 1153 0037 00       		.byte	0
+ 1154 0038 05       		.uleb128 0x5
+ 1155 0039 24       		.uleb128 0x24
+ 1156 003a 00       		.byte	0
+ 1157 003b 0B       		.uleb128 0xb
+ 1158 003c 0B       		.uleb128 0xb
+ 1159 003d 3E       		.uleb128 0x3e
+ 1160 003e 0B       		.uleb128 0xb
+ 1161 003f 03       		.uleb128 0x3
+ 1162 0040 08       		.uleb128 0x8
+ 1163 0041 00       		.byte	0
+ 1164 0042 00       		.byte	0
+ 1165 0043 06       		.uleb128 0x6
+ 1166 0044 04       		.uleb128 0x4
+ 1167 0045 01       		.byte	0x1
+ 1168 0046 0B       		.uleb128 0xb
+ 1169 0047 0B       		.uleb128 0xb
+ 1170 0048 49       		.uleb128 0x49
+ 1171 0049 13       		.uleb128 0x13
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 29
+
+
+ 1172 004a 3A       		.uleb128 0x3a
+ 1173 004b 0B       		.uleb128 0xb
+ 1174 004c 3B       		.uleb128 0x3b
+ 1175 004d 0B       		.uleb128 0xb
+ 1176 004e 01       		.uleb128 0x1
+ 1177 004f 13       		.uleb128 0x13
+ 1178 0050 00       		.byte	0
+ 1179 0051 00       		.byte	0
+ 1180 0052 07       		.uleb128 0x7
+ 1181 0053 28       		.uleb128 0x28
+ 1182 0054 00       		.byte	0
+ 1183 0055 03       		.uleb128 0x3
+ 1184 0056 0E       		.uleb128 0xe
+ 1185 0057 1C       		.uleb128 0x1c
+ 1186 0058 0B       		.uleb128 0xb
+ 1187 0059 00       		.byte	0
+ 1188 005a 00       		.byte	0
+ 1189 005b 08       		.uleb128 0x8
+ 1190 005c 2E       		.uleb128 0x2e
+ 1191 005d 01       		.byte	0x1
+ 1192 005e 3F       		.uleb128 0x3f
+ 1193 005f 0C       		.uleb128 0xc
+ 1194 0060 03       		.uleb128 0x3
+ 1195 0061 0E       		.uleb128 0xe
+ 1196 0062 3A       		.uleb128 0x3a
+ 1197 0063 0B       		.uleb128 0xb
+ 1198 0064 3B       		.uleb128 0x3b
+ 1199 0065 0B       		.uleb128 0xb
+ 1200 0066 27       		.uleb128 0x27
+ 1201 0067 0C       		.uleb128 0xc
+ 1202 0068 49       		.uleb128 0x49
+ 1203 0069 13       		.uleb128 0x13
+ 1204 006a 11       		.uleb128 0x11
+ 1205 006b 01       		.uleb128 0x1
+ 1206 006c 12       		.uleb128 0x12
+ 1207 006d 01       		.uleb128 0x1
+ 1208 006e 40       		.uleb128 0x40
+ 1209 006f 06       		.uleb128 0x6
+ 1210 0070 9742     		.uleb128 0x2117
+ 1211 0072 0C       		.uleb128 0xc
+ 1212 0073 01       		.uleb128 0x1
+ 1213 0074 13       		.uleb128 0x13
+ 1214 0075 00       		.byte	0
+ 1215 0076 00       		.byte	0
+ 1216 0077 09       		.uleb128 0x9
+ 1217 0078 34       		.uleb128 0x34
+ 1218 0079 00       		.byte	0
+ 1219 007a 03       		.uleb128 0x3
+ 1220 007b 0E       		.uleb128 0xe
+ 1221 007c 3A       		.uleb128 0x3a
+ 1222 007d 0B       		.uleb128 0xb
+ 1223 007e 3B       		.uleb128 0x3b
+ 1224 007f 0B       		.uleb128 0xb
+ 1225 0080 49       		.uleb128 0x49
+ 1226 0081 13       		.uleb128 0x13
+ 1227 0082 02       		.uleb128 0x2
+ 1228 0083 06       		.uleb128 0x6
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 30
+
+
+ 1229 0084 00       		.byte	0
+ 1230 0085 00       		.byte	0
+ 1231 0086 0A       		.uleb128 0xa
+ 1232 0087 898201   		.uleb128 0x4109
+ 1233 008a 00       		.byte	0
+ 1234 008b 11       		.uleb128 0x11
+ 1235 008c 01       		.uleb128 0x1
+ 1236 008d 31       		.uleb128 0x31
+ 1237 008e 13       		.uleb128 0x13
+ 1238 008f 00       		.byte	0
+ 1239 0090 00       		.byte	0
+ 1240 0091 0B       		.uleb128 0xb
+ 1241 0092 898201   		.uleb128 0x4109
+ 1242 0095 01       		.byte	0x1
+ 1243 0096 11       		.uleb128 0x11
+ 1244 0097 01       		.uleb128 0x1
+ 1245 0098 31       		.uleb128 0x31
+ 1246 0099 13       		.uleb128 0x13
+ 1247 009a 01       		.uleb128 0x1
+ 1248 009b 13       		.uleb128 0x13
+ 1249 009c 00       		.byte	0
+ 1250 009d 00       		.byte	0
+ 1251 009e 0C       		.uleb128 0xc
+ 1252 009f 8A8201   		.uleb128 0x410a
+ 1253 00a2 00       		.byte	0
+ 1254 00a3 02       		.uleb128 0x2
+ 1255 00a4 0A       		.uleb128 0xa
+ 1256 00a5 9142     		.uleb128 0x2111
+ 1257 00a7 0A       		.uleb128 0xa
+ 1258 00a8 00       		.byte	0
+ 1259 00a9 00       		.byte	0
+ 1260 00aa 0D       		.uleb128 0xd
+ 1261 00ab 05       		.uleb128 0x5
+ 1262 00ac 00       		.byte	0
+ 1263 00ad 03       		.uleb128 0x3
+ 1264 00ae 0E       		.uleb128 0xe
+ 1265 00af 3A       		.uleb128 0x3a
+ 1266 00b0 0B       		.uleb128 0xb
+ 1267 00b1 3B       		.uleb128 0x3b
+ 1268 00b2 0B       		.uleb128 0xb
+ 1269 00b3 49       		.uleb128 0x49
+ 1270 00b4 13       		.uleb128 0x13
+ 1271 00b5 02       		.uleb128 0x2
+ 1272 00b6 06       		.uleb128 0x6
+ 1273 00b7 00       		.byte	0
+ 1274 00b8 00       		.byte	0
+ 1275 00b9 0E       		.uleb128 0xe
+ 1276 00ba 05       		.uleb128 0x5
+ 1277 00bb 00       		.byte	0
+ 1278 00bc 03       		.uleb128 0x3
+ 1279 00bd 08       		.uleb128 0x8
+ 1280 00be 3A       		.uleb128 0x3a
+ 1281 00bf 0B       		.uleb128 0xb
+ 1282 00c0 3B       		.uleb128 0x3b
+ 1283 00c1 0B       		.uleb128 0xb
+ 1284 00c2 49       		.uleb128 0x49
+ 1285 00c3 13       		.uleb128 0x13
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 31
+
+
+ 1286 00c4 02       		.uleb128 0x2
+ 1287 00c5 06       		.uleb128 0x6
+ 1288 00c6 00       		.byte	0
+ 1289 00c7 00       		.byte	0
+ 1290 00c8 0F       		.uleb128 0xf
+ 1291 00c9 34       		.uleb128 0x34
+ 1292 00ca 00       		.byte	0
+ 1293 00cb 03       		.uleb128 0x3
+ 1294 00cc 08       		.uleb128 0x8
+ 1295 00cd 3A       		.uleb128 0x3a
+ 1296 00ce 0B       		.uleb128 0xb
+ 1297 00cf 3B       		.uleb128 0x3b
+ 1298 00d0 0B       		.uleb128 0xb
+ 1299 00d1 49       		.uleb128 0x49
+ 1300 00d2 13       		.uleb128 0x13
+ 1301 00d3 02       		.uleb128 0x2
+ 1302 00d4 06       		.uleb128 0x6
+ 1303 00d5 00       		.byte	0
+ 1304 00d6 00       		.byte	0
+ 1305 00d7 10       		.uleb128 0x10
+ 1306 00d8 0F       		.uleb128 0xf
+ 1307 00d9 00       		.byte	0
+ 1308 00da 0B       		.uleb128 0xb
+ 1309 00db 0B       		.uleb128 0xb
+ 1310 00dc 49       		.uleb128 0x49
+ 1311 00dd 13       		.uleb128 0x13
+ 1312 00de 00       		.byte	0
+ 1313 00df 00       		.byte	0
+ 1314 00e0 11       		.uleb128 0x11
+ 1315 00e1 2E       		.uleb128 0x2e
+ 1316 00e2 01       		.byte	0x1
+ 1317 00e3 3F       		.uleb128 0x3f
+ 1318 00e4 0C       		.uleb128 0xc
+ 1319 00e5 03       		.uleb128 0x3
+ 1320 00e6 0E       		.uleb128 0xe
+ 1321 00e7 3A       		.uleb128 0x3a
+ 1322 00e8 0B       		.uleb128 0xb
+ 1323 00e9 3B       		.uleb128 0x3b
+ 1324 00ea 05       		.uleb128 0x5
+ 1325 00eb 27       		.uleb128 0x27
+ 1326 00ec 0C       		.uleb128 0xc
+ 1327 00ed 49       		.uleb128 0x49
+ 1328 00ee 13       		.uleb128 0x13
+ 1329 00ef 11       		.uleb128 0x11
+ 1330 00f0 01       		.uleb128 0x1
+ 1331 00f1 12       		.uleb128 0x12
+ 1332 00f2 01       		.uleb128 0x1
+ 1333 00f3 40       		.uleb128 0x40
+ 1334 00f4 06       		.uleb128 0x6
+ 1335 00f5 9742     		.uleb128 0x2117
+ 1336 00f7 0C       		.uleb128 0xc
+ 1337 00f8 01       		.uleb128 0x1
+ 1338 00f9 13       		.uleb128 0x13
+ 1339 00fa 00       		.byte	0
+ 1340 00fb 00       		.byte	0
+ 1341 00fc 12       		.uleb128 0x12
+ 1342 00fd 05       		.uleb128 0x5
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 32
+
+
+ 1343 00fe 00       		.byte	0
+ 1344 00ff 03       		.uleb128 0x3
+ 1345 0100 0E       		.uleb128 0xe
+ 1346 0101 3A       		.uleb128 0x3a
+ 1347 0102 0B       		.uleb128 0xb
+ 1348 0103 3B       		.uleb128 0x3b
+ 1349 0104 05       		.uleb128 0x5
+ 1350 0105 49       		.uleb128 0x49
+ 1351 0106 13       		.uleb128 0x13
+ 1352 0107 02       		.uleb128 0x2
+ 1353 0108 06       		.uleb128 0x6
+ 1354 0109 00       		.byte	0
+ 1355 010a 00       		.byte	0
+ 1356 010b 13       		.uleb128 0x13
+ 1357 010c 05       		.uleb128 0x5
+ 1358 010d 00       		.byte	0
+ 1359 010e 03       		.uleb128 0x3
+ 1360 010f 08       		.uleb128 0x8
+ 1361 0110 3A       		.uleb128 0x3a
+ 1362 0111 0B       		.uleb128 0xb
+ 1363 0112 3B       		.uleb128 0x3b
+ 1364 0113 05       		.uleb128 0x5
+ 1365 0114 49       		.uleb128 0x49
+ 1366 0115 13       		.uleb128 0x13
+ 1367 0116 02       		.uleb128 0x2
+ 1368 0117 06       		.uleb128 0x6
+ 1369 0118 00       		.byte	0
+ 1370 0119 00       		.byte	0
+ 1371 011a 14       		.uleb128 0x14
+ 1372 011b 34       		.uleb128 0x34
+ 1373 011c 00       		.byte	0
+ 1374 011d 03       		.uleb128 0x3
+ 1375 011e 0E       		.uleb128 0xe
+ 1376 011f 3A       		.uleb128 0x3a
+ 1377 0120 0B       		.uleb128 0xb
+ 1378 0121 3B       		.uleb128 0x3b
+ 1379 0122 05       		.uleb128 0x5
+ 1380 0123 49       		.uleb128 0x49
+ 1381 0124 13       		.uleb128 0x13
+ 1382 0125 02       		.uleb128 0x2
+ 1383 0126 06       		.uleb128 0x6
+ 1384 0127 00       		.byte	0
+ 1385 0128 00       		.byte	0
+ 1386 0129 15       		.uleb128 0x15
+ 1387 012a 34       		.uleb128 0x34
+ 1388 012b 00       		.byte	0
+ 1389 012c 03       		.uleb128 0x3
+ 1390 012d 08       		.uleb128 0x8
+ 1391 012e 3A       		.uleb128 0x3a
+ 1392 012f 0B       		.uleb128 0xb
+ 1393 0130 3B       		.uleb128 0x3b
+ 1394 0131 05       		.uleb128 0x5
+ 1395 0132 49       		.uleb128 0x49
+ 1396 0133 13       		.uleb128 0x13
+ 1397 0134 02       		.uleb128 0x2
+ 1398 0135 06       		.uleb128 0x6
+ 1399 0136 00       		.byte	0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 33
+
+
+ 1400 0137 00       		.byte	0
+ 1401 0138 16       		.uleb128 0x16
+ 1402 0139 2E       		.uleb128 0x2e
+ 1403 013a 00       		.byte	0
+ 1404 013b 3F       		.uleb128 0x3f
+ 1405 013c 0C       		.uleb128 0xc
+ 1406 013d 3C       		.uleb128 0x3c
+ 1407 013e 0C       		.uleb128 0xc
+ 1408 013f 8740     		.uleb128 0x2007
+ 1409 0141 0E       		.uleb128 0xe
+ 1410 0142 03       		.uleb128 0x3
+ 1411 0143 0E       		.uleb128 0xe
+ 1412 0144 3A       		.uleb128 0x3a
+ 1413 0145 0B       		.uleb128 0xb
+ 1414 0146 3B       		.uleb128 0x3b
+ 1415 0147 0B       		.uleb128 0xb
+ 1416 0148 00       		.byte	0
+ 1417 0149 00       		.byte	0
+ 1418 014a 00       		.byte	0
+ 1419              		.section	.debug_loc,"",%progbits
+ 1420              	.Ldebug_loc0:
+ 1421              	.LLST0:
+ 1422 0000 00000000 		.4byte	.LFB0-.Ltext0
+ 1423 0004 02000000 		.4byte	.LCFI0-.Ltext0
+ 1424 0008 0200     		.2byte	0x2
+ 1425 000a 7D       		.byte	0x7d
+ 1426 000b 00       		.sleb128 0
+ 1427 000c 02000000 		.4byte	.LCFI0-.Ltext0
+ 1428 0010 48000000 		.4byte	.LFE0-.Ltext0
+ 1429 0014 0200     		.2byte	0x2
+ 1430 0016 7D       		.byte	0x7d
+ 1431 0017 10       		.sleb128 16
+ 1432 0018 00000000 		.4byte	0
+ 1433 001c 00000000 		.4byte	0
+ 1434              	.LLST1:
+ 1435 0020 02000000 		.4byte	.LVL0-.Ltext0
+ 1436 0024 0A000000 		.4byte	.LVL2-.Ltext0
+ 1437 0028 0200     		.2byte	0x2
+ 1438 002a 31       		.byte	0x31
+ 1439 002b 9F       		.byte	0x9f
+ 1440 002c 0A000000 		.4byte	.LVL2-.Ltext0
+ 1441 0030 0E000000 		.4byte	.LVL3-.Ltext0
+ 1442 0034 0100     		.2byte	0x1
+ 1443 0036 50       		.byte	0x50
+ 1444 0037 16000000 		.4byte	.LVL5-.Ltext0
+ 1445 003b 23000000 		.4byte	.LVL6-1-.Ltext0
+ 1446 003f 0100     		.2byte	0x1
+ 1447 0041 50       		.byte	0x50
+ 1448 0042 38000000 		.4byte	.LVL7-.Ltext0
+ 1449 0046 42000000 		.4byte	.LVL9-.Ltext0
+ 1450 004a 0100     		.2byte	0x1
+ 1451 004c 54       		.byte	0x54
+ 1452 004d 00000000 		.4byte	0
+ 1453 0051 00000000 		.4byte	0
+ 1454              	.LLST2:
+ 1455 0055 24000000 		.4byte	.LVL6-.Ltext0
+ 1456 0059 38000000 		.4byte	.LVL7-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 34
+
+
+ 1457 005d 0100     		.2byte	0x1
+ 1458 005f 50       		.byte	0x50
+ 1459 0060 00000000 		.4byte	0
+ 1460 0064 00000000 		.4byte	0
+ 1461              	.LLST3:
+ 1462 0068 02000000 		.4byte	.LVL0-.Ltext0
+ 1463 006c 38000000 		.4byte	.LVL7-.Ltext0
+ 1464 0070 0200     		.2byte	0x2
+ 1465 0072 30       		.byte	0x30
+ 1466 0073 9F       		.byte	0x9f
+ 1467 0074 00000000 		.4byte	0
+ 1468 0078 00000000 		.4byte	0
+ 1469              	.LLST4:
+ 1470 007c 48000000 		.4byte	.LFB1-.Ltext0
+ 1471 0080 4A000000 		.4byte	.LCFI1-.Ltext0
+ 1472 0084 0200     		.2byte	0x2
+ 1473 0086 7D       		.byte	0x7d
+ 1474 0087 00       		.sleb128 0
+ 1475 0088 4A000000 		.4byte	.LCFI1-.Ltext0
+ 1476 008c CA000000 		.4byte	.LFE1-.Ltext0
+ 1477 0090 0200     		.2byte	0x2
+ 1478 0092 7D       		.byte	0x7d
+ 1479 0093 10       		.sleb128 16
+ 1480 0094 00000000 		.4byte	0
+ 1481 0098 00000000 		.4byte	0
+ 1482              	.LLST5:
+ 1483 009c 48000000 		.4byte	.LVL10-.Ltext0
+ 1484 00a0 51000000 		.4byte	.LVL11-1-.Ltext0
+ 1485 00a4 0100     		.2byte	0x1
+ 1486 00a6 50       		.byte	0x50
+ 1487 00a7 51000000 		.4byte	.LVL11-1-.Ltext0
+ 1488 00ab CA000000 		.4byte	.LFE1-.Ltext0
+ 1489 00af 0400     		.2byte	0x4
+ 1490 00b1 F3       		.byte	0xf3
+ 1491 00b2 01       		.uleb128 0x1
+ 1492 00b3 50       		.byte	0x50
+ 1493 00b4 9F       		.byte	0x9f
+ 1494 00b5 00000000 		.4byte	0
+ 1495 00b9 00000000 		.4byte	0
+ 1496              	.LLST6:
+ 1497 00bd 48000000 		.4byte	.LVL10-.Ltext0
+ 1498 00c1 51000000 		.4byte	.LVL11-1-.Ltext0
+ 1499 00c5 0100     		.2byte	0x1
+ 1500 00c7 51       		.byte	0x51
+ 1501 00c8 51000000 		.4byte	.LVL11-1-.Ltext0
+ 1502 00cc CA000000 		.4byte	.LFE1-.Ltext0
+ 1503 00d0 0400     		.2byte	0x4
+ 1504 00d2 F3       		.byte	0xf3
+ 1505 00d3 01       		.uleb128 0x1
+ 1506 00d4 51       		.byte	0x51
+ 1507 00d5 9F       		.byte	0x9f
+ 1508 00d6 00000000 		.4byte	0
+ 1509 00da 00000000 		.4byte	0
+ 1510              	.LLST7:
+ 1511 00de 48000000 		.4byte	.LVL10-.Ltext0
+ 1512 00e2 52000000 		.4byte	.LVL11-.Ltext0
+ 1513 00e6 0200     		.2byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 35
+
+
+ 1514 00e8 30       		.byte	0x30
+ 1515 00e9 9F       		.byte	0x9f
+ 1516 00ea 52000000 		.4byte	.LVL11-.Ltext0
+ 1517 00ee 58000000 		.4byte	.LVL12-.Ltext0
+ 1518 00f2 0100     		.2byte	0x1
+ 1519 00f4 50       		.byte	0x50
+ 1520 00f5 5C000000 		.4byte	.LVL13-.Ltext0
+ 1521 00f9 62000000 		.4byte	.LVL14-.Ltext0
+ 1522 00fd 0100     		.2byte	0x1
+ 1523 00ff 50       		.byte	0x50
+ 1524 0100 80000000 		.4byte	.LVL18-.Ltext0
+ 1525 0104 84000000 		.4byte	.LVL19-.Ltext0
+ 1526 0108 0100     		.2byte	0x1
+ 1527 010a 50       		.byte	0x50
+ 1528 010b 92000000 		.4byte	.LVL22-.Ltext0
+ 1529 010f 9C000000 		.4byte	.LVL23-.Ltext0
+ 1530 0113 0100     		.2byte	0x1
+ 1531 0115 50       		.byte	0x50
+ 1532 0116 A4000000 		.4byte	.LVL25-.Ltext0
+ 1533 011a A8000000 		.4byte	.LVL26-.Ltext0
+ 1534 011e 0100     		.2byte	0x1
+ 1535 0120 50       		.byte	0x50
+ 1536 0121 A8000000 		.4byte	.LVL26-.Ltext0
+ 1537 0125 B6000000 		.4byte	.LVL28-.Ltext0
+ 1538 0129 0100     		.2byte	0x1
+ 1539 012b 55       		.byte	0x55
+ 1540 012c BA000000 		.4byte	.LVL29-.Ltext0
+ 1541 0130 C2000000 		.4byte	.LVL30-.Ltext0
+ 1542 0134 0100     		.2byte	0x1
+ 1543 0136 50       		.byte	0x50
+ 1544 0137 00000000 		.4byte	0
+ 1545 013b 00000000 		.4byte	0
+ 1546              	.LLST8:
+ 1547 013f 48000000 		.4byte	.LVL10-.Ltext0
+ 1548 0143 62000000 		.4byte	.LVL14-.Ltext0
+ 1549 0147 0200     		.2byte	0x2
+ 1550 0149 30       		.byte	0x30
+ 1551 014a 9F       		.byte	0x9f
+ 1552 014b 62000000 		.4byte	.LVL14-.Ltext0
+ 1553 014f 66000000 		.4byte	.LVL15-.Ltext0
+ 1554 0153 0100     		.2byte	0x1
+ 1555 0155 50       		.byte	0x50
+ 1556 0156 6A000000 		.4byte	.LVL16-.Ltext0
+ 1557 015a 7A000000 		.4byte	.LVL17-.Ltext0
+ 1558 015e 0100     		.2byte	0x1
+ 1559 0160 50       		.byte	0x50
+ 1560 0161 88000000 		.4byte	.LVL20-.Ltext0
+ 1561 0165 8F000000 		.4byte	.LVL21-1-.Ltext0
+ 1562 0169 0100     		.2byte	0x1
+ 1563 016b 50       		.byte	0x50
+ 1564 016c AC000000 		.4byte	.LVL27-.Ltext0
+ 1565 0170 BA000000 		.4byte	.LVL29-.Ltext0
+ 1566 0174 0100     		.2byte	0x1
+ 1567 0176 50       		.byte	0x50
+ 1568 0177 BA000000 		.4byte	.LVL29-.Ltext0
+ 1569 017b C2000000 		.4byte	.LVL30-.Ltext0
+ 1570 017f 0200     		.2byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 36
+
+
+ 1571 0181 30       		.byte	0x30
+ 1572 0182 9F       		.byte	0x9f
+ 1573 0183 C2000000 		.4byte	.LVL30-.Ltext0
+ 1574 0187 C4000000 		.4byte	.LVL31-.Ltext0
+ 1575 018b 0100     		.2byte	0x1
+ 1576 018d 50       		.byte	0x50
+ 1577 018e 00000000 		.4byte	0
+ 1578 0192 00000000 		.4byte	0
+ 1579              	.LLST9:
+ 1580 0196 CA000000 		.4byte	.LFB2-.Ltext0
+ 1581 019a CC000000 		.4byte	.LCFI2-.Ltext0
+ 1582 019e 0200     		.2byte	0x2
+ 1583 01a0 7D       		.byte	0x7d
+ 1584 01a1 00       		.sleb128 0
+ 1585 01a2 CC000000 		.4byte	.LCFI2-.Ltext0
+ 1586 01a6 38010000 		.4byte	.LFE2-.Ltext0
+ 1587 01aa 0200     		.2byte	0x2
+ 1588 01ac 7D       		.byte	0x7d
+ 1589 01ad 18       		.sleb128 24
+ 1590 01ae 00000000 		.4byte	0
+ 1591 01b2 00000000 		.4byte	0
+ 1592              	.LLST10:
+ 1593 01b6 CA000000 		.4byte	.LVL32-.Ltext0
+ 1594 01ba D2000000 		.4byte	.LVL34-.Ltext0
+ 1595 01be 0100     		.2byte	0x1
+ 1596 01c0 50       		.byte	0x50
+ 1597 01c1 D2000000 		.4byte	.LVL34-.Ltext0
+ 1598 01c5 38010000 		.4byte	.LFE2-.Ltext0
+ 1599 01c9 0400     		.2byte	0x4
+ 1600 01cb F3       		.byte	0xf3
+ 1601 01cc 01       		.uleb128 0x1
+ 1602 01cd 50       		.byte	0x50
+ 1603 01ce 9F       		.byte	0x9f
+ 1604 01cf 00000000 		.4byte	0
+ 1605 01d3 00000000 		.4byte	0
+ 1606              	.LLST11:
+ 1607 01d7 CA000000 		.4byte	.LVL32-.Ltext0
+ 1608 01db D0000000 		.4byte	.LVL33-.Ltext0
+ 1609 01df 0100     		.2byte	0x1
+ 1610 01e1 51       		.byte	0x51
+ 1611 01e2 D0000000 		.4byte	.LVL33-.Ltext0
+ 1612 01e6 02010000 		.4byte	.LVL40-.Ltext0
+ 1613 01ea 0100     		.2byte	0x1
+ 1614 01ec 56       		.byte	0x56
+ 1615 01ed 02010000 		.4byte	.LVL40-.Ltext0
+ 1616 01f1 07010000 		.4byte	.LVL41-1-.Ltext0
+ 1617 01f5 0100     		.2byte	0x1
+ 1618 01f7 51       		.byte	0x51
+ 1619 01f8 07010000 		.4byte	.LVL41-1-.Ltext0
+ 1620 01fc 32010000 		.4byte	.LVL54-.Ltext0
+ 1621 0200 0100     		.2byte	0x1
+ 1622 0202 56       		.byte	0x56
+ 1623 0203 00000000 		.4byte	0
+ 1624 0207 00000000 		.4byte	0
+ 1625              	.LLST12:
+ 1626 020b CA000000 		.4byte	.LVL32-.Ltext0
+ 1627 020f D7000000 		.4byte	.LVL35-1-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 37
+
+
+ 1628 0213 0100     		.2byte	0x1
+ 1629 0215 52       		.byte	0x52
+ 1630 0216 D7000000 		.4byte	.LVL35-1-.Ltext0
+ 1631 021a 38010000 		.4byte	.LFE2-.Ltext0
+ 1632 021e 0400     		.2byte	0x4
+ 1633 0220 F3       		.byte	0xf3
+ 1634 0221 01       		.uleb128 0x1
+ 1635 0222 52       		.byte	0x52
+ 1636 0223 9F       		.byte	0x9f
+ 1637 0224 00000000 		.4byte	0
+ 1638 0228 00000000 		.4byte	0
+ 1639              	.LLST13:
+ 1640 022c CA000000 		.4byte	.LVL32-.Ltext0
+ 1641 0230 DA000000 		.4byte	.LVL36-.Ltext0
+ 1642 0234 0200     		.2byte	0x2
+ 1643 0236 30       		.byte	0x30
+ 1644 0237 9F       		.byte	0x9f
+ 1645 0238 DA000000 		.4byte	.LVL36-.Ltext0
+ 1646 023c E0000000 		.4byte	.LVL37-.Ltext0
+ 1647 0240 0100     		.2byte	0x1
+ 1648 0242 50       		.byte	0x50
+ 1649 0243 E0000000 		.4byte	.LVL37-.Ltext0
+ 1650 0247 08010000 		.4byte	.LVL41-.Ltext0
+ 1651 024b 0100     		.2byte	0x1
+ 1652 024d 55       		.byte	0x55
+ 1653 024e 12010000 		.4byte	.LVL43-.Ltext0
+ 1654 0252 1A010000 		.4byte	.LVL45-.Ltext0
+ 1655 0256 0100     		.2byte	0x1
+ 1656 0258 50       		.byte	0x50
+ 1657 0259 1A010000 		.4byte	.LVL45-.Ltext0
+ 1658 025d 20010000 		.4byte	.LVL46-.Ltext0
+ 1659 0261 0100     		.2byte	0x1
+ 1660 0263 55       		.byte	0x55
+ 1661 0264 24010000 		.4byte	.LVL48-.Ltext0
+ 1662 0268 32010000 		.4byte	.LVL53-.Ltext0
+ 1663 026c 0100     		.2byte	0x1
+ 1664 026e 55       		.byte	0x55
+ 1665 026f 00000000 		.4byte	0
+ 1666 0273 00000000 		.4byte	0
+ 1667              	.LLST14:
+ 1668 0277 CA000000 		.4byte	.LVL32-.Ltext0
+ 1669 027b E0000000 		.4byte	.LVL37-.Ltext0
+ 1670 027f 0200     		.2byte	0x2
+ 1671 0281 30       		.byte	0x30
+ 1672 0282 9F       		.byte	0x9f
+ 1673 0283 E8000000 		.4byte	.LVL38-.Ltext0
+ 1674 0287 FE000000 		.4byte	.LVL39-.Ltext0
+ 1675 028b 0100     		.2byte	0x1
+ 1676 028d 50       		.byte	0x50
+ 1677 028e 1A010000 		.4byte	.LVL45-.Ltext0
+ 1678 0292 24010000 		.4byte	.LVL48-.Ltext0
+ 1679 0296 0100     		.2byte	0x1
+ 1680 0298 50       		.byte	0x50
+ 1681 0299 00000000 		.4byte	0
+ 1682 029d 00000000 		.4byte	0
+ 1683              	.LLST15:
+ 1684 02a1 CA000000 		.4byte	.LVL32-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 38
+
+
+ 1685 02a5 E0000000 		.4byte	.LVL37-.Ltext0
+ 1686 02a9 0200     		.2byte	0x2
+ 1687 02ab 30       		.byte	0x30
+ 1688 02ac 9F       		.byte	0x9f
+ 1689 02ad E0000000 		.4byte	.LVL37-.Ltext0
+ 1690 02b1 22010000 		.4byte	.LVL47-.Ltext0
+ 1691 02b5 0100     		.2byte	0x1
+ 1692 02b7 54       		.byte	0x54
+ 1693 02b8 24010000 		.4byte	.LVL48-.Ltext0
+ 1694 02bc 26010000 		.4byte	.LVL49-.Ltext0
+ 1695 02c0 0100     		.2byte	0x1
+ 1696 02c2 54       		.byte	0x54
+ 1697 02c3 2A010000 		.4byte	.LVL50-.Ltext0
+ 1698 02c7 2C010000 		.4byte	.LVL51-.Ltext0
+ 1699 02cb 0100     		.2byte	0x1
+ 1700 02cd 54       		.byte	0x54
+ 1701 02ce 00000000 		.4byte	0
+ 1702 02d2 00000000 		.4byte	0
+ 1703              	.LLST16:
+ 1704 02d6 38010000 		.4byte	.LFB3-.Ltext0
+ 1705 02da 3A010000 		.4byte	.LCFI3-.Ltext0
+ 1706 02de 0200     		.2byte	0x2
+ 1707 02e0 7D       		.byte	0x7d
+ 1708 02e1 00       		.sleb128 0
+ 1709 02e2 3A010000 		.4byte	.LCFI3-.Ltext0
+ 1710 02e6 88010000 		.4byte	.LFE3-.Ltext0
+ 1711 02ea 0200     		.2byte	0x2
+ 1712 02ec 7D       		.byte	0x7d
+ 1713 02ed 18       		.sleb128 24
+ 1714 02ee 00000000 		.4byte	0
+ 1715 02f2 00000000 		.4byte	0
+ 1716              	.LLST17:
+ 1717 02f6 38010000 		.4byte	.LVL55-.Ltext0
+ 1718 02fa 43010000 		.4byte	.LVL56-1-.Ltext0
+ 1719 02fe 0100     		.2byte	0x1
+ 1720 0300 50       		.byte	0x50
+ 1721 0301 43010000 		.4byte	.LVL56-1-.Ltext0
+ 1722 0305 88010000 		.4byte	.LFE3-.Ltext0
+ 1723 0309 0400     		.2byte	0x4
+ 1724 030b F3       		.byte	0xf3
+ 1725 030c 01       		.uleb128 0x1
+ 1726 030d 50       		.byte	0x50
+ 1727 030e 9F       		.byte	0x9f
+ 1728 030f 00000000 		.4byte	0
+ 1729 0313 00000000 		.4byte	0
+ 1730              	.LLST18:
+ 1731 0317 38010000 		.4byte	.LVL55-.Ltext0
+ 1732 031b 43010000 		.4byte	.LVL56-1-.Ltext0
+ 1733 031f 0100     		.2byte	0x1
+ 1734 0321 51       		.byte	0x51
+ 1735 0322 43010000 		.4byte	.LVL56-1-.Ltext0
+ 1736 0326 66010000 		.4byte	.LVL64-.Ltext0
+ 1737 032a 0100     		.2byte	0x1
+ 1738 032c 56       		.byte	0x56
+ 1739 032d 66010000 		.4byte	.LVL64-.Ltext0
+ 1740 0331 76010000 		.4byte	.LVL66-.Ltext0
+ 1741 0335 0600     		.2byte	0x6
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 39
+
+
+ 1742 0337 76       		.byte	0x76
+ 1743 0338 00       		.sleb128 0
+ 1744 0339 77       		.byte	0x77
+ 1745 033a 00       		.sleb128 0
+ 1746 033b 22       		.byte	0x22
+ 1747 033c 9F       		.byte	0x9f
+ 1748 033d 76010000 		.4byte	.LVL66-.Ltext0
+ 1749 0341 7C010000 		.4byte	.LVL67-.Ltext0
+ 1750 0345 0800     		.2byte	0x8
+ 1751 0347 76       		.byte	0x76
+ 1752 0348 00       		.sleb128 0
+ 1753 0349 77       		.byte	0x77
+ 1754 034a 00       		.sleb128 0
+ 1755 034b 22       		.byte	0x22
+ 1756 034c 31       		.byte	0x31
+ 1757 034d 1C       		.byte	0x1c
+ 1758 034e 9F       		.byte	0x9f
+ 1759 034f 00000000 		.4byte	0
+ 1760 0353 00000000 		.4byte	0
+ 1761              	.LLST19:
+ 1762 0357 38010000 		.4byte	.LVL55-.Ltext0
+ 1763 035b 43010000 		.4byte	.LVL56-1-.Ltext0
+ 1764 035f 0100     		.2byte	0x1
+ 1765 0361 52       		.byte	0x52
+ 1766 0362 43010000 		.4byte	.LVL56-1-.Ltext0
+ 1767 0366 88010000 		.4byte	.LFE3-.Ltext0
+ 1768 036a 0400     		.2byte	0x4
+ 1769 036c F3       		.byte	0xf3
+ 1770 036d 01       		.uleb128 0x1
+ 1771 036e 52       		.byte	0x52
+ 1772 036f 9F       		.byte	0x9f
+ 1773 0370 00000000 		.4byte	0
+ 1774 0374 00000000 		.4byte	0
+ 1775              	.LLST20:
+ 1776 0378 38010000 		.4byte	.LVL55-.Ltext0
+ 1777 037c 46010000 		.4byte	.LVL57-.Ltext0
+ 1778 0380 0200     		.2byte	0x2
+ 1779 0382 30       		.byte	0x30
+ 1780 0383 9F       		.byte	0x9f
+ 1781 0384 46010000 		.4byte	.LVL57-.Ltext0
+ 1782 0388 4C010000 		.4byte	.LVL58-.Ltext0
+ 1783 038c 0100     		.2byte	0x1
+ 1784 038e 50       		.byte	0x50
+ 1785 038f 4C010000 		.4byte	.LVL58-.Ltext0
+ 1786 0393 52010000 		.4byte	.LVL60-.Ltext0
+ 1787 0397 0100     		.2byte	0x1
+ 1788 0399 54       		.byte	0x54
+ 1789 039a 52010000 		.4byte	.LVL60-.Ltext0
+ 1790 039e 58010000 		.4byte	.LVL61-.Ltext0
+ 1791 03a2 0100     		.2byte	0x1
+ 1792 03a4 50       		.byte	0x50
+ 1793 03a5 58010000 		.4byte	.LVL61-.Ltext0
+ 1794 03a9 62010000 		.4byte	.LVL63-.Ltext0
+ 1795 03ad 0100     		.2byte	0x1
+ 1796 03af 54       		.byte	0x54
+ 1797 03b0 62010000 		.4byte	.LVL63-.Ltext0
+ 1798 03b4 66010000 		.4byte	.LVL64-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 40
+
+
+ 1799 03b8 0100     		.2byte	0x1
+ 1800 03ba 50       		.byte	0x50
+ 1801 03bb 66010000 		.4byte	.LVL64-.Ltext0
+ 1802 03bf 74010000 		.4byte	.LVL65-.Ltext0
+ 1803 03c3 0200     		.2byte	0x2
+ 1804 03c5 31       		.byte	0x31
+ 1805 03c6 9F       		.byte	0x9f
+ 1806 03c7 74010000 		.4byte	.LVL65-.Ltext0
+ 1807 03cb 7C010000 		.4byte	.LVL67-.Ltext0
+ 1808 03cf 0100     		.2byte	0x1
+ 1809 03d1 50       		.byte	0x50
+ 1810 03d2 7C010000 		.4byte	.LVL67-.Ltext0
+ 1811 03d6 82010000 		.4byte	.LVL69-.Ltext0
+ 1812 03da 0100     		.2byte	0x1
+ 1813 03dc 54       		.byte	0x54
+ 1814 03dd 00000000 		.4byte	0
+ 1815 03e1 00000000 		.4byte	0
+ 1816              	.LLST21:
+ 1817 03e5 38010000 		.4byte	.LVL55-.Ltext0
+ 1818 03e9 66010000 		.4byte	.LVL64-.Ltext0
+ 1819 03ed 0200     		.2byte	0x2
+ 1820 03ef 30       		.byte	0x30
+ 1821 03f0 9F       		.byte	0x9f
+ 1822 03f1 66010000 		.4byte	.LVL64-.Ltext0
+ 1823 03f5 76010000 		.4byte	.LVL66-.Ltext0
+ 1824 03f9 0100     		.2byte	0x1
+ 1825 03fb 57       		.byte	0x57
+ 1826 03fc 00000000 		.4byte	0
+ 1827 0400 00000000 		.4byte	0
+ 1828              	.LLST22:
+ 1829 0404 88010000 		.4byte	.LFB4-.Ltext0
+ 1830 0408 8A010000 		.4byte	.LCFI4-.Ltext0
+ 1831 040c 0200     		.2byte	0x2
+ 1832 040e 7D       		.byte	0x7d
+ 1833 040f 00       		.sleb128 0
+ 1834 0410 8A010000 		.4byte	.LCFI4-.Ltext0
+ 1835 0414 F4010000 		.4byte	.LFE4-.Ltext0
+ 1836 0418 0200     		.2byte	0x2
+ 1837 041a 7D       		.byte	0x7d
+ 1838 041b 18       		.sleb128 24
+ 1839 041c 00000000 		.4byte	0
+ 1840 0420 00000000 		.4byte	0
+ 1841              	.LLST23:
+ 1842 0424 88010000 		.4byte	.LVL70-.Ltext0
+ 1843 0428 93010000 		.4byte	.LVL72-1-.Ltext0
+ 1844 042c 0100     		.2byte	0x1
+ 1845 042e 50       		.byte	0x50
+ 1846 042f 93010000 		.4byte	.LVL72-1-.Ltext0
+ 1847 0433 F4010000 		.4byte	.LFE4-.Ltext0
+ 1848 0437 0400     		.2byte	0x4
+ 1849 0439 F3       		.byte	0xf3
+ 1850 043a 01       		.uleb128 0x1
+ 1851 043b 50       		.byte	0x50
+ 1852 043c 9F       		.byte	0x9f
+ 1853 043d 00000000 		.4byte	0
+ 1854 0441 00000000 		.4byte	0
+ 1855              	.LLST24:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 41
+
+
+ 1856 0445 88010000 		.4byte	.LVL70-.Ltext0
+ 1857 0449 8E010000 		.4byte	.LVL71-.Ltext0
+ 1858 044d 0100     		.2byte	0x1
+ 1859 044f 51       		.byte	0x51
+ 1860 0450 8E010000 		.4byte	.LVL71-.Ltext0
+ 1861 0454 BE010000 		.4byte	.LVL77-.Ltext0
+ 1862 0458 0100     		.2byte	0x1
+ 1863 045a 56       		.byte	0x56
+ 1864 045b BE010000 		.4byte	.LVL77-.Ltext0
+ 1865 045f C3010000 		.4byte	.LVL78-1-.Ltext0
+ 1866 0463 0100     		.2byte	0x1
+ 1867 0465 51       		.byte	0x51
+ 1868 0466 C3010000 		.4byte	.LVL78-1-.Ltext0
+ 1869 046a EE010000 		.4byte	.LVL91-.Ltext0
+ 1870 046e 0100     		.2byte	0x1
+ 1871 0470 56       		.byte	0x56
+ 1872 0471 00000000 		.4byte	0
+ 1873 0475 00000000 		.4byte	0
+ 1874              	.LLST25:
+ 1875 0479 88010000 		.4byte	.LVL70-.Ltext0
+ 1876 047d 93010000 		.4byte	.LVL72-1-.Ltext0
+ 1877 0481 0100     		.2byte	0x1
+ 1878 0483 52       		.byte	0x52
+ 1879 0484 93010000 		.4byte	.LVL72-1-.Ltext0
+ 1880 0488 F4010000 		.4byte	.LFE4-.Ltext0
+ 1881 048c 0400     		.2byte	0x4
+ 1882 048e F3       		.byte	0xf3
+ 1883 048f 01       		.uleb128 0x1
+ 1884 0490 52       		.byte	0x52
+ 1885 0491 9F       		.byte	0x9f
+ 1886 0492 00000000 		.4byte	0
+ 1887 0496 00000000 		.4byte	0
+ 1888              	.LLST26:
+ 1889 049a 88010000 		.4byte	.LVL70-.Ltext0
+ 1890 049e 96010000 		.4byte	.LVL73-.Ltext0
+ 1891 04a2 0200     		.2byte	0x2
+ 1892 04a4 30       		.byte	0x30
+ 1893 04a5 9F       		.byte	0x9f
+ 1894 04a6 96010000 		.4byte	.LVL73-.Ltext0
+ 1895 04aa 9C010000 		.4byte	.LVL74-.Ltext0
+ 1896 04ae 0100     		.2byte	0x1
+ 1897 04b0 50       		.byte	0x50
+ 1898 04b1 9C010000 		.4byte	.LVL74-.Ltext0
+ 1899 04b5 C4010000 		.4byte	.LVL78-.Ltext0
+ 1900 04b9 0100     		.2byte	0x1
+ 1901 04bb 55       		.byte	0x55
+ 1902 04bc CE010000 		.4byte	.LVL80-.Ltext0
+ 1903 04c0 D6010000 		.4byte	.LVL82-.Ltext0
+ 1904 04c4 0100     		.2byte	0x1
+ 1905 04c6 50       		.byte	0x50
+ 1906 04c7 D6010000 		.4byte	.LVL82-.Ltext0
+ 1907 04cb DC010000 		.4byte	.LVL83-.Ltext0
+ 1908 04cf 0100     		.2byte	0x1
+ 1909 04d1 55       		.byte	0x55
+ 1910 04d2 E0010000 		.4byte	.LVL85-.Ltext0
+ 1911 04d6 EE010000 		.4byte	.LVL90-.Ltext0
+ 1912 04da 0100     		.2byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 42
+
+
+ 1913 04dc 55       		.byte	0x55
+ 1914 04dd 00000000 		.4byte	0
+ 1915 04e1 00000000 		.4byte	0
+ 1916              	.LLST27:
+ 1917 04e5 88010000 		.4byte	.LVL70-.Ltext0
+ 1918 04e9 9C010000 		.4byte	.LVL74-.Ltext0
+ 1919 04ed 0200     		.2byte	0x2
+ 1920 04ef 30       		.byte	0x30
+ 1921 04f0 9F       		.byte	0x9f
+ 1922 04f1 A4010000 		.4byte	.LVL75-.Ltext0
+ 1923 04f5 BA010000 		.4byte	.LVL76-.Ltext0
+ 1924 04f9 0100     		.2byte	0x1
+ 1925 04fb 50       		.byte	0x50
+ 1926 04fc D6010000 		.4byte	.LVL82-.Ltext0
+ 1927 0500 E0010000 		.4byte	.LVL85-.Ltext0
+ 1928 0504 0100     		.2byte	0x1
+ 1929 0506 50       		.byte	0x50
+ 1930 0507 00000000 		.4byte	0
+ 1931 050b 00000000 		.4byte	0
+ 1932              	.LLST28:
+ 1933 050f 88010000 		.4byte	.LVL70-.Ltext0
+ 1934 0513 9C010000 		.4byte	.LVL74-.Ltext0
+ 1935 0517 0200     		.2byte	0x2
+ 1936 0519 30       		.byte	0x30
+ 1937 051a 9F       		.byte	0x9f
+ 1938 051b 9C010000 		.4byte	.LVL74-.Ltext0
+ 1939 051f DE010000 		.4byte	.LVL84-.Ltext0
+ 1940 0523 0100     		.2byte	0x1
+ 1941 0525 54       		.byte	0x54
+ 1942 0526 E0010000 		.4byte	.LVL85-.Ltext0
+ 1943 052a E2010000 		.4byte	.LVL86-.Ltext0
+ 1944 052e 0100     		.2byte	0x1
+ 1945 0530 54       		.byte	0x54
+ 1946 0531 E6010000 		.4byte	.LVL87-.Ltext0
+ 1947 0535 E8010000 		.4byte	.LVL88-.Ltext0
+ 1948 0539 0100     		.2byte	0x1
+ 1949 053b 54       		.byte	0x54
+ 1950 053c 00000000 		.4byte	0
+ 1951 0540 00000000 		.4byte	0
+ 1952              		.section	.debug_aranges,"",%progbits
+ 1953 0000 1C000000 		.4byte	0x1c
+ 1954 0004 0200     		.2byte	0x2
+ 1955 0006 00000000 		.4byte	.Ldebug_info0
+ 1956 000a 04       		.byte	0x4
+ 1957 000b 00       		.byte	0
+ 1958 000c 0000     		.2byte	0
+ 1959 000e 0000     		.2byte	0
+ 1960 0010 00000000 		.4byte	.Ltext0
+ 1961 0014 F4010000 		.4byte	.Letext0-.Ltext0
+ 1962 0018 00000000 		.4byte	0
+ 1963 001c 00000000 		.4byte	0
+ 1964              		.section	.debug_line,"",%progbits
+ 1965              	.Ldebug_line0:
+ 1966 0000 FA000000 		.section	.debug_str,"MS",%progbits,1
+ 1966      02003500 
+ 1966      00000201 
+ 1966      FB0E0D00 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 43
+
+
+ 1966      01010101 
+ 1967              	.LASF7:
+ 1968 0000 6C6F6E67 		.ascii	"long long int\000"
+ 1968      206C6F6E 
+ 1968      6720696E 
+ 1968      7400
+ 1969              	.LASF26:
+ 1970 000e 69326343 		.ascii	"i2cCheckStatus\000"
+ 1970      6865636B 
+ 1970      53746174 
+ 1970      757300
+ 1971              	.LASF3:
+ 1972 001d 756E7369 		.ascii	"unsigned int\000"
+ 1972      676E6564 
+ 1972      20696E74 
+ 1972      00
+ 1973              	.LASF20:
+ 1974 002a 65657072 		.ascii	"eepromWrite\000"
+ 1974      6F6D5772 
+ 1974      69746500 
+ 1975              	.LASF29:
+ 1976 0036 69326347 		.ascii	"i2cGetChar\000"
+ 1976      65744368 
+ 1976      617200
+ 1977              	.LASF11:
+ 1978 0041 72657443 		.ascii	"retCode\000"
+ 1978      6F646500 
+ 1979              	.LASF15:
+ 1980 0049 65657072 		.ascii	"eepromStartRead\000"
+ 1980      6F6D5374 
+ 1980      61727452 
+ 1980      65616400 
+ 1981              	.LASF8:
+ 1982 0059 46414C53 		.ascii	"FALSE\000"
+ 1982      4500
+ 1983              	.LASF12:
+ 1984 005f 73746174 		.ascii	"status\000"
+ 1984      757300
+ 1985              	.LASF17:
+ 1986 0066 61646472 		.ascii	"address\000"
+ 1986      65737300 
+ 1987              	.LASF27:
+ 1988 006e 69326353 		.ascii	"i2cStop\000"
+ 1988      746F7000 
+ 1989              	.LASF4:
+ 1990 0076 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1990      206C6F6E 
+ 1990      6720756E 
+ 1990      7369676E 
+ 1990      65642069 
+ 1991              	.LASF16:
+ 1992 008d 64657641 		.ascii	"devAddr\000"
+ 1992      64647200 
+ 1993              	.LASF21:
+ 1994 0095 61646472 		.ascii	"addr\000"
+ 1994      00
+ 1995              	.LASF24:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 44
+
+
+ 1996 009a 69326353 		.ascii	"i2cStart\000"
+ 1996      74617274 
+ 1996      00
+ 1997              	.LASF19:
+ 1998 00a3 70427566 		.ascii	"pBuf\000"
+ 1998      00
+ 1999              	.LASF1:
+ 2000 00a8 756E7369 		.ascii	"unsigned char\000"
+ 2000      676E6564 
+ 2000      20636861 
+ 2000      7200
+ 2001              	.LASF9:
+ 2002 00b6 54525545 		.ascii	"TRUE\000"
+ 2002      00
+ 2003              	.LASF30:
+ 2004 00bb 69326357 		.ascii	"i2cWriteWithWait\000"
+ 2004      72697465 
+ 2004      57697468 
+ 2004      57616974 
+ 2004      00
+ 2005              	.LASF28:
+ 2006 00cc 69326352 		.ascii	"i2cRepeatStart\000"
+ 2006      65706561 
+ 2006      74537461 
+ 2006      727400
+ 2007              	.LASF6:
+ 2008 00db 73686F72 		.ascii	"short int\000"
+ 2008      7420696E 
+ 2008      7400
+ 2009              	.LASF13:
+ 2010 00e5 6275726E 		.ascii	"burnEnd\000"
+ 2010      456E6400 
+ 2011              	.LASF33:
+ 2012 00ed 433A5C45 		.ascii	"C:\\Embedded\\2148MiniDemo\\2148\000"
+ 2012      6D626564 
+ 2012      6465645C 
+ 2012      32313438 
+ 2012      4D696E69 
+ 2013              	.LASF18:
+ 2014 010b 65657072 		.ascii	"eepromPageRead\000"
+ 2014      6F6D5061 
+ 2014      67655265 
+ 2014      616400
+ 2015              	.LASF25:
+ 2016 011a 69326350 		.ascii	"i2cPutChar\000"
+ 2016      75744368 
+ 2016      617200
+ 2017              	.LASF2:
+ 2018 0125 73686F72 		.ascii	"short unsigned int\000"
+ 2018      7420756E 
+ 2018      7369676E 
+ 2018      65642069 
+ 2018      6E7400
+ 2019              	.LASF5:
+ 2020 0138 7369676E 		.ascii	"signed char\000"
+ 2020      65642063 
+ 2020      68617200 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 45
+
+
+ 2021              	.LASF14:
+ 2022 0144 65657072 		.ascii	"eepromPoll\000"
+ 2022      6F6D506F 
+ 2022      6C6C00
+ 2023              	.LASF23:
+ 2024 014f 6C6D3735 		.ascii	"lm75Read\000"
+ 2024      52656164 
+ 2024      00
+ 2025              	.LASF0:
+ 2026 0158 74553136 		.ascii	"tU16\000"
+ 2026      00
+ 2027              	.LASF10:
+ 2028 015d 74426F6F 		.ascii	"tBool\000"
+ 2028      6C00
+ 2029              	.LASF31:
+ 2030 0163 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2030      43313120 
+ 2030      352E342E 
+ 2030      31203230 
+ 2030      31363036 
+ 2031 0196 616E6368 		.ascii	"anch revision 237715] -mcpu=arm7tdmi -mthumb -mthum"
+ 2031      20726576 
+ 2031      6973696F 
+ 2031      6E203233 
+ 2031      37373135 
+ 2032 01c9 622D696E 		.ascii	"b-interwork -gdwarf-2 -Os\000"
+ 2032      74657277 
+ 2032      6F726B20 
+ 2032      2D676477 
+ 2032      6172662D 
+ 2033              	.LASF32:
+ 2034 01e3 65657072 		.ascii	"eeprom.c\000"
+ 2034      6F6D2E63 
+ 2034      00
+ 2035              	.LASF22:
+ 2036 01ec 70446174 		.ascii	"pData\000"
+ 2036      6100
+ 2037              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s 			page 46
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 eeprom.c
+C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s:19     .text:00000000 $t
+C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s:24     .text:00000000 eepromPoll
+C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s:108    .text:00000048 eepromStartRead
+C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s:244    .text:000000ca eepromPageRead
+C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s:370    .text:00000138 eepromWrite
+C:\Users\embedded\AppData\Local\Temp\ccXlEbX2.s:459    .text:00000188 lm75Read
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+i2cStart
+i2cPutChar
+i2cCheckStatus
+i2cStop
+i2cRepeatStart
+i2cGetChar
+i2cWriteWithWait

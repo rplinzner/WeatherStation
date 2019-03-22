@@ -1,0 +1,1929 @@
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu arm7tdmi
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"lcd.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.align	1
+  20              		.global	delay37us
+  21              		.code	16
+  22              		.thumb_func
+  23              		.type	delay37us, %function
+  24              	delay37us:
+  25              	.LFB0:
+  26              		.file 1 "lcd.c"
+   1:lcd.c         **** /*
+   2:lcd.c         ****  * lcd.c
+   3:lcd.c         ****  *
+   4:lcd.c         ****  *  Created on: Jan 5, 2018
+   5:lcd.c         ****  *      Author: embedded
+   6:lcd.c         ****  */
+   7:lcd.c         **** #include "lcd.h"
+   8:lcd.c         **** 
+   9:lcd.c         **** void delay37us(void)
+  10:lcd.c         **** {
+  27              		.loc 1 10 0
+  28              		.cfi_startproc
+  29              		@ Function supports interworking.
+  30              		@ args = 0, pretend = 0, frame = 8
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+  11:lcd.c         **** 	volatile tU32 i;
+  12:lcd.c         **** 
+  13:lcd.c         **** //Temp test for 140 uS delay
+  14:lcd.c         **** 	for(i=0; i<6*2500; i++)
+  33              		.loc 1 14 0
+  34 0000 0023     		movs	r3, #0
+  10:lcd.c         **** 	volatile tU32 i;
+  35              		.loc 1 10 0
+  36 0002 82B0     		sub	sp, sp, #8
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.loc 1 14 0
+  40 0004 0193     		str	r3, [sp, #4]
+  41 0006 054A     		ldr	r2, .L6
+  42              	.L2:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 2
+
+
+  43              		.loc 1 14 0 is_stmt 0 discriminator 1
+  44 0008 019B     		ldr	r3, [sp, #4]
+  45 000a 9342     		cmp	r3, r2
+  46 000c 04D8     		bhi	.L5
+  15:lcd.c         ****     asm volatile (" nop"); //delay 15 ns x 2500 = about 37 us delay
+  47              		.loc 1 15 0 is_stmt 1 discriminator 3
+  48              		.syntax divided
+  49              	@ 15 "lcd.c" 1
+  50 000e C046     		 nop
+  51              	@ 0 "" 2
+  14:lcd.c         ****     asm volatile (" nop"); //delay 15 ns x 2500 = about 37 us delay
+  52              		.loc 1 14 0 discriminator 3
+  53              		.thumb
+  54              		.syntax unified
+  55 0010 019B     		ldr	r3, [sp, #4]
+  56 0012 0133     		adds	r3, r3, #1
+  57 0014 0193     		str	r3, [sp, #4]
+  58 0016 F7E7     		b	.L2
+  59              	.L5:
+  16:lcd.c         **** }
+  60              		.loc 1 16 0
+  61 0018 02B0     		add	sp, sp, #8
+  62              		@ sp needed
+  63 001a 7047     		bx	lr
+  64              	.L7:
+  65              		.align	2
+  66              	.L6:
+  67 001c 973A0000 		.word	14999
+  68              		.cfi_endproc
+  69              	.LFE0:
+  70              		.size	delay37us, .-delay37us
+  71              		.align	1
+  72              		.global	initLCD
+  73              		.code	16
+  74              		.thumb_func
+  75              		.type	initLCD, %function
+  76              	initLCD:
+  77              	.LFB1:
+  17:lcd.c         **** 
+  18:lcd.c         **** void initLCD(void)
+  19:lcd.c         **** {
+  78              		.loc 1 19 0
+  79              		.cfi_startproc
+  80              		@ Function supports interworking.
+  81              		@ args = 0, pretend = 0, frame = 0
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  83              		@ link register save eliminated.
+  20:lcd.c         **** 	IODIR1 |= (dat | en | rs);
+  21:lcd.c         **** 	IOCLR1  = (dat | en | rs);
+  22:lcd.c         **** 
+  23:lcd.c         **** 	IODIR0 |= rw;
+  84              		.loc 1 23 0
+  85 0020 8020     		movs	r0, #128
+  20:lcd.c         **** 	IODIR1 |= (dat | en | rs);
+  86              		.loc 1 20 0
+  87 0022 0A49     		ldr	r1, .L9
+  88 0024 0A4A     		ldr	r2, .L9+4
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 3
+
+
+  89 0026 0B68     		ldr	r3, [r1]
+  90 0028 1343     		orrs	r3, r2
+  91 002a 0B60     		str	r3, [r1]
+  21:lcd.c         **** 
+  92              		.loc 1 21 0
+  93 002c 094B     		ldr	r3, .L9+8
+  94 002e 1A60     		str	r2, [r3]
+  95              		.loc 1 23 0
+  96 0030 094B     		ldr	r3, .L9+12
+  97 0032 1A68     		ldr	r2, [r3]
+  98 0034 C003     		lsls	r0, r0, #15
+  24:lcd.c         **** 	IOCLR0  = rw;
+  99              		.loc 1 24 0
+ 100 0036 0949     		ldr	r1, .L9+16
+  23:lcd.c         **** 	IOCLR0  = rw;
+ 101              		.loc 1 23 0
+ 102 0038 0243     		orrs	r2, r0
+ 103 003a 1A60     		str	r2, [r3]
+ 104              		.loc 1 24 0
+ 105 003c 0860     		str	r0, [r1]
+  25:lcd.c         **** 
+  26:lcd.c         **** 	IODIR0 |= b_light;
+ 106              		.loc 1 26 0
+ 107 003e 8020     		movs	r0, #128
+ 108 0040 1A68     		ldr	r2, [r3]
+ 109 0042 C005     		lsls	r0, r0, #23
+ 110 0044 0243     		orrs	r2, r0
+ 111 0046 1A60     		str	r2, [r3]
+  27:lcd.c         **** 	IOCLR0  = b_light;
+  28:lcd.c         **** 
+  29:lcd.c         **** }
+ 112              		.loc 1 29 0
+ 113              		@ sp needed
+  27:lcd.c         **** 	IOCLR0  = b_light;
+ 114              		.loc 1 27 0
+ 115 0048 0860     		str	r0, [r1]
+ 116              		.loc 1 29 0
+ 117 004a 7047     		bx	lr
+ 118              	.L10:
+ 119              		.align	2
+ 120              	.L9:
+ 121 004c 188002E0 		.word	-536707048
+ 122 0050 0000FF03 		.word	67043328
+ 123 0054 1C8002E0 		.word	-536707044
+ 124 0058 088002E0 		.word	-536707064
+ 125 005c 0C8002E0 		.word	-536707060
+ 126              		.cfi_endproc
+ 127              	.LFE1:
+ 128              		.size	initLCD, .-initLCD
+ 129              		.align	1
+ 130              		.global	writeLCD
+ 131              		.code	16
+ 132              		.thumb_func
+ 133              		.type	writeLCD, %function
+ 134              	writeLCD:
+ 135              	.LFB2:
+  30:lcd.c         **** void writeLCD (tU8 reg, tU8 znak)
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 4
+
+
+  31:lcd.c         **** {
+ 136              		.loc 1 31 0
+ 137              		.cfi_startproc
+ 138              		@ Function supports interworking.
+ 139              		@ args = 0, pretend = 0, frame = 8
+ 140              		@ frame_needed = 0, uses_anonymous_args = 0
+ 141              	.LVL0:
+ 142 0060 8023     		movs	r3, #128
+ 143 0062 13B5     		push	{r0, r1, r4, lr}
+ 144              	.LCFI1:
+ 145              		.cfi_def_cfa_offset 16
+ 146              		.cfi_offset 0, -16
+ 147              		.cfi_offset 1, -12
+ 148              		.cfi_offset 4, -8
+ 149              		.cfi_offset 14, -4
+ 150 0064 5B04     		lsls	r3, r3, #17
+ 151 0066 194C     		ldr	r4, .L22
+ 152 0068 194A     		ldr	r2, .L22+4
+  32:lcd.c         **** 	volatile tU8 i;
+  33:lcd.c         **** 
+  34:lcd.c         **** 	if (reg == 0)
+ 153              		.loc 1 34 0
+ 154 006a 0028     		cmp	r0, #0
+ 155 006c 01D1     		bne	.L12
+  35:lcd.c         **** 	  IOCLR1 = rs;
+ 156              		.loc 1 35 0
+ 157 006e 2360     		str	r3, [r4]
+ 158 0070 00E0     		b	.L13
+ 159              	.L12:
+  36:lcd.c         **** 	else
+  37:lcd.c         **** 	  IOSET1 = rs;
+ 160              		.loc 1 37 0
+ 161 0072 1360     		str	r3, [r2]
+ 162              	.L13:
+  38:lcd.c         **** 
+  39:lcd.c         ****     IOCLR0 = rw;
+ 163              		.loc 1 39 0
+ 164 0074 8020     		movs	r0, #128
+ 165              	.LVL1:
+ 166 0076 174B     		ldr	r3, .L22+8
+ 167 0078 C003     		lsls	r0, r0, #15
+ 168 007a 1860     		str	r0, [r3]
+  40:lcd.c         **** 	IOCLR1 = dat;
+ 169              		.loc 1 40 0
+ 170 007c FF23     		movs	r3, #255
+  41:lcd.c         **** 	IOSET1 = ((tU32)znak << 16) & dat;
+ 171              		.loc 1 41 0
+ 172 007e 0904     		lsls	r1, r1, #16
+ 173              	.LVL2:
+  40:lcd.c         **** 	IOCLR1 = dat;
+ 174              		.loc 1 40 0
+ 175 0080 1B04     		lsls	r3, r3, #16
+ 176 0082 2360     		str	r3, [r4]
+ 177              		.loc 1 41 0
+ 178 0084 0B40     		ands	r3, r1
+ 179 0086 1360     		str	r3, [r2]
+  42:lcd.c         **** 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 5
+
+
+  43:lcd.c         **** 	IOSET1 = en;
+ 180              		.loc 1 43 0
+ 181 0088 8023     		movs	r3, #128
+ 182 008a 9B04     		lsls	r3, r3, #18
+ 183 008c 1360     		str	r3, [r2]
+  44:lcd.c         **** 
+  45:lcd.c         **** 	for(i=0; i<16; i++)
+ 184              		.loc 1 45 0
+ 185 008e 6B46     		mov	r3, sp
+ 186 0090 0022     		movs	r2, #0
+ 187 0092 0733     		adds	r3, r3, #7
+ 188              	.L18:
+ 189              		.loc 1 45 0 is_stmt 0 discriminator 3
+ 190 0094 1A70     		strb	r2, [r3]
+ 191 0096 1A78     		ldrb	r2, [r3]
+ 192 0098 0F2A     		cmp	r2, #15
+ 193 009a 05D8     		bhi	.L20
+  46:lcd.c         ****     asm volatile (" nop"); //delay 15 ns x 16 = about 250 ns delay
+ 194              		.loc 1 46 0 is_stmt 1 discriminator 3
+ 195              		.syntax divided
+ 196              	@ 46 "lcd.c" 1
+ 197 009c C046     		 nop
+ 198              	@ 0 "" 2
+  45:lcd.c         ****     asm volatile (" nop"); //delay 15 ns x 16 = about 250 ns delay
+ 199              		.loc 1 45 0 discriminator 3
+ 200              		.thumb
+ 201              		.syntax unified
+ 202 009e 1A78     		ldrb	r2, [r3]
+ 203 00a0 0132     		adds	r2, r2, #1
+ 204 00a2 1206     		lsls	r2, r2, #24
+ 205 00a4 120E     		lsrs	r2, r2, #24
+ 206 00a6 F5E7     		b	.L18
+ 207              	.L20:
+  47:lcd.c         **** 	IOCLR1 = en;
+ 208              		.loc 1 47 0
+ 209 00a8 8022     		movs	r2, #128
+ 210 00aa 9204     		lsls	r2, r2, #18
+ 211 00ac 2260     		str	r2, [r4]
+  48:lcd.c         **** 	for(i=0; i<16; i++)
+ 212              		.loc 1 48 0
+ 213 00ae 0022     		movs	r2, #0
+ 214              	.L19:
+ 215              		.loc 1 48 0 is_stmt 0 discriminator 3
+ 216 00b0 1A70     		strb	r2, [r3]
+ 217 00b2 1A78     		ldrb	r2, [r3]
+ 218 00b4 0F2A     		cmp	r2, #15
+ 219 00b6 05D8     		bhi	.L21
+  49:lcd.c         ****     asm volatile (" nop"); //delay 15 ns x 16 = about 250 ns delay
+ 220              		.loc 1 49 0 is_stmt 1 discriminator 3
+ 221              		.syntax divided
+ 222              	@ 49 "lcd.c" 1
+ 223 00b8 C046     		 nop
+ 224              	@ 0 "" 2
+  48:lcd.c         **** 	for(i=0; i<16; i++)
+ 225              		.loc 1 48 0 discriminator 3
+ 226              		.thumb
+ 227              		.syntax unified
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 6
+
+
+ 228 00ba 1A78     		ldrb	r2, [r3]
+ 229 00bc 0132     		adds	r2, r2, #1
+ 230 00be 1206     		lsls	r2, r2, #24
+ 231 00c0 120E     		lsrs	r2, r2, #24
+ 232 00c2 F5E7     		b	.L19
+ 233              	.L21:
+  50:lcd.c         **** }
+ 234              		.loc 1 50 0
+ 235              		@ sp needed
+ 236 00c4 13BC     		pop	{r0, r1, r4}
+ 237 00c6 01BC     		pop	{r0}
+ 238 00c8 0047     		bx	r0
+ 239              	.L23:
+ 240 00ca C046     		.align	2
+ 241              	.L22:
+ 242 00cc 1C8002E0 		.word	-536707044
+ 243 00d0 148002E0 		.word	-536707052
+ 244 00d4 0C8002E0 		.word	-536707060
+ 245              		.cfi_endproc
+ 246              	.LFE2:
+ 247              		.size	writeLCD, .-writeLCD
+ 248              		.align	1
+ 249              		.global	setLCD
+ 250              		.code	16
+ 251              		.thumb_func
+ 252              		.type	setLCD, %function
+ 253              	setLCD:
+ 254              	.LFB3:
+  51:lcd.c         **** 
+  52:lcd.c         **** void setLCD()
+  53:lcd.c         **** {
+ 255              		.loc 1 53 0
+ 256              		.cfi_startproc
+ 257              		@ Function supports interworking.
+ 258              		@ args = 0, pretend = 0, frame = 0
+ 259              		@ frame_needed = 0, uses_anonymous_args = 0
+ 260 00d8 10B5     		push	{r4, lr}
+ 261              	.LCFI2:
+ 262              		.cfi_def_cfa_offset 8
+ 263              		.cfi_offset 4, -8
+ 264              		.cfi_offset 14, -4
+  54:lcd.c         ****     writeLCD(0, 0x30);
+ 265              		.loc 1 54 0
+ 266 00da 3021     		movs	r1, #48
+ 267 00dc 0020     		movs	r0, #0
+ 268 00de FFF7FEFF 		bl	writeLCD
+ 269              	.LVL3:
+  55:lcd.c         **** 	delay37us();
+ 270              		.loc 1 55 0
+ 271 00e2 FFF7FEFF 		bl	delay37us
+ 272              	.LVL4:
+  56:lcd.c         **** 	delay37us();
+ 273              		.loc 1 56 0
+ 274 00e6 FFF7FEFF 		bl	delay37us
+ 275              	.LVL5:
+  57:lcd.c         **** 
+  58:lcd.c         **** 	//function set
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 7
+
+
+  59:lcd.c         ****     writeLCD(0, 0x38);
+ 276              		.loc 1 59 0
+ 277 00ea 3821     		movs	r1, #56
+ 278 00ec 0020     		movs	r0, #0
+ 279 00ee FFF7FEFF 		bl	writeLCD
+ 280              	.LVL6:
+  60:lcd.c         **** 	delay37us();
+ 281              		.loc 1 60 0
+ 282 00f2 FFF7FEFF 		bl	delay37us
+ 283              	.LVL7:
+  61:lcd.c         **** 
+  62:lcd.c         **** 	//display off
+  63:lcd.c         **** 	writeLCD(0, 0x08);
+ 284              		.loc 1 63 0
+ 285 00f6 0821     		movs	r1, #8
+ 286 00f8 0020     		movs	r0, #0
+ 287 00fa FFF7FEFF 		bl	writeLCD
+ 288              	.LVL8:
+  64:lcd.c         **** 	delay37us();
+ 289              		.loc 1 64 0
+ 290 00fe FFF7FEFF 		bl	delay37us
+ 291              	.LVL9:
+  65:lcd.c         **** 
+  66:lcd.c         ****     //display clear
+  67:lcd.c         **** 	writeLCD(0, 0x01);
+ 292              		.loc 1 67 0
+ 293 0102 0121     		movs	r1, #1
+ 294 0104 0020     		movs	r0, #0
+ 295 0106 FFF7FEFF 		bl	writeLCD
+ 296              	.LVL10:
+  68:lcd.c         **** 	delay37us(); //actually only 1.52 mS needed
+ 297              		.loc 1 68 0
+ 298 010a FFF7FEFF 		bl	delay37us
+ 299              	.LVL11:
+  69:lcd.c         **** 
+  70:lcd.c         **** 	//display control set
+  71:lcd.c         **** 	writeLCD(0, 0x06);
+ 300              		.loc 1 71 0
+ 301 010e 0621     		movs	r1, #6
+ 302 0110 0020     		movs	r0, #0
+ 303 0112 FFF7FEFF 		bl	writeLCD
+ 304              	.LVL12:
+  72:lcd.c         **** 	delay37us();
+ 305              		.loc 1 72 0
+ 306 0116 FFF7FEFF 		bl	delay37us
+ 307              	.LVL13:
+  73:lcd.c         **** 
+  74:lcd.c         **** 	//display control set
+  75:lcd.c         **** 	writeLCD(0, 0x0c);
+ 308              		.loc 1 75 0
+ 309 011a 0C21     		movs	r1, #12
+ 310 011c 0020     		movs	r0, #0
+ 311 011e FFF7FEFF 		bl	writeLCD
+ 312              	.LVL14:
+  76:lcd.c         **** 	delay37us();
+ 313              		.loc 1 76 0
+ 314 0122 FFF7FEFF 		bl	delay37us
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 8
+
+
+ 315              	.LVL15:
+  77:lcd.c         **** 			    //cursor home
+  78:lcd.c         ****     writeLCD(0, 0x02);
+ 316              		.loc 1 78 0
+ 317 0126 0221     		movs	r1, #2
+ 318 0128 0020     		movs	r0, #0
+ 319 012a FFF7FEFF 		bl	writeLCD
+ 320              	.LVL16:
+  79:lcd.c         ****     delay37us();
+  80:lcd.c         **** }
+ 321              		.loc 1 80 0
+ 322              		@ sp needed
+  79:lcd.c         ****     delay37us();
+ 323              		.loc 1 79 0
+ 324 012e FFF7FEFF 		bl	delay37us
+ 325              	.LVL17:
+ 326              		.loc 1 80 0
+ 327 0132 10BC     		pop	{r4}
+ 328 0134 01BC     		pop	{r0}
+ 329 0136 0047     		bx	r0
+ 330              		.cfi_endproc
+ 331              	.LFE3:
+ 332              		.size	setLCD, .-setLCD
+ 333              		.align	1
+ 334              		.global	LCD_WriteFunction
+ 335              		.code	16
+ 336              		.thumb_func
+ 337              		.type	LCD_WriteFunction, %function
+ 338              	LCD_WriteFunction:
+ 339              	.LFB4:
+  81:lcd.c         **** 
+  82:lcd.c         **** void LCD_WriteFunction (unsigned int function)
+  83:lcd.c         **** {
+ 340              		.loc 1 83 0
+ 341              		.cfi_startproc
+ 342              		@ Function supports interworking.
+ 343              		@ args = 0, pretend = 0, frame = 0
+ 344              		@ frame_needed = 0, uses_anonymous_args = 0
+ 345              	.LVL18:
+ 346 0138 10B5     		push	{r4, lr}
+ 347              	.LCFI3:
+ 348              		.cfi_def_cfa_offset 8
+ 349              		.cfi_offset 4, -8
+ 350              		.cfi_offset 14, -4
+ 351              		.loc 1 83 0
+ 352 013a 0400     		movs	r4, r0
+  84:lcd.c         **** 	delay37us();
+ 353              		.loc 1 84 0
+ 354 013c FFF7FEFF 		bl	delay37us
+ 355              	.LVL19:
+  85:lcd.c         **** 	writeLCD (0, function);
+ 356              		.loc 1 85 0
+ 357 0140 2106     		lsls	r1, r4, #24
+ 358 0142 090E     		lsrs	r1, r1, #24
+ 359 0144 0020     		movs	r0, #0
+ 360 0146 FFF7FEFF 		bl	writeLCD
+ 361              	.LVL20:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 9
+
+
+  86:lcd.c         **** }
+ 362              		.loc 1 86 0
+ 363              		@ sp needed
+ 364              	.LVL21:
+ 365 014a 10BC     		pop	{r4}
+ 366 014c 01BC     		pop	{r0}
+ 367 014e 0047     		bx	r0
+ 368              		.cfi_endproc
+ 369              	.LFE4:
+ 370              		.size	LCD_WriteFunction, .-LCD_WriteFunction
+ 371              		.align	1
+ 372              		.global	LCD_WriteNumber
+ 373              		.code	16
+ 374              		.thumb_func
+ 375              		.type	LCD_WriteNumber, %function
+ 376              	LCD_WriteNumber:
+ 377              	.LFB5:
+  87:lcd.c         **** 
+  88:lcd.c         **** void LCD_WriteNumber (unsigned int number)
+  89:lcd.c         **** {
+ 378              		.loc 1 89 0
+ 379              		.cfi_startproc
+ 380              		@ Function supports interworking.
+ 381              		@ args = 0, pretend = 0, frame = 0
+ 382              		@ frame_needed = 0, uses_anonymous_args = 0
+ 383              	.LVL22:
+ 384 0150 10B5     		push	{r4, lr}
+ 385              	.LCFI4:
+ 386              		.cfi_def_cfa_offset 8
+ 387              		.cfi_offset 4, -8
+ 388              		.cfi_offset 14, -4
+ 389              		.loc 1 89 0
+ 390 0152 0400     		movs	r4, r0
+  90:lcd.c         **** 	delay37us();
+ 391              		.loc 1 90 0
+ 392 0154 FFF7FEFF 		bl	delay37us
+ 393              	.LVL23:
+  91:lcd.c         **** 	writeLCD (1, number + '0');
+ 394              		.loc 1 91 0
+ 395 0158 2100     		movs	r1, r4
+ 396 015a 3031     		adds	r1, r1, #48
+ 397 015c 0906     		lsls	r1, r1, #24
+ 398 015e 090E     		lsrs	r1, r1, #24
+ 399 0160 0120     		movs	r0, #1
+ 400 0162 FFF7FEFF 		bl	writeLCD
+ 401              	.LVL24:
+  92:lcd.c         **** }
+ 402              		.loc 1 92 0
+ 403              		@ sp needed
+ 404              	.LVL25:
+ 405 0166 10BC     		pop	{r4}
+ 406 0168 01BC     		pop	{r0}
+ 407 016a 0047     		bx	r0
+ 408              		.cfi_endproc
+ 409              	.LFE5:
+ 410              		.size	LCD_WriteNumber, .-LCD_WriteNumber
+ 411              		.align	1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 10
+
+
+ 412              		.global	LCD_WriteString
+ 413              		.code	16
+ 414              		.thumb_func
+ 415              		.type	LCD_WriteString, %function
+ 416              	LCD_WriteString:
+ 417              	.LFB6:
+  93:lcd.c         **** 
+  94:lcd.c         **** void LCD_WriteString ( char * string)
+  95:lcd.c         **** {
+ 418              		.loc 1 95 0
+ 419              		.cfi_startproc
+ 420              		@ Function supports interworking.
+ 421              		@ args = 0, pretend = 0, frame = 0
+ 422              		@ frame_needed = 0, uses_anonymous_args = 0
+ 423              	.LVL26:
+ 424 016c 10B5     		push	{r4, lr}
+ 425              	.LCFI5:
+ 426              		.cfi_def_cfa_offset 8
+ 427              		.cfi_offset 4, -8
+ 428              		.cfi_offset 14, -4
+ 429 016e 0400     		movs	r4, r0
+ 430              	.LVL27:
+ 431              	.L30:
+ 432 0170 0134     		adds	r4, r4, #1
+ 433              	.LVL28:
+  96:lcd.c         **** 	int c=0;
+  97:lcd.c         **** 	delay37us();
+  98:lcd.c         **** 	while (string[c]!='\0')
+  99:lcd.c         **** 	{
+ 100:lcd.c         **** 		writeLCD (1, string[c]);
+ 101:lcd.c         **** 		c++;
+ 102:lcd.c         **** 		delay37us();
+ 434              		.loc 1 102 0
+ 435 0172 FFF7FEFF 		bl	delay37us
+ 436              	.LVL29:
+  98:lcd.c         **** 	{
+ 437              		.loc 1 98 0
+ 438 0176 631E     		subs	r3, r4, #1
+ 439 0178 1978     		ldrb	r1, [r3]
+ 440 017a 0029     		cmp	r1, #0
+ 441 017c 03D0     		beq	.L31
+ 100:lcd.c         **** 		c++;
+ 442              		.loc 1 100 0
+ 443 017e 0120     		movs	r0, #1
+ 444 0180 FFF7FEFF 		bl	writeLCD
+ 445              	.LVL30:
+ 446 0184 F4E7     		b	.L30
+ 447              	.L31:
+ 103:lcd.c         **** 	}
+ 104:lcd.c         **** }
+ 448              		.loc 1 104 0
+ 449              		@ sp needed
+ 450 0186 10BC     		pop	{r4}
+ 451 0188 01BC     		pop	{r0}
+ 452 018a 0047     		bx	r0
+ 453              		.cfi_endproc
+ 454              	.LFE6:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 11
+
+
+ 455              		.size	LCD_WriteString, .-LCD_WriteString
+ 456              		.align	1
+ 457              		.global	LCD_WriteCHARINT
+ 458              		.code	16
+ 459              		.thumb_func
+ 460              		.type	LCD_WriteCHARINT, %function
+ 461              	LCD_WriteCHARINT:
+ 462              	.LFB7:
+ 105:lcd.c         **** 
+ 106:lcd.c         **** void LCD_WriteCHARINT (unsigned int charint)
+ 107:lcd.c         **** {
+ 463              		.loc 1 107 0
+ 464              		.cfi_startproc
+ 465              		@ Function supports interworking.
+ 466              		@ args = 0, pretend = 0, frame = 0
+ 467              		@ frame_needed = 0, uses_anonymous_args = 0
+ 468              	.LVL31:
+ 469 018c 10B5     		push	{r4, lr}
+ 470              	.LCFI6:
+ 471              		.cfi_def_cfa_offset 8
+ 472              		.cfi_offset 4, -8
+ 473              		.cfi_offset 14, -4
+ 474              		.loc 1 107 0
+ 475 018e 0400     		movs	r4, r0
+ 108:lcd.c         **** 	delay37us();
+ 476              		.loc 1 108 0
+ 477 0190 FFF7FEFF 		bl	delay37us
+ 478              	.LVL32:
+ 109:lcd.c         **** 	writeLCD (1, charint);
+ 479              		.loc 1 109 0
+ 480 0194 2106     		lsls	r1, r4, #24
+ 481 0196 090E     		lsrs	r1, r1, #24
+ 482 0198 0120     		movs	r0, #1
+ 483 019a FFF7FEFF 		bl	writeLCD
+ 484              	.LVL33:
+ 110:lcd.c         **** }
+ 485              		.loc 1 110 0
+ 486              		@ sp needed
+ 487              	.LVL34:
+ 488 019e 10BC     		pop	{r4}
+ 489 01a0 01BC     		pop	{r0}
+ 490 01a2 0047     		bx	r0
+ 491              		.cfi_endproc
+ 492              	.LFE7:
+ 493              		.size	LCD_WriteCHARINT, .-LCD_WriteCHARINT
+ 494              		.align	1
+ 495              		.global	lcdBacklight
+ 496              		.code	16
+ 497              		.thumb_func
+ 498              		.type	lcdBacklight, %function
+ 499              	lcdBacklight:
+ 500              	.LFB8:
+ 111:lcd.c         **** 
+ 112:lcd.c         **** void lcdBacklight(tU8 onOff)
+ 113:lcd.c         **** {
+ 501              		.loc 1 113 0
+ 502              		.cfi_startproc
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 12
+
+
+ 503              		@ Function supports interworking.
+ 504              		@ args = 0, pretend = 0, frame = 0
+ 505              		@ frame_needed = 0, uses_anonymous_args = 0
+ 506              		@ link register save eliminated.
+ 507              	.LVL35:
+ 508 01a4 8023     		movs	r3, #128
+ 509 01a6 DB05     		lsls	r3, r3, #23
+ 114:lcd.c         **** 	if (onOff == TRUE)
+ 510              		.loc 1 114 0
+ 511 01a8 0128     		cmp	r0, #1
+ 512 01aa 01D1     		bne	.L34
+ 115:lcd.c         **** 	  IOSET0 = b_light;
+ 513              		.loc 1 115 0
+ 514 01ac 024A     		ldr	r2, .L37
+ 515 01ae 00E0     		b	.L36
+ 516              	.L34:
+ 116:lcd.c         **** 	else
+ 117:lcd.c         **** 	  IOCLR0 = b_light;
+ 517              		.loc 1 117 0
+ 518 01b0 024A     		ldr	r2, .L37+4
+ 519              	.L36:
+ 520 01b2 1360     		str	r3, [r2]
+ 118:lcd.c         **** }
+ 521              		.loc 1 118 0
+ 522              		@ sp needed
+ 523 01b4 7047     		bx	lr
+ 524              	.L38:
+ 525 01b6 C046     		.align	2
+ 526              	.L37:
+ 527 01b8 048002E0 		.word	-536707068
+ 528 01bc 0C8002E0 		.word	-536707060
+ 529              		.cfi_endproc
+ 530              	.LFE8:
+ 531              		.size	lcdBacklight, .-lcdBacklight
+ 532              	.Letext0:
+ 533              		.file 2 "general.h"
+ 534              		.section	.debug_info,"",%progbits
+ 535              	.Ldebug_info0:
+ 536 0000 83030000 		.4byte	0x383
+ 537 0004 0200     		.2byte	0x2
+ 538 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 539 000a 04       		.byte	0x4
+ 540 000b 01       		.uleb128 0x1
+ 541 000c 05010000 		.4byte	.LASF25
+ 542 0010 0C       		.byte	0xc
+ 543 0011 D0000000 		.4byte	.LASF26
+ 544 0015 B2000000 		.4byte	.LASF27
+ 545 0019 00000000 		.4byte	.Ltext0
+ 546 001d C0010000 		.4byte	.Letext0
+ 547 0021 00000000 		.4byte	.Ldebug_line0
+ 548 0025 02       		.uleb128 0x2
+ 549 0026 74553800 		.ascii	"tU8\000"
+ 550 002a 02       		.byte	0x2
+ 551 002b 12       		.byte	0x12
+ 552 002c 30000000 		.4byte	0x30
+ 553 0030 03       		.uleb128 0x3
+ 554 0031 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 13
+
+
+ 555 0032 08       		.byte	0x8
+ 556 0033 84000000 		.4byte	.LASF0
+ 557 0037 03       		.uleb128 0x3
+ 558 0038 02       		.byte	0x2
+ 559 0039 07       		.byte	0x7
+ 560 003a D6000000 		.4byte	.LASF1
+ 561 003e 04       		.uleb128 0x4
+ 562 003f B9010000 		.4byte	.LASF2
+ 563 0043 02       		.byte	0x2
+ 564 0044 14       		.byte	0x14
+ 565 0045 49000000 		.4byte	0x49
+ 566 0049 03       		.uleb128 0x3
+ 567 004a 04       		.byte	0x4
+ 568 004b 07       		.byte	0x7
+ 569 004c 1B000000 		.4byte	.LASF3
+ 570 0050 03       		.uleb128 0x3
+ 571 0051 08       		.byte	0x8
+ 572 0052 07       		.byte	0x7
+ 573 0053 5C000000 		.4byte	.LASF4
+ 574 0057 03       		.uleb128 0x3
+ 575 0058 01       		.byte	0x1
+ 576 0059 06       		.byte	0x6
+ 577 005a E9000000 		.4byte	.LASF5
+ 578 005e 03       		.uleb128 0x3
+ 579 005f 02       		.byte	0x2
+ 580 0060 05       		.byte	0x5
+ 581 0061 A8000000 		.4byte	.LASF6
+ 582 0065 05       		.uleb128 0x5
+ 583 0066 04       		.byte	0x4
+ 584 0067 05       		.byte	0x5
+ 585 0068 696E7400 		.ascii	"int\000"
+ 586 006c 03       		.uleb128 0x3
+ 587 006d 08       		.byte	0x8
+ 588 006e 05       		.byte	0x5
+ 589 006f 00000000 		.4byte	.LASF7
+ 590 0073 06       		.uleb128 0x6
+ 591 0074 01       		.byte	0x1
+ 592 0075 30000000 		.4byte	0x30
+ 593 0079 02       		.byte	0x2
+ 594 007a 1A       		.byte	0x1a
+ 595 007b 8C000000 		.4byte	0x8c
+ 596 007f 07       		.uleb128 0x7
+ 597 0080 85010000 		.4byte	.LASF8
+ 598 0084 00       		.byte	0
+ 599 0085 07       		.uleb128 0x7
+ 600 0086 92000000 		.4byte	.LASF9
+ 601 008a 01       		.byte	0x1
+ 602 008b 00       		.byte	0
+ 603 008c 08       		.uleb128 0x8
+ 604 008d 01       		.byte	0x1
+ 605 008e 97000000 		.4byte	.LASF10
+ 606 0092 01       		.byte	0x1
+ 607 0093 09       		.byte	0x9
+ 608 0094 01       		.byte	0x1
+ 609 0095 00000000 		.4byte	.LFB0
+ 610 0099 20000000 		.4byte	.LFE0
+ 611 009d 00000000 		.4byte	.LLST0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 14
+
+
+ 612 00a1 01       		.byte	0x1
+ 613 00a2 B3000000 		.4byte	0xb3
+ 614 00a6 09       		.uleb128 0x9
+ 615 00a7 6900     		.ascii	"i\000"
+ 616 00a9 01       		.byte	0x1
+ 617 00aa 0B       		.byte	0xb
+ 618 00ab B3000000 		.4byte	0xb3
+ 619 00af 02       		.byte	0x2
+ 620 00b0 91       		.byte	0x91
+ 621 00b1 7C       		.sleb128 -4
+ 622 00b2 00       		.byte	0
+ 623 00b3 0A       		.uleb128 0xa
+ 624 00b4 3E000000 		.4byte	0x3e
+ 625 00b8 0B       		.uleb128 0xb
+ 626 00b9 01       		.byte	0x1
+ 627 00ba 31000000 		.4byte	.LASF28
+ 628 00be 01       		.byte	0x1
+ 629 00bf 12       		.byte	0x12
+ 630 00c0 01       		.byte	0x1
+ 631 00c1 20000000 		.4byte	.LFB1
+ 632 00c5 60000000 		.4byte	.LFE1
+ 633 00c9 02       		.byte	0x2
+ 634 00ca 7D       		.byte	0x7d
+ 635 00cb 00       		.sleb128 0
+ 636 00cc 01       		.byte	0x1
+ 637 00cd 08       		.uleb128 0x8
+ 638 00ce 01       		.byte	0x1
+ 639 00cf 53000000 		.4byte	.LASF11
+ 640 00d3 01       		.byte	0x1
+ 641 00d4 1E       		.byte	0x1e
+ 642 00d5 01       		.byte	0x1
+ 643 00d6 60000000 		.4byte	.LFB2
+ 644 00da D8000000 		.4byte	.LFE2
+ 645 00de 20000000 		.4byte	.LLST1
+ 646 00e2 01       		.byte	0x1
+ 647 00e3 12010000 		.4byte	0x112
+ 648 00e7 0C       		.uleb128 0xc
+ 649 00e8 72656700 		.ascii	"reg\000"
+ 650 00ec 01       		.byte	0x1
+ 651 00ed 1E       		.byte	0x1e
+ 652 00ee 25000000 		.4byte	0x25
+ 653 00f2 40000000 		.4byte	.LLST2
+ 654 00f6 0D       		.uleb128 0xd
+ 655 00f7 7F000000 		.4byte	.LASF12
+ 656 00fb 01       		.byte	0x1
+ 657 00fc 1E       		.byte	0x1e
+ 658 00fd 25000000 		.4byte	0x25
+ 659 0101 61000000 		.4byte	.LLST3
+ 660 0105 09       		.uleb128 0x9
+ 661 0106 6900     		.ascii	"i\000"
+ 662 0108 01       		.byte	0x1
+ 663 0109 20       		.byte	0x20
+ 664 010a 12010000 		.4byte	0x112
+ 665 010e 02       		.byte	0x2
+ 666 010f 91       		.byte	0x91
+ 667 0110 77       		.sleb128 -9
+ 668 0111 00       		.byte	0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 15
+
+
+ 669 0112 0A       		.uleb128 0xa
+ 670 0113 25000000 		.4byte	0x25
+ 671 0117 0E       		.uleb128 0xe
+ 672 0118 01       		.byte	0x1
+ 673 0119 A1000000 		.4byte	.LASF22
+ 674 011d 01       		.byte	0x1
+ 675 011e 34       		.byte	0x34
+ 676 011f D8000000 		.4byte	.LFB3
+ 677 0123 38010000 		.4byte	.LFE3
+ 678 0127 82000000 		.4byte	.LLST4
+ 679 012b 01       		.byte	0x1
+ 680 012c 23020000 		.4byte	0x223
+ 681 0130 0F       		.uleb128 0xf
+ 682 0131 E2000000 		.4byte	.LVL3
+ 683 0135 CD000000 		.4byte	0xcd
+ 684 0139 49010000 		.4byte	0x149
+ 685 013d 10       		.uleb128 0x10
+ 686 013e 01       		.byte	0x1
+ 687 013f 50       		.byte	0x50
+ 688 0140 01       		.byte	0x1
+ 689 0141 30       		.byte	0x30
+ 690 0142 10       		.uleb128 0x10
+ 691 0143 01       		.byte	0x1
+ 692 0144 51       		.byte	0x51
+ 693 0145 02       		.byte	0x2
+ 694 0146 08       		.byte	0x8
+ 695 0147 30       		.byte	0x30
+ 696 0148 00       		.byte	0
+ 697 0149 11       		.uleb128 0x11
+ 698 014a E6000000 		.4byte	.LVL4
+ 699 014e 8C000000 		.4byte	0x8c
+ 700 0152 11       		.uleb128 0x11
+ 701 0153 EA000000 		.4byte	.LVL5
+ 702 0157 8C000000 		.4byte	0x8c
+ 703 015b 0F       		.uleb128 0xf
+ 704 015c F2000000 		.4byte	.LVL6
+ 705 0160 CD000000 		.4byte	0xcd
+ 706 0164 74010000 		.4byte	0x174
+ 707 0168 10       		.uleb128 0x10
+ 708 0169 01       		.byte	0x1
+ 709 016a 50       		.byte	0x50
+ 710 016b 01       		.byte	0x1
+ 711 016c 30       		.byte	0x30
+ 712 016d 10       		.uleb128 0x10
+ 713 016e 01       		.byte	0x1
+ 714 016f 51       		.byte	0x51
+ 715 0170 02       		.byte	0x2
+ 716 0171 08       		.byte	0x8
+ 717 0172 38       		.byte	0x38
+ 718 0173 00       		.byte	0
+ 719 0174 11       		.uleb128 0x11
+ 720 0175 F6000000 		.4byte	.LVL7
+ 721 0179 8C000000 		.4byte	0x8c
+ 722 017d 0F       		.uleb128 0xf
+ 723 017e FE000000 		.4byte	.LVL8
+ 724 0182 CD000000 		.4byte	0xcd
+ 725 0186 95010000 		.4byte	0x195
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 16
+
+
+ 726 018a 10       		.uleb128 0x10
+ 727 018b 01       		.byte	0x1
+ 728 018c 50       		.byte	0x50
+ 729 018d 01       		.byte	0x1
+ 730 018e 30       		.byte	0x30
+ 731 018f 10       		.uleb128 0x10
+ 732 0190 01       		.byte	0x1
+ 733 0191 51       		.byte	0x51
+ 734 0192 01       		.byte	0x1
+ 735 0193 38       		.byte	0x38
+ 736 0194 00       		.byte	0
+ 737 0195 11       		.uleb128 0x11
+ 738 0196 02010000 		.4byte	.LVL9
+ 739 019a 8C000000 		.4byte	0x8c
+ 740 019e 0F       		.uleb128 0xf
+ 741 019f 0A010000 		.4byte	.LVL10
+ 742 01a3 CD000000 		.4byte	0xcd
+ 743 01a7 B6010000 		.4byte	0x1b6
+ 744 01ab 10       		.uleb128 0x10
+ 745 01ac 01       		.byte	0x1
+ 746 01ad 50       		.byte	0x50
+ 747 01ae 01       		.byte	0x1
+ 748 01af 30       		.byte	0x30
+ 749 01b0 10       		.uleb128 0x10
+ 750 01b1 01       		.byte	0x1
+ 751 01b2 51       		.byte	0x51
+ 752 01b3 01       		.byte	0x1
+ 753 01b4 31       		.byte	0x31
+ 754 01b5 00       		.byte	0
+ 755 01b6 11       		.uleb128 0x11
+ 756 01b7 0E010000 		.4byte	.LVL11
+ 757 01bb 8C000000 		.4byte	0x8c
+ 758 01bf 0F       		.uleb128 0xf
+ 759 01c0 16010000 		.4byte	.LVL12
+ 760 01c4 CD000000 		.4byte	0xcd
+ 761 01c8 D7010000 		.4byte	0x1d7
+ 762 01cc 10       		.uleb128 0x10
+ 763 01cd 01       		.byte	0x1
+ 764 01ce 50       		.byte	0x50
+ 765 01cf 01       		.byte	0x1
+ 766 01d0 30       		.byte	0x30
+ 767 01d1 10       		.uleb128 0x10
+ 768 01d2 01       		.byte	0x1
+ 769 01d3 51       		.byte	0x51
+ 770 01d4 01       		.byte	0x1
+ 771 01d5 36       		.byte	0x36
+ 772 01d6 00       		.byte	0
+ 773 01d7 11       		.uleb128 0x11
+ 774 01d8 1A010000 		.4byte	.LVL13
+ 775 01dc 8C000000 		.4byte	0x8c
+ 776 01e0 0F       		.uleb128 0xf
+ 777 01e1 22010000 		.4byte	.LVL14
+ 778 01e5 CD000000 		.4byte	0xcd
+ 779 01e9 F8010000 		.4byte	0x1f8
+ 780 01ed 10       		.uleb128 0x10
+ 781 01ee 01       		.byte	0x1
+ 782 01ef 50       		.byte	0x50
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 17
+
+
+ 783 01f0 01       		.byte	0x1
+ 784 01f1 30       		.byte	0x30
+ 785 01f2 10       		.uleb128 0x10
+ 786 01f3 01       		.byte	0x1
+ 787 01f4 51       		.byte	0x51
+ 788 01f5 01       		.byte	0x1
+ 789 01f6 3C       		.byte	0x3c
+ 790 01f7 00       		.byte	0
+ 791 01f8 11       		.uleb128 0x11
+ 792 01f9 26010000 		.4byte	.LVL15
+ 793 01fd 8C000000 		.4byte	0x8c
+ 794 0201 0F       		.uleb128 0xf
+ 795 0202 2E010000 		.4byte	.LVL16
+ 796 0206 CD000000 		.4byte	0xcd
+ 797 020a 19020000 		.4byte	0x219
+ 798 020e 10       		.uleb128 0x10
+ 799 020f 01       		.byte	0x1
+ 800 0210 50       		.byte	0x50
+ 801 0211 01       		.byte	0x1
+ 802 0212 30       		.byte	0x30
+ 803 0213 10       		.uleb128 0x10
+ 804 0214 01       		.byte	0x1
+ 805 0215 51       		.byte	0x51
+ 806 0216 01       		.byte	0x1
+ 807 0217 32       		.byte	0x32
+ 808 0218 00       		.byte	0
+ 809 0219 11       		.uleb128 0x11
+ 810 021a 32010000 		.4byte	.LVL17
+ 811 021e 8C000000 		.4byte	0x8c
+ 812 0222 00       		.byte	0
+ 813 0223 08       		.uleb128 0x8
+ 814 0224 01       		.byte	0x1
+ 815 0225 41000000 		.4byte	.LASF13
+ 816 0229 01       		.byte	0x1
+ 817 022a 52       		.byte	0x52
+ 818 022b 01       		.byte	0x1
+ 819 022c 38010000 		.4byte	.LFB4
+ 820 0230 50010000 		.4byte	.LFE4
+ 821 0234 A2000000 		.4byte	.LLST5
+ 822 0238 01       		.byte	0x1
+ 823 0239 6F020000 		.4byte	0x26f
+ 824 023d 0D       		.uleb128 0xd
+ 825 023e 28000000 		.4byte	.LASF14
+ 826 0242 01       		.byte	0x1
+ 827 0243 52       		.byte	0x52
+ 828 0244 49000000 		.4byte	0x49
+ 829 0248 C2000000 		.4byte	.LLST6
+ 830 024c 11       		.uleb128 0x11
+ 831 024d 40010000 		.4byte	.LVL19
+ 832 0251 8C000000 		.4byte	0x8c
+ 833 0255 12       		.uleb128 0x12
+ 834 0256 4A010000 		.4byte	.LVL20
+ 835 025a CD000000 		.4byte	0xcd
+ 836 025e 10       		.uleb128 0x10
+ 837 025f 01       		.byte	0x1
+ 838 0260 50       		.byte	0x50
+ 839 0261 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 18
+
+
+ 840 0262 30       		.byte	0x30
+ 841 0263 10       		.uleb128 0x10
+ 842 0264 01       		.byte	0x1
+ 843 0265 51       		.byte	0x51
+ 844 0266 06       		.byte	0x6
+ 845 0267 74       		.byte	0x74
+ 846 0268 00       		.sleb128 0
+ 847 0269 48       		.byte	0x48
+ 848 026a 24       		.byte	0x24
+ 849 026b 48       		.byte	0x48
+ 850 026c 25       		.byte	0x25
+ 851 026d 00       		.byte	0
+ 852 026e 00       		.byte	0
+ 853 026f 08       		.uleb128 0x8
+ 854 0270 01       		.byte	0x1
+ 855 0271 8B010000 		.4byte	.LASF15
+ 856 0275 01       		.byte	0x1
+ 857 0276 58       		.byte	0x58
+ 858 0277 01       		.byte	0x1
+ 859 0278 50010000 		.4byte	.LFB5
+ 860 027c 6C010000 		.4byte	.LFE5
+ 861 0280 EE000000 		.4byte	.LLST7
+ 862 0284 01       		.byte	0x1
+ 863 0285 BB020000 		.4byte	0x2bb
+ 864 0289 0D       		.uleb128 0xd
+ 865 028a 73000000 		.4byte	.LASF16
+ 866 028e 01       		.byte	0x1
+ 867 028f 58       		.byte	0x58
+ 868 0290 49000000 		.4byte	0x49
+ 869 0294 0E010000 		.4byte	.LLST8
+ 870 0298 11       		.uleb128 0x11
+ 871 0299 58010000 		.4byte	.LVL23
+ 872 029d 8C000000 		.4byte	0x8c
+ 873 02a1 12       		.uleb128 0x12
+ 874 02a2 66010000 		.4byte	.LVL24
+ 875 02a6 CD000000 		.4byte	0xcd
+ 876 02aa 10       		.uleb128 0x10
+ 877 02ab 01       		.byte	0x1
+ 878 02ac 50       		.byte	0x50
+ 879 02ad 01       		.byte	0x1
+ 880 02ae 31       		.byte	0x31
+ 881 02af 10       		.uleb128 0x10
+ 882 02b0 01       		.byte	0x1
+ 883 02b1 51       		.byte	0x51
+ 884 02b2 06       		.byte	0x6
+ 885 02b3 74       		.byte	0x74
+ 886 02b4 30       		.sleb128 48
+ 887 02b5 48       		.byte	0x48
+ 888 02b6 24       		.byte	0x24
+ 889 02b7 48       		.byte	0x48
+ 890 02b8 25       		.byte	0x25
+ 891 02b9 00       		.byte	0
+ 892 02ba 00       		.byte	0
+ 893 02bb 08       		.uleb128 0x8
+ 894 02bc 01       		.byte	0x1
+ 895 02bd F5000000 		.4byte	.LASF17
+ 896 02c1 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 19
+
+
+ 897 02c2 5E       		.byte	0x5e
+ 898 02c3 01       		.byte	0x1
+ 899 02c4 6C010000 		.4byte	.LFB6
+ 900 02c8 8C010000 		.4byte	.LFE6
+ 901 02cc 3A010000 		.4byte	.LLST9
+ 902 02d0 01       		.byte	0x1
+ 903 02d1 0A030000 		.4byte	0x30a
+ 904 02d5 0D       		.uleb128 0xd
+ 905 02d6 B2010000 		.4byte	.LASF18
+ 906 02da 01       		.byte	0x1
+ 907 02db 5E       		.byte	0x5e
+ 908 02dc 0A030000 		.4byte	0x30a
+ 909 02e0 5A010000 		.4byte	.LLST10
+ 910 02e4 13       		.uleb128 0x13
+ 911 02e5 6300     		.ascii	"c\000"
+ 912 02e7 01       		.byte	0x1
+ 913 02e8 60       		.byte	0x60
+ 914 02e9 65000000 		.4byte	0x65
+ 915 02ed 7B010000 		.4byte	.LLST11
+ 916 02f1 11       		.uleb128 0x11
+ 917 02f2 76010000 		.4byte	.LVL29
+ 918 02f6 8C000000 		.4byte	0x8c
+ 919 02fa 12       		.uleb128 0x12
+ 920 02fb 84010000 		.4byte	.LVL30
+ 921 02ff CD000000 		.4byte	0xcd
+ 922 0303 10       		.uleb128 0x10
+ 923 0304 01       		.byte	0x1
+ 924 0305 50       		.byte	0x50
+ 925 0306 01       		.byte	0x1
+ 926 0307 31       		.byte	0x31
+ 927 0308 00       		.byte	0
+ 928 0309 00       		.byte	0
+ 929 030a 14       		.uleb128 0x14
+ 930 030b 04       		.byte	0x4
+ 931 030c 10030000 		.4byte	0x310
+ 932 0310 03       		.uleb128 0x3
+ 933 0311 01       		.byte	0x1
+ 934 0312 08       		.byte	0x8
+ 935 0313 7A000000 		.4byte	.LASF19
+ 936 0317 08       		.uleb128 0x8
+ 937 0318 01       		.byte	0x1
+ 938 0319 A1010000 		.4byte	.LASF20
+ 939 031d 01       		.byte	0x1
+ 940 031e 6A       		.byte	0x6a
+ 941 031f 01       		.byte	0x1
+ 942 0320 8C010000 		.4byte	.LFB7
+ 943 0324 A4010000 		.4byte	.LFE7
+ 944 0328 A6010000 		.4byte	.LLST12
+ 945 032c 01       		.byte	0x1
+ 946 032d 63030000 		.4byte	0x363
+ 947 0331 0D       		.uleb128 0xd
+ 948 0332 39000000 		.4byte	.LASF21
+ 949 0336 01       		.byte	0x1
+ 950 0337 6A       		.byte	0x6a
+ 951 0338 49000000 		.4byte	0x49
+ 952 033c C6010000 		.4byte	.LLST13
+ 953 0340 11       		.uleb128 0x11
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 20
+
+
+ 954 0341 94010000 		.4byte	.LVL32
+ 955 0345 8C000000 		.4byte	0x8c
+ 956 0349 12       		.uleb128 0x12
+ 957 034a 9E010000 		.4byte	.LVL33
+ 958 034e CD000000 		.4byte	0xcd
+ 959 0352 10       		.uleb128 0x10
+ 960 0353 01       		.byte	0x1
+ 961 0354 50       		.byte	0x50
+ 962 0355 01       		.byte	0x1
+ 963 0356 31       		.byte	0x31
+ 964 0357 10       		.uleb128 0x10
+ 965 0358 01       		.byte	0x1
+ 966 0359 51       		.byte	0x51
+ 967 035a 06       		.byte	0x6
+ 968 035b 74       		.byte	0x74
+ 969 035c 00       		.sleb128 0
+ 970 035d 48       		.byte	0x48
+ 971 035e 24       		.byte	0x24
+ 972 035f 48       		.byte	0x48
+ 973 0360 25       		.byte	0x25
+ 974 0361 00       		.byte	0
+ 975 0362 00       		.byte	0
+ 976 0363 15       		.uleb128 0x15
+ 977 0364 01       		.byte	0x1
+ 978 0365 0E000000 		.4byte	.LASF23
+ 979 0369 01       		.byte	0x1
+ 980 036a 70       		.byte	0x70
+ 981 036b 01       		.byte	0x1
+ 982 036c A4010000 		.4byte	.LFB8
+ 983 0370 C0010000 		.4byte	.LFE8
+ 984 0374 02       		.byte	0x2
+ 985 0375 7D       		.byte	0x7d
+ 986 0376 00       		.sleb128 0
+ 987 0377 01       		.byte	0x1
+ 988 0378 16       		.uleb128 0x16
+ 989 0379 9B010000 		.4byte	.LASF24
+ 990 037d 01       		.byte	0x1
+ 991 037e 70       		.byte	0x70
+ 992 037f 25000000 		.4byte	0x25
+ 993 0383 01       		.byte	0x1
+ 994 0384 50       		.byte	0x50
+ 995 0385 00       		.byte	0
+ 996 0386 00       		.byte	0
+ 997              		.section	.debug_abbrev,"",%progbits
+ 998              	.Ldebug_abbrev0:
+ 999 0000 01       		.uleb128 0x1
+ 1000 0001 11       		.uleb128 0x11
+ 1001 0002 01       		.byte	0x1
+ 1002 0003 25       		.uleb128 0x25
+ 1003 0004 0E       		.uleb128 0xe
+ 1004 0005 13       		.uleb128 0x13
+ 1005 0006 0B       		.uleb128 0xb
+ 1006 0007 03       		.uleb128 0x3
+ 1007 0008 0E       		.uleb128 0xe
+ 1008 0009 1B       		.uleb128 0x1b
+ 1009 000a 0E       		.uleb128 0xe
+ 1010 000b 11       		.uleb128 0x11
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 21
+
+
+ 1011 000c 01       		.uleb128 0x1
+ 1012 000d 12       		.uleb128 0x12
+ 1013 000e 01       		.uleb128 0x1
+ 1014 000f 10       		.uleb128 0x10
+ 1015 0010 06       		.uleb128 0x6
+ 1016 0011 00       		.byte	0
+ 1017 0012 00       		.byte	0
+ 1018 0013 02       		.uleb128 0x2
+ 1019 0014 16       		.uleb128 0x16
+ 1020 0015 00       		.byte	0
+ 1021 0016 03       		.uleb128 0x3
+ 1022 0017 08       		.uleb128 0x8
+ 1023 0018 3A       		.uleb128 0x3a
+ 1024 0019 0B       		.uleb128 0xb
+ 1025 001a 3B       		.uleb128 0x3b
+ 1026 001b 0B       		.uleb128 0xb
+ 1027 001c 49       		.uleb128 0x49
+ 1028 001d 13       		.uleb128 0x13
+ 1029 001e 00       		.byte	0
+ 1030 001f 00       		.byte	0
+ 1031 0020 03       		.uleb128 0x3
+ 1032 0021 24       		.uleb128 0x24
+ 1033 0022 00       		.byte	0
+ 1034 0023 0B       		.uleb128 0xb
+ 1035 0024 0B       		.uleb128 0xb
+ 1036 0025 3E       		.uleb128 0x3e
+ 1037 0026 0B       		.uleb128 0xb
+ 1038 0027 03       		.uleb128 0x3
+ 1039 0028 0E       		.uleb128 0xe
+ 1040 0029 00       		.byte	0
+ 1041 002a 00       		.byte	0
+ 1042 002b 04       		.uleb128 0x4
+ 1043 002c 16       		.uleb128 0x16
+ 1044 002d 00       		.byte	0
+ 1045 002e 03       		.uleb128 0x3
+ 1046 002f 0E       		.uleb128 0xe
+ 1047 0030 3A       		.uleb128 0x3a
+ 1048 0031 0B       		.uleb128 0xb
+ 1049 0032 3B       		.uleb128 0x3b
+ 1050 0033 0B       		.uleb128 0xb
+ 1051 0034 49       		.uleb128 0x49
+ 1052 0035 13       		.uleb128 0x13
+ 1053 0036 00       		.byte	0
+ 1054 0037 00       		.byte	0
+ 1055 0038 05       		.uleb128 0x5
+ 1056 0039 24       		.uleb128 0x24
+ 1057 003a 00       		.byte	0
+ 1058 003b 0B       		.uleb128 0xb
+ 1059 003c 0B       		.uleb128 0xb
+ 1060 003d 3E       		.uleb128 0x3e
+ 1061 003e 0B       		.uleb128 0xb
+ 1062 003f 03       		.uleb128 0x3
+ 1063 0040 08       		.uleb128 0x8
+ 1064 0041 00       		.byte	0
+ 1065 0042 00       		.byte	0
+ 1066 0043 06       		.uleb128 0x6
+ 1067 0044 04       		.uleb128 0x4
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 22
+
+
+ 1068 0045 01       		.byte	0x1
+ 1069 0046 0B       		.uleb128 0xb
+ 1070 0047 0B       		.uleb128 0xb
+ 1071 0048 49       		.uleb128 0x49
+ 1072 0049 13       		.uleb128 0x13
+ 1073 004a 3A       		.uleb128 0x3a
+ 1074 004b 0B       		.uleb128 0xb
+ 1075 004c 3B       		.uleb128 0x3b
+ 1076 004d 0B       		.uleb128 0xb
+ 1077 004e 01       		.uleb128 0x1
+ 1078 004f 13       		.uleb128 0x13
+ 1079 0050 00       		.byte	0
+ 1080 0051 00       		.byte	0
+ 1081 0052 07       		.uleb128 0x7
+ 1082 0053 28       		.uleb128 0x28
+ 1083 0054 00       		.byte	0
+ 1084 0055 03       		.uleb128 0x3
+ 1085 0056 0E       		.uleb128 0xe
+ 1086 0057 1C       		.uleb128 0x1c
+ 1087 0058 0B       		.uleb128 0xb
+ 1088 0059 00       		.byte	0
+ 1089 005a 00       		.byte	0
+ 1090 005b 08       		.uleb128 0x8
+ 1091 005c 2E       		.uleb128 0x2e
+ 1092 005d 01       		.byte	0x1
+ 1093 005e 3F       		.uleb128 0x3f
+ 1094 005f 0C       		.uleb128 0xc
+ 1095 0060 03       		.uleb128 0x3
+ 1096 0061 0E       		.uleb128 0xe
+ 1097 0062 3A       		.uleb128 0x3a
+ 1098 0063 0B       		.uleb128 0xb
+ 1099 0064 3B       		.uleb128 0x3b
+ 1100 0065 0B       		.uleb128 0xb
+ 1101 0066 27       		.uleb128 0x27
+ 1102 0067 0C       		.uleb128 0xc
+ 1103 0068 11       		.uleb128 0x11
+ 1104 0069 01       		.uleb128 0x1
+ 1105 006a 12       		.uleb128 0x12
+ 1106 006b 01       		.uleb128 0x1
+ 1107 006c 40       		.uleb128 0x40
+ 1108 006d 06       		.uleb128 0x6
+ 1109 006e 9742     		.uleb128 0x2117
+ 1110 0070 0C       		.uleb128 0xc
+ 1111 0071 01       		.uleb128 0x1
+ 1112 0072 13       		.uleb128 0x13
+ 1113 0073 00       		.byte	0
+ 1114 0074 00       		.byte	0
+ 1115 0075 09       		.uleb128 0x9
+ 1116 0076 34       		.uleb128 0x34
+ 1117 0077 00       		.byte	0
+ 1118 0078 03       		.uleb128 0x3
+ 1119 0079 08       		.uleb128 0x8
+ 1120 007a 3A       		.uleb128 0x3a
+ 1121 007b 0B       		.uleb128 0xb
+ 1122 007c 3B       		.uleb128 0x3b
+ 1123 007d 0B       		.uleb128 0xb
+ 1124 007e 49       		.uleb128 0x49
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 23
+
+
+ 1125 007f 13       		.uleb128 0x13
+ 1126 0080 02       		.uleb128 0x2
+ 1127 0081 0A       		.uleb128 0xa
+ 1128 0082 00       		.byte	0
+ 1129 0083 00       		.byte	0
+ 1130 0084 0A       		.uleb128 0xa
+ 1131 0085 35       		.uleb128 0x35
+ 1132 0086 00       		.byte	0
+ 1133 0087 49       		.uleb128 0x49
+ 1134 0088 13       		.uleb128 0x13
+ 1135 0089 00       		.byte	0
+ 1136 008a 00       		.byte	0
+ 1137 008b 0B       		.uleb128 0xb
+ 1138 008c 2E       		.uleb128 0x2e
+ 1139 008d 00       		.byte	0
+ 1140 008e 3F       		.uleb128 0x3f
+ 1141 008f 0C       		.uleb128 0xc
+ 1142 0090 03       		.uleb128 0x3
+ 1143 0091 0E       		.uleb128 0xe
+ 1144 0092 3A       		.uleb128 0x3a
+ 1145 0093 0B       		.uleb128 0xb
+ 1146 0094 3B       		.uleb128 0x3b
+ 1147 0095 0B       		.uleb128 0xb
+ 1148 0096 27       		.uleb128 0x27
+ 1149 0097 0C       		.uleb128 0xc
+ 1150 0098 11       		.uleb128 0x11
+ 1151 0099 01       		.uleb128 0x1
+ 1152 009a 12       		.uleb128 0x12
+ 1153 009b 01       		.uleb128 0x1
+ 1154 009c 40       		.uleb128 0x40
+ 1155 009d 0A       		.uleb128 0xa
+ 1156 009e 9742     		.uleb128 0x2117
+ 1157 00a0 0C       		.uleb128 0xc
+ 1158 00a1 00       		.byte	0
+ 1159 00a2 00       		.byte	0
+ 1160 00a3 0C       		.uleb128 0xc
+ 1161 00a4 05       		.uleb128 0x5
+ 1162 00a5 00       		.byte	0
+ 1163 00a6 03       		.uleb128 0x3
+ 1164 00a7 08       		.uleb128 0x8
+ 1165 00a8 3A       		.uleb128 0x3a
+ 1166 00a9 0B       		.uleb128 0xb
+ 1167 00aa 3B       		.uleb128 0x3b
+ 1168 00ab 0B       		.uleb128 0xb
+ 1169 00ac 49       		.uleb128 0x49
+ 1170 00ad 13       		.uleb128 0x13
+ 1171 00ae 02       		.uleb128 0x2
+ 1172 00af 06       		.uleb128 0x6
+ 1173 00b0 00       		.byte	0
+ 1174 00b1 00       		.byte	0
+ 1175 00b2 0D       		.uleb128 0xd
+ 1176 00b3 05       		.uleb128 0x5
+ 1177 00b4 00       		.byte	0
+ 1178 00b5 03       		.uleb128 0x3
+ 1179 00b6 0E       		.uleb128 0xe
+ 1180 00b7 3A       		.uleb128 0x3a
+ 1181 00b8 0B       		.uleb128 0xb
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 24
+
+
+ 1182 00b9 3B       		.uleb128 0x3b
+ 1183 00ba 0B       		.uleb128 0xb
+ 1184 00bb 49       		.uleb128 0x49
+ 1185 00bc 13       		.uleb128 0x13
+ 1186 00bd 02       		.uleb128 0x2
+ 1187 00be 06       		.uleb128 0x6
+ 1188 00bf 00       		.byte	0
+ 1189 00c0 00       		.byte	0
+ 1190 00c1 0E       		.uleb128 0xe
+ 1191 00c2 2E       		.uleb128 0x2e
+ 1192 00c3 01       		.byte	0x1
+ 1193 00c4 3F       		.uleb128 0x3f
+ 1194 00c5 0C       		.uleb128 0xc
+ 1195 00c6 03       		.uleb128 0x3
+ 1196 00c7 0E       		.uleb128 0xe
+ 1197 00c8 3A       		.uleb128 0x3a
+ 1198 00c9 0B       		.uleb128 0xb
+ 1199 00ca 3B       		.uleb128 0x3b
+ 1200 00cb 0B       		.uleb128 0xb
+ 1201 00cc 11       		.uleb128 0x11
+ 1202 00cd 01       		.uleb128 0x1
+ 1203 00ce 12       		.uleb128 0x12
+ 1204 00cf 01       		.uleb128 0x1
+ 1205 00d0 40       		.uleb128 0x40
+ 1206 00d1 06       		.uleb128 0x6
+ 1207 00d2 9742     		.uleb128 0x2117
+ 1208 00d4 0C       		.uleb128 0xc
+ 1209 00d5 01       		.uleb128 0x1
+ 1210 00d6 13       		.uleb128 0x13
+ 1211 00d7 00       		.byte	0
+ 1212 00d8 00       		.byte	0
+ 1213 00d9 0F       		.uleb128 0xf
+ 1214 00da 898201   		.uleb128 0x4109
+ 1215 00dd 01       		.byte	0x1
+ 1216 00de 11       		.uleb128 0x11
+ 1217 00df 01       		.uleb128 0x1
+ 1218 00e0 31       		.uleb128 0x31
+ 1219 00e1 13       		.uleb128 0x13
+ 1220 00e2 01       		.uleb128 0x1
+ 1221 00e3 13       		.uleb128 0x13
+ 1222 00e4 00       		.byte	0
+ 1223 00e5 00       		.byte	0
+ 1224 00e6 10       		.uleb128 0x10
+ 1225 00e7 8A8201   		.uleb128 0x410a
+ 1226 00ea 00       		.byte	0
+ 1227 00eb 02       		.uleb128 0x2
+ 1228 00ec 0A       		.uleb128 0xa
+ 1229 00ed 9142     		.uleb128 0x2111
+ 1230 00ef 0A       		.uleb128 0xa
+ 1231 00f0 00       		.byte	0
+ 1232 00f1 00       		.byte	0
+ 1233 00f2 11       		.uleb128 0x11
+ 1234 00f3 898201   		.uleb128 0x4109
+ 1235 00f6 00       		.byte	0
+ 1236 00f7 11       		.uleb128 0x11
+ 1237 00f8 01       		.uleb128 0x1
+ 1238 00f9 31       		.uleb128 0x31
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 25
+
+
+ 1239 00fa 13       		.uleb128 0x13
+ 1240 00fb 00       		.byte	0
+ 1241 00fc 00       		.byte	0
+ 1242 00fd 12       		.uleb128 0x12
+ 1243 00fe 898201   		.uleb128 0x4109
+ 1244 0101 01       		.byte	0x1
+ 1245 0102 11       		.uleb128 0x11
+ 1246 0103 01       		.uleb128 0x1
+ 1247 0104 31       		.uleb128 0x31
+ 1248 0105 13       		.uleb128 0x13
+ 1249 0106 00       		.byte	0
+ 1250 0107 00       		.byte	0
+ 1251 0108 13       		.uleb128 0x13
+ 1252 0109 34       		.uleb128 0x34
+ 1253 010a 00       		.byte	0
+ 1254 010b 03       		.uleb128 0x3
+ 1255 010c 08       		.uleb128 0x8
+ 1256 010d 3A       		.uleb128 0x3a
+ 1257 010e 0B       		.uleb128 0xb
+ 1258 010f 3B       		.uleb128 0x3b
+ 1259 0110 0B       		.uleb128 0xb
+ 1260 0111 49       		.uleb128 0x49
+ 1261 0112 13       		.uleb128 0x13
+ 1262 0113 02       		.uleb128 0x2
+ 1263 0114 06       		.uleb128 0x6
+ 1264 0115 00       		.byte	0
+ 1265 0116 00       		.byte	0
+ 1266 0117 14       		.uleb128 0x14
+ 1267 0118 0F       		.uleb128 0xf
+ 1268 0119 00       		.byte	0
+ 1269 011a 0B       		.uleb128 0xb
+ 1270 011b 0B       		.uleb128 0xb
+ 1271 011c 49       		.uleb128 0x49
+ 1272 011d 13       		.uleb128 0x13
+ 1273 011e 00       		.byte	0
+ 1274 011f 00       		.byte	0
+ 1275 0120 15       		.uleb128 0x15
+ 1276 0121 2E       		.uleb128 0x2e
+ 1277 0122 01       		.byte	0x1
+ 1278 0123 3F       		.uleb128 0x3f
+ 1279 0124 0C       		.uleb128 0xc
+ 1280 0125 03       		.uleb128 0x3
+ 1281 0126 0E       		.uleb128 0xe
+ 1282 0127 3A       		.uleb128 0x3a
+ 1283 0128 0B       		.uleb128 0xb
+ 1284 0129 3B       		.uleb128 0x3b
+ 1285 012a 0B       		.uleb128 0xb
+ 1286 012b 27       		.uleb128 0x27
+ 1287 012c 0C       		.uleb128 0xc
+ 1288 012d 11       		.uleb128 0x11
+ 1289 012e 01       		.uleb128 0x1
+ 1290 012f 12       		.uleb128 0x12
+ 1291 0130 01       		.uleb128 0x1
+ 1292 0131 40       		.uleb128 0x40
+ 1293 0132 0A       		.uleb128 0xa
+ 1294 0133 9742     		.uleb128 0x2117
+ 1295 0135 0C       		.uleb128 0xc
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 26
+
+
+ 1296 0136 00       		.byte	0
+ 1297 0137 00       		.byte	0
+ 1298 0138 16       		.uleb128 0x16
+ 1299 0139 05       		.uleb128 0x5
+ 1300 013a 00       		.byte	0
+ 1301 013b 03       		.uleb128 0x3
+ 1302 013c 0E       		.uleb128 0xe
+ 1303 013d 3A       		.uleb128 0x3a
+ 1304 013e 0B       		.uleb128 0xb
+ 1305 013f 3B       		.uleb128 0x3b
+ 1306 0140 0B       		.uleb128 0xb
+ 1307 0141 49       		.uleb128 0x49
+ 1308 0142 13       		.uleb128 0x13
+ 1309 0143 02       		.uleb128 0x2
+ 1310 0144 0A       		.uleb128 0xa
+ 1311 0145 00       		.byte	0
+ 1312 0146 00       		.byte	0
+ 1313 0147 00       		.byte	0
+ 1314              		.section	.debug_loc,"",%progbits
+ 1315              	.Ldebug_loc0:
+ 1316              	.LLST0:
+ 1317 0000 00000000 		.4byte	.LFB0-.Ltext0
+ 1318 0004 04000000 		.4byte	.LCFI0-.Ltext0
+ 1319 0008 0200     		.2byte	0x2
+ 1320 000a 7D       		.byte	0x7d
+ 1321 000b 00       		.sleb128 0
+ 1322 000c 04000000 		.4byte	.LCFI0-.Ltext0
+ 1323 0010 20000000 		.4byte	.LFE0-.Ltext0
+ 1324 0014 0200     		.2byte	0x2
+ 1325 0016 7D       		.byte	0x7d
+ 1326 0017 08       		.sleb128 8
+ 1327 0018 00000000 		.4byte	0
+ 1328 001c 00000000 		.4byte	0
+ 1329              	.LLST1:
+ 1330 0020 60000000 		.4byte	.LFB2-.Ltext0
+ 1331 0024 64000000 		.4byte	.LCFI1-.Ltext0
+ 1332 0028 0200     		.2byte	0x2
+ 1333 002a 7D       		.byte	0x7d
+ 1334 002b 00       		.sleb128 0
+ 1335 002c 64000000 		.4byte	.LCFI1-.Ltext0
+ 1336 0030 D8000000 		.4byte	.LFE2-.Ltext0
+ 1337 0034 0200     		.2byte	0x2
+ 1338 0036 7D       		.byte	0x7d
+ 1339 0037 10       		.sleb128 16
+ 1340 0038 00000000 		.4byte	0
+ 1341 003c 00000000 		.4byte	0
+ 1342              	.LLST2:
+ 1343 0040 60000000 		.4byte	.LVL0-.Ltext0
+ 1344 0044 76000000 		.4byte	.LVL1-.Ltext0
+ 1345 0048 0100     		.2byte	0x1
+ 1346 004a 50       		.byte	0x50
+ 1347 004b 76000000 		.4byte	.LVL1-.Ltext0
+ 1348 004f D8000000 		.4byte	.LFE2-.Ltext0
+ 1349 0053 0400     		.2byte	0x4
+ 1350 0055 F3       		.byte	0xf3
+ 1351 0056 01       		.uleb128 0x1
+ 1352 0057 50       		.byte	0x50
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 27
+
+
+ 1353 0058 9F       		.byte	0x9f
+ 1354 0059 00000000 		.4byte	0
+ 1355 005d 00000000 		.4byte	0
+ 1356              	.LLST3:
+ 1357 0061 60000000 		.4byte	.LVL0-.Ltext0
+ 1358 0065 80000000 		.4byte	.LVL2-.Ltext0
+ 1359 0069 0100     		.2byte	0x1
+ 1360 006b 51       		.byte	0x51
+ 1361 006c 80000000 		.4byte	.LVL2-.Ltext0
+ 1362 0070 D8000000 		.4byte	.LFE2-.Ltext0
+ 1363 0074 0400     		.2byte	0x4
+ 1364 0076 F3       		.byte	0xf3
+ 1365 0077 01       		.uleb128 0x1
+ 1366 0078 51       		.byte	0x51
+ 1367 0079 9F       		.byte	0x9f
+ 1368 007a 00000000 		.4byte	0
+ 1369 007e 00000000 		.4byte	0
+ 1370              	.LLST4:
+ 1371 0082 D8000000 		.4byte	.LFB3-.Ltext0
+ 1372 0086 DA000000 		.4byte	.LCFI2-.Ltext0
+ 1373 008a 0200     		.2byte	0x2
+ 1374 008c 7D       		.byte	0x7d
+ 1375 008d 00       		.sleb128 0
+ 1376 008e DA000000 		.4byte	.LCFI2-.Ltext0
+ 1377 0092 38010000 		.4byte	.LFE3-.Ltext0
+ 1378 0096 0200     		.2byte	0x2
+ 1379 0098 7D       		.byte	0x7d
+ 1380 0099 08       		.sleb128 8
+ 1381 009a 00000000 		.4byte	0
+ 1382 009e 00000000 		.4byte	0
+ 1383              	.LLST5:
+ 1384 00a2 38010000 		.4byte	.LFB4-.Ltext0
+ 1385 00a6 3A010000 		.4byte	.LCFI3-.Ltext0
+ 1386 00aa 0200     		.2byte	0x2
+ 1387 00ac 7D       		.byte	0x7d
+ 1388 00ad 00       		.sleb128 0
+ 1389 00ae 3A010000 		.4byte	.LCFI3-.Ltext0
+ 1390 00b2 50010000 		.4byte	.LFE4-.Ltext0
+ 1391 00b6 0200     		.2byte	0x2
+ 1392 00b8 7D       		.byte	0x7d
+ 1393 00b9 08       		.sleb128 8
+ 1394 00ba 00000000 		.4byte	0
+ 1395 00be 00000000 		.4byte	0
+ 1396              	.LLST6:
+ 1397 00c2 38010000 		.4byte	.LVL18-.Ltext0
+ 1398 00c6 3F010000 		.4byte	.LVL19-1-.Ltext0
+ 1399 00ca 0100     		.2byte	0x1
+ 1400 00cc 50       		.byte	0x50
+ 1401 00cd 3F010000 		.4byte	.LVL19-1-.Ltext0
+ 1402 00d1 4A010000 		.4byte	.LVL21-.Ltext0
+ 1403 00d5 0100     		.2byte	0x1
+ 1404 00d7 54       		.byte	0x54
+ 1405 00d8 4A010000 		.4byte	.LVL21-.Ltext0
+ 1406 00dc 50010000 		.4byte	.LFE4-.Ltext0
+ 1407 00e0 0400     		.2byte	0x4
+ 1408 00e2 F3       		.byte	0xf3
+ 1409 00e3 01       		.uleb128 0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 28
+
+
+ 1410 00e4 50       		.byte	0x50
+ 1411 00e5 9F       		.byte	0x9f
+ 1412 00e6 00000000 		.4byte	0
+ 1413 00ea 00000000 		.4byte	0
+ 1414              	.LLST7:
+ 1415 00ee 50010000 		.4byte	.LFB5-.Ltext0
+ 1416 00f2 52010000 		.4byte	.LCFI4-.Ltext0
+ 1417 00f6 0200     		.2byte	0x2
+ 1418 00f8 7D       		.byte	0x7d
+ 1419 00f9 00       		.sleb128 0
+ 1420 00fa 52010000 		.4byte	.LCFI4-.Ltext0
+ 1421 00fe 6C010000 		.4byte	.LFE5-.Ltext0
+ 1422 0102 0200     		.2byte	0x2
+ 1423 0104 7D       		.byte	0x7d
+ 1424 0105 08       		.sleb128 8
+ 1425 0106 00000000 		.4byte	0
+ 1426 010a 00000000 		.4byte	0
+ 1427              	.LLST8:
+ 1428 010e 50010000 		.4byte	.LVL22-.Ltext0
+ 1429 0112 57010000 		.4byte	.LVL23-1-.Ltext0
+ 1430 0116 0100     		.2byte	0x1
+ 1431 0118 50       		.byte	0x50
+ 1432 0119 57010000 		.4byte	.LVL23-1-.Ltext0
+ 1433 011d 66010000 		.4byte	.LVL25-.Ltext0
+ 1434 0121 0100     		.2byte	0x1
+ 1435 0123 54       		.byte	0x54
+ 1436 0124 66010000 		.4byte	.LVL25-.Ltext0
+ 1437 0128 6C010000 		.4byte	.LFE5-.Ltext0
+ 1438 012c 0400     		.2byte	0x4
+ 1439 012e F3       		.byte	0xf3
+ 1440 012f 01       		.uleb128 0x1
+ 1441 0130 50       		.byte	0x50
+ 1442 0131 9F       		.byte	0x9f
+ 1443 0132 00000000 		.4byte	0
+ 1444 0136 00000000 		.4byte	0
+ 1445              	.LLST9:
+ 1446 013a 6C010000 		.4byte	.LFB6-.Ltext0
+ 1447 013e 6E010000 		.4byte	.LCFI5-.Ltext0
+ 1448 0142 0200     		.2byte	0x2
+ 1449 0144 7D       		.byte	0x7d
+ 1450 0145 00       		.sleb128 0
+ 1451 0146 6E010000 		.4byte	.LCFI5-.Ltext0
+ 1452 014a 8C010000 		.4byte	.LFE6-.Ltext0
+ 1453 014e 0200     		.2byte	0x2
+ 1454 0150 7D       		.byte	0x7d
+ 1455 0151 08       		.sleb128 8
+ 1456 0152 00000000 		.4byte	0
+ 1457 0156 00000000 		.4byte	0
+ 1458              	.LLST10:
+ 1459 015a 6C010000 		.4byte	.LVL26-.Ltext0
+ 1460 015e 70010000 		.4byte	.LVL27-.Ltext0
+ 1461 0162 0100     		.2byte	0x1
+ 1462 0164 50       		.byte	0x50
+ 1463 0165 70010000 		.4byte	.LVL27-.Ltext0
+ 1464 0169 8C010000 		.4byte	.LFE6-.Ltext0
+ 1465 016d 0400     		.2byte	0x4
+ 1466 016f F3       		.byte	0xf3
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 29
+
+
+ 1467 0170 01       		.uleb128 0x1
+ 1468 0171 50       		.byte	0x50
+ 1469 0172 9F       		.byte	0x9f
+ 1470 0173 00000000 		.4byte	0
+ 1471 0177 00000000 		.4byte	0
+ 1472              	.LLST11:
+ 1473 017b 70010000 		.4byte	.LVL27-.Ltext0
+ 1474 017f 72010000 		.4byte	.LVL28-.Ltext0
+ 1475 0183 0700     		.2byte	0x7
+ 1476 0185 74       		.byte	0x74
+ 1477 0186 00       		.sleb128 0
+ 1478 0187 F3       		.byte	0xf3
+ 1479 0188 01       		.uleb128 0x1
+ 1480 0189 50       		.byte	0x50
+ 1481 018a 1C       		.byte	0x1c
+ 1482 018b 9F       		.byte	0x9f
+ 1483 018c 72010000 		.4byte	.LVL28-.Ltext0
+ 1484 0190 76010000 		.4byte	.LVL29-.Ltext0
+ 1485 0194 0800     		.2byte	0x8
+ 1486 0196 F3       		.byte	0xf3
+ 1487 0197 01       		.uleb128 0x1
+ 1488 0198 50       		.byte	0x50
+ 1489 0199 20       		.byte	0x20
+ 1490 019a 74       		.byte	0x74
+ 1491 019b 00       		.sleb128 0
+ 1492 019c 22       		.byte	0x22
+ 1493 019d 9F       		.byte	0x9f
+ 1494 019e 00000000 		.4byte	0
+ 1495 01a2 00000000 		.4byte	0
+ 1496              	.LLST12:
+ 1497 01a6 8C010000 		.4byte	.LFB7-.Ltext0
+ 1498 01aa 8E010000 		.4byte	.LCFI6-.Ltext0
+ 1499 01ae 0200     		.2byte	0x2
+ 1500 01b0 7D       		.byte	0x7d
+ 1501 01b1 00       		.sleb128 0
+ 1502 01b2 8E010000 		.4byte	.LCFI6-.Ltext0
+ 1503 01b6 A4010000 		.4byte	.LFE7-.Ltext0
+ 1504 01ba 0200     		.2byte	0x2
+ 1505 01bc 7D       		.byte	0x7d
+ 1506 01bd 08       		.sleb128 8
+ 1507 01be 00000000 		.4byte	0
+ 1508 01c2 00000000 		.4byte	0
+ 1509              	.LLST13:
+ 1510 01c6 8C010000 		.4byte	.LVL31-.Ltext0
+ 1511 01ca 93010000 		.4byte	.LVL32-1-.Ltext0
+ 1512 01ce 0100     		.2byte	0x1
+ 1513 01d0 50       		.byte	0x50
+ 1514 01d1 93010000 		.4byte	.LVL32-1-.Ltext0
+ 1515 01d5 9E010000 		.4byte	.LVL34-.Ltext0
+ 1516 01d9 0100     		.2byte	0x1
+ 1517 01db 54       		.byte	0x54
+ 1518 01dc 9E010000 		.4byte	.LVL34-.Ltext0
+ 1519 01e0 A4010000 		.4byte	.LFE7-.Ltext0
+ 1520 01e4 0400     		.2byte	0x4
+ 1521 01e6 F3       		.byte	0xf3
+ 1522 01e7 01       		.uleb128 0x1
+ 1523 01e8 50       		.byte	0x50
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 30
+
+
+ 1524 01e9 9F       		.byte	0x9f
+ 1525 01ea 00000000 		.4byte	0
+ 1526 01ee 00000000 		.4byte	0
+ 1527              		.section	.debug_aranges,"",%progbits
+ 1528 0000 1C000000 		.4byte	0x1c
+ 1529 0004 0200     		.2byte	0x2
+ 1530 0006 00000000 		.4byte	.Ldebug_info0
+ 1531 000a 04       		.byte	0x4
+ 1532 000b 00       		.byte	0
+ 1533 000c 0000     		.2byte	0
+ 1534 000e 0000     		.2byte	0
+ 1535 0010 00000000 		.4byte	.Ltext0
+ 1536 0014 C0010000 		.4byte	.Letext0-.Ltext0
+ 1537 0018 00000000 		.4byte	0
+ 1538 001c 00000000 		.4byte	0
+ 1539              		.section	.debug_line,"",%progbits
+ 1540              	.Ldebug_line0:
+ 1541 0000 BA000000 		.section	.debug_str,"MS",%progbits,1
+ 1541      02002900 
+ 1541      00000201 
+ 1541      FB0E0D00 
+ 1541      01010101 
+ 1542              	.LASF7:
+ 1543 0000 6C6F6E67 		.ascii	"long long int\000"
+ 1543      206C6F6E 
+ 1543      6720696E 
+ 1543      7400
+ 1544              	.LASF23:
+ 1545 000e 6C636442 		.ascii	"lcdBacklight\000"
+ 1545      61636B6C 
+ 1545      69676874 
+ 1545      00
+ 1546              	.LASF3:
+ 1547 001b 756E7369 		.ascii	"unsigned int\000"
+ 1547      676E6564 
+ 1547      20696E74 
+ 1547      00
+ 1548              	.LASF14:
+ 1549 0028 66756E63 		.ascii	"function\000"
+ 1549      74696F6E 
+ 1549      00
+ 1550              	.LASF28:
+ 1551 0031 696E6974 		.ascii	"initLCD\000"
+ 1551      4C434400 
+ 1552              	.LASF21:
+ 1553 0039 63686172 		.ascii	"charint\000"
+ 1553      696E7400 
+ 1554              	.LASF13:
+ 1555 0041 4C43445F 		.ascii	"LCD_WriteFunction\000"
+ 1555      57726974 
+ 1555      6546756E 
+ 1555      6374696F 
+ 1555      6E00
+ 1556              	.LASF11:
+ 1557 0053 77726974 		.ascii	"writeLCD\000"
+ 1557      654C4344 
+ 1557      00
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 31
+
+
+ 1558              	.LASF4:
+ 1559 005c 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 1559      206C6F6E 
+ 1559      6720756E 
+ 1559      7369676E 
+ 1559      65642069 
+ 1560              	.LASF16:
+ 1561 0073 6E756D62 		.ascii	"number\000"
+ 1561      657200
+ 1562              	.LASF19:
+ 1563 007a 63686172 		.ascii	"char\000"
+ 1563      00
+ 1564              	.LASF12:
+ 1565 007f 7A6E616B 		.ascii	"znak\000"
+ 1565      00
+ 1566              	.LASF0:
+ 1567 0084 756E7369 		.ascii	"unsigned char\000"
+ 1567      676E6564 
+ 1567      20636861 
+ 1567      7200
+ 1568              	.LASF9:
+ 1569 0092 54525545 		.ascii	"TRUE\000"
+ 1569      00
+ 1570              	.LASF10:
+ 1571 0097 64656C61 		.ascii	"delay37us\000"
+ 1571      79333775 
+ 1571      7300
+ 1572              	.LASF22:
+ 1573 00a1 7365744C 		.ascii	"setLCD\000"
+ 1573      434400
+ 1574              	.LASF6:
+ 1575 00a8 73686F72 		.ascii	"short int\000"
+ 1575      7420696E 
+ 1575      7400
+ 1576              	.LASF27:
+ 1577 00b2 433A5C45 		.ascii	"C:\\Embedded\\2148MiniDemo\\2148\000"
+ 1577      6D626564 
+ 1577      6465645C 
+ 1577      32313438 
+ 1577      4D696E69 
+ 1578              	.LASF26:
+ 1579 00d0 6C63642E 		.ascii	"lcd.c\000"
+ 1579      6300
+ 1580              	.LASF1:
+ 1581 00d6 73686F72 		.ascii	"short unsigned int\000"
+ 1581      7420756E 
+ 1581      7369676E 
+ 1581      65642069 
+ 1581      6E7400
+ 1582              	.LASF5:
+ 1583 00e9 7369676E 		.ascii	"signed char\000"
+ 1583      65642063 
+ 1583      68617200 
+ 1584              	.LASF17:
+ 1585 00f5 4C43445F 		.ascii	"LCD_WriteString\000"
+ 1585      57726974 
+ 1585      65537472 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 32
+
+
+ 1585      696E6700 
+ 1586              	.LASF25:
+ 1587 0105 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 1587      43313120 
+ 1587      352E342E 
+ 1587      31203230 
+ 1587      31363036 
+ 1588 0138 616E6368 		.ascii	"anch revision 237715] -mcpu=arm7tdmi -mthumb -mthum"
+ 1588      20726576 
+ 1588      6973696F 
+ 1588      6E203233 
+ 1588      37373135 
+ 1589 016b 622D696E 		.ascii	"b-interwork -gdwarf-2 -Os\000"
+ 1589      74657277 
+ 1589      6F726B20 
+ 1589      2D676477 
+ 1589      6172662D 
+ 1590              	.LASF8:
+ 1591 0185 46414C53 		.ascii	"FALSE\000"
+ 1591      4500
+ 1592              	.LASF15:
+ 1593 018b 4C43445F 		.ascii	"LCD_WriteNumber\000"
+ 1593      57726974 
+ 1593      654E756D 
+ 1593      62657200 
+ 1594              	.LASF24:
+ 1595 019b 6F6E4F66 		.ascii	"onOff\000"
+ 1595      6600
+ 1596              	.LASF20:
+ 1597 01a1 4C43445F 		.ascii	"LCD_WriteCHARINT\000"
+ 1597      57726974 
+ 1597      65434841 
+ 1597      52494E54 
+ 1597      00
+ 1598              	.LASF18:
+ 1599 01b2 73747269 		.ascii	"string\000"
+ 1599      6E6700
+ 1600              	.LASF2:
+ 1601 01b9 74553332 		.ascii	"tU32\000"
+ 1601      00
+ 1602              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s 			page 33
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 lcd.c
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:19     .text:00000000 $t
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:24     .text:00000000 delay37us
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:67     .text:0000001c $d
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:71     .text:00000020 $t
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:76     .text:00000020 initLCD
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:121    .text:0000004c $d
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:129    .text:00000060 $t
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:134    .text:00000060 writeLCD
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:242    .text:000000cc $d
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:248    .text:000000d8 $t
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:253    .text:000000d8 setLCD
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:338    .text:00000138 LCD_WriteFunction
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:376    .text:00000150 LCD_WriteNumber
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:416    .text:0000016c LCD_WriteString
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:461    .text:0000018c LCD_WriteCHARINT
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:499    .text:000001a4 lcdBacklight
+C:\Users\embedded\AppData\Local\Temp\cc6zOmtj.s:527    .text:000001b8 $d
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

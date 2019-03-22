@@ -1,0 +1,701 @@
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 1
+
+
+   1              		.cpu arm7tdmi
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 0
+  11              		.eabi_attribute 18, 4
+  12              		.arm
+  13              		.syntax divided
+  14              		.file	"irq_handler.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	__aeabi_uidivmod
+  19              		.global	__aeabi_uidiv
+  20              		.align	2
+  21              		.global	IRQ_Test
+  22              		.type	IRQ_Test, %function
+  23              	IRQ_Test:
+  24              	.LFB0:
+  25              		.file 1 "irq_handler.c"
+   1:irq_handler.c **** /*************************************************************************************
+   2:irq_handler.c ****  *
+   3:irq_handler.c ****  * @Description:
+   4:irq_handler.c ****  * Przykładowa procedura obsługi przerwania dostosowania do 
+   5:irq_handler.c ****  * obsługi przerwań wektoryzowanych.
+   6:irq_handler.c ****  * Procedura ta przełącza stan diody P0.9.
+   7:irq_handler.c ****  * 
+   8:irq_handler.c ****  * 
+   9:irq_handler.c ****  * @Authors: Michał Morawski, 
+  10:irq_handler.c ****  *           Daniel Arendt, 
+  11:irq_handler.c ****  *           Przemysław Ignaciuk,
+  12:irq_handler.c ****  *           Marcin Kwapisz
+  13:irq_handler.c ****  *
+  14:irq_handler.c ****  * @Change log:
+  15:irq_handler.c ****  *           2016.12.01: Wersja oryginalna.
+  16:irq_handler.c ****  *
+  17:irq_handler.c ****  ******************************************************************************/
+  18:irq_handler.c **** 
+  19:irq_handler.c **** #include "../general.h"
+  20:irq_handler.c **** #include <lpc2xxx.h>
+  21:irq_handler.c **** #include "irq_handler.h"
+  22:irq_handler.c **** #include "../timer.h"
+  23:irq_handler.c **** 
+  24:irq_handler.c **** #include "../Common_Def.h"
+  25:irq_handler.c **** 
+  26:irq_handler.c **** int step = 0;
+  27:irq_handler.c **** 
+  28:irq_handler.c **** 
+  29:irq_handler.c **** void IRQ_Test(void)
+  30:irq_handler.c **** {
+  26              		.loc 1 30 0
+  27              		.cfi_startproc
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 2
+
+
+  28              		@ Interrupt Service Routine.
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 04E04EE2 		sub	lr, lr, #4
+  32 0004 3F502DE9 		stmfd	sp!, {r0, r1, r2, r3, r4, r5, ip, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 32
+  35              		.cfi_offset 0, -32
+  36              		.cfi_offset 1, -28
+  37              		.cfi_offset 2, -24
+  38              		.cfi_offset 3, -20
+  39              		.cfi_offset 4, -16
+  40              		.cfi_offset 5, -12
+  41              		.cfi_offset 12, -8
+  42              		.cfi_offset 14, -4
+  31:irq_handler.c **** 	int sk1 = (int)((temp/2)/10);
+  43              		.loc 1 31 0
+  44 0008 98309FE5 		ldr	r3, .L8
+  45 000c B050D3E1 		ldrh	r5, [r3]
+  46              	.LVL0:
+  32:irq_handler.c **** 	int sk2 = (int)((temp/2)%10);
+  33:irq_handler.c **** 
+  34:irq_handler.c **** 	int t=(sk1*10) + sk2;
+  35:irq_handler.c **** 
+  36:irq_handler.c **** 	if (t>=28)
+  47              		.loc 1 36 0
+  48 0010 0A10A0E3 		mov	r1, #10
+  49 0014 A500A0E1 		mov	r0, r5, lsr #1
+  50 0018 FEFFFFEB 		bl	__aeabi_uidivmod
+  51              	.LVL1:
+  52 001c 0118A0E1 		mov	r1, r1, asl #16
+  53 0020 2148A0E1 		mov	r4, r1, lsr #16
+  54 0024 0500A0E1 		mov	r0, r5
+  55 0028 1410A0E3 		mov	r1, #20
+  56 002c FEFFFFEB 		bl	__aeabi_uidiv
+  57              	.LVL2:
+  58 0030 0A30A0E3 		mov	r3, #10
+  59 0034 0008A0E1 		mov	r0, r0, asl #16
+  60 0038 2018A0E1 		mov	r1, r0, lsr #16
+  61 003c 934121E0 		mla	r1, r3, r1, r4
+  62 0040 1B0051E3 		cmp	r1, #27
+  63 0044 100000DA 		ble	.L2
+  64              	.LBB2:
+  37:irq_handler.c **** 	{
+  38:irq_handler.c **** 	     static tU32 stepmotorSteps[4] = {0x00201000, 0x00200000, 0x00000000, 0x00001000};  //P0.21 an
+  39:irq_handler.c **** 
+  40:irq_handler.c **** 	     IODIR0 |= 0x00201000;
+  65              		.loc 1 40 0
+  66 0048 5C309FE5 		ldr	r3, .L8+4
+  67 004c 082093E5 		ldr	r2, [r3, #8]
+  68 0050 022682E3 		orr	r2, r2, #2097152
+  69 0054 012A82E3 		orr	r2, r2, #4096
+  70 0058 082083E5 		str	r2, [r3, #8]
+  41:irq_handler.c **** 
+  42:irq_handler.c **** 	     step++;
+  71              		.loc 1 42 0
+  72 005c 4C209FE5 		ldr	r2, .L8+8
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 3
+
+
+  73 0060 001092E5 		ldr	r1, [r2]
+  74 0064 011081E2 		add	r1, r1, #1
+  43:irq_handler.c **** 	     if(step == 4) step = 0;
+  75              		.loc 1 43 0
+  76 0068 040051E3 		cmp	r1, #4
+  77 006c 0010A003 		moveq	r1, #0
+  78 0070 001082E5 		str	r1, [r2]
+  44:irq_handler.c **** 
+  45:irq_handler.c **** 		 IOCLR0 = stepmotorSteps[0];
+  79              		.loc 1 45 0
+  80 0074 38109FE5 		ldr	r1, .L8+12
+  81 0078 0C1083E5 		str	r1, [r3, #12]
+  46:irq_handler.c **** 		 IOSET0 = stepmotorSteps[step];
+  82              		.loc 1 46 0
+  83 007c 001092E5 		ldr	r1, [r2]
+  84 0080 30209FE5 		ldr	r2, .L8+16
+  85 0084 012192E7 		ldr	r2, [r2, r1, asl #2]
+  86 0088 042083E5 		str	r2, [r3, #4]
+  87              	.L2:
+  88              	.LBE2:
+  47:irq_handler.c **** 	}
+  48:irq_handler.c **** 
+  49:irq_handler.c **** 		 T0IR = TIMER_MR0_INT;
+  89              		.loc 1 49 0
+  90 008c 0120A0E3 		mov	r2, #1
+  91 0090 24309FE5 		ldr	r3, .L8+20
+  92 0094 002083E5 		str	r2, [r3]
+  50:irq_handler.c **** 		 VICVectAddr = 0x00;
+  93              		.loc 1 50 0
+  94 0098 0020A0E3 		mov	r2, #0
+  95 009c 0030E0E3 		mvn	r3, #0
+  96 00a0 CF2F03E5 		str	r2, [r3, #-4047]
+  97 00a4 3F90FDE8 		ldmfd	sp!, {r0, r1, r2, r3, r4, r5, ip, pc}^
+  98              	.L9:
+  99              		.align	2
+ 100              	.L8:
+ 101 00a8 00000000 		.word	temp
+ 102 00ac 008002E0 		.word	-536707072
+ 103 00b0 00000000 		.word	.LANCHOR0
+ 104 00b4 00102000 		.word	2101248
+ 105 00b8 00000000 		.word	.LANCHOR1
+ 106 00bc 004000E0 		.word	-536854528
+ 107              		.cfi_endproc
+ 108              	.LFE0:
+ 109              		.size	IRQ_Test, .-IRQ_Test
+ 110              		.global	step
+ 111              		.comm	temp,2,2
+ 112              		.section	.rodata
+ 113              		.align	2
+ 114              		.set	.LANCHOR1,. + 0
+ 115              		.type	stepmotorSteps.4185, %object
+ 116              		.size	stepmotorSteps.4185, 16
+ 117              	stepmotorSteps.4185:
+ 118 0000 00102000 		.word	2101248
+ 119 0004 00002000 		.word	2097152
+ 120 0008 00000000 		.word	0
+ 121 000c 00100000 		.word	4096
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 4
+
+
+ 122              		.bss
+ 123              		.align	2
+ 124              		.set	.LANCHOR0,. + 0
+ 125              		.type	step, %object
+ 126              		.size	step, 4
+ 127              	step:
+ 128 0000 00000000 		.space	4
+ 129              		.text
+ 130              	.Letext0:
+ 131              		.file 2 "../general.h"
+ 132              		.file 3 "irq_handler.h"
+ 133              		.section	.debug_info,"",%progbits
+ 134              	.Ldebug_info0:
+ 135 0000 3E010000 		.4byte	0x13e
+ 136 0004 0200     		.2byte	0x2
+ 137 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 138 000a 04       		.byte	0x4
+ 139 000b 01       		.uleb128 0x1
+ 140 000c 71000000 		.4byte	.LASF9
+ 141 0010 0C       		.byte	0xc
+ 142 0011 E9000000 		.4byte	.LASF10
+ 143 0015 29000000 		.4byte	.LASF11
+ 144 0019 00000000 		.4byte	.Ltext0
+ 145 001d C0000000 		.4byte	.Letext0
+ 146 0021 00000000 		.4byte	.Ldebug_line0
+ 147 0025 02       		.uleb128 0x2
+ 148 0026 02       		.byte	0x2
+ 149 0027 07       		.byte	0x7
+ 150 0028 0A010000 		.4byte	.LASF0
+ 151 002c 02       		.uleb128 0x2
+ 152 002d 01       		.byte	0x1
+ 153 002e 08       		.byte	0x8
+ 154 002f F7000000 		.4byte	.LASF1
+ 155 0033 03       		.uleb128 0x3
+ 156 0034 29010000 		.4byte	.LASF2
+ 157 0038 02       		.byte	0x2
+ 158 0039 13       		.byte	0x13
+ 159 003a 25000000 		.4byte	0x25
+ 160 003e 03       		.uleb128 0x3
+ 161 003f 41010000 		.4byte	.LASF3
+ 162 0043 02       		.byte	0x2
+ 163 0044 14       		.byte	0x14
+ 164 0045 49000000 		.4byte	0x49
+ 165 0049 02       		.uleb128 0x2
+ 166 004a 04       		.byte	0x4
+ 167 004b 07       		.byte	0x7
+ 168 004c 17000000 		.4byte	.LASF4
+ 169 0050 02       		.uleb128 0x2
+ 170 0051 08       		.byte	0x8
+ 171 0052 07       		.byte	0x7
+ 172 0053 5A000000 		.4byte	.LASF5
+ 173 0057 02       		.uleb128 0x2
+ 174 0058 01       		.byte	0x1
+ 175 0059 06       		.byte	0x6
+ 176 005a 1D010000 		.4byte	.LASF6
+ 177 005e 02       		.uleb128 0x2
+ 178 005f 02       		.byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 5
+
+
+ 179 0060 05       		.byte	0x5
+ 180 0061 2E010000 		.4byte	.LASF7
+ 181 0065 04       		.uleb128 0x4
+ 182 0066 04       		.byte	0x4
+ 183 0067 05       		.byte	0x5
+ 184 0068 696E7400 		.ascii	"int\000"
+ 185 006c 02       		.uleb128 0x2
+ 186 006d 08       		.byte	0x8
+ 187 006e 05       		.byte	0x5
+ 188 006f 00000000 		.4byte	.LASF8
+ 189 0073 05       		.uleb128 0x5
+ 190 0074 01       		.byte	0x1
+ 191 0075 0E000000 		.4byte	.LASF16
+ 192 0079 01       		.byte	0x1
+ 193 007a 1D       		.byte	0x1d
+ 194 007b 01       		.byte	0x1
+ 195 007c 00000000 		.4byte	.LFB0
+ 196 0080 C0000000 		.4byte	.LFE0
+ 197 0084 00000000 		.4byte	.LLST0
+ 198 0088 01       		.byte	0x1
+ 199 0089 01010000 		.4byte	0x101
+ 200 008d 06       		.uleb128 0x6
+ 201 008e 736B3100 		.ascii	"sk1\000"
+ 202 0092 01       		.byte	0x1
+ 203 0093 1F       		.byte	0x1f
+ 204 0094 65000000 		.4byte	0x65
+ 205 0098 0F       		.byte	0xf
+ 206 0099 75       		.byte	0x75
+ 207 009a 00       		.sleb128 0
+ 208 009b F7       		.byte	0xf7
+ 209 009c 25       		.uleb128 0x25
+ 210 009d 44       		.byte	0x44
+ 211 009e F7       		.byte	0xf7
+ 212 009f 25       		.uleb128 0x25
+ 213 00a0 1B       		.byte	0x1b
+ 214 00a1 F7       		.byte	0xf7
+ 215 00a2 00       		.uleb128 0
+ 216 00a3 0A       		.byte	0xa
+ 217 00a4 FFFF     		.2byte	0xffff
+ 218 00a6 1A       		.byte	0x1a
+ 219 00a7 9F       		.byte	0x9f
+ 220 00a8 06       		.uleb128 0x6
+ 221 00a9 736B3200 		.ascii	"sk2\000"
+ 222 00ad 01       		.byte	0x1
+ 223 00ae 20       		.byte	0x20
+ 224 00af 65000000 		.4byte	0x65
+ 225 00b3 0B       		.byte	0xb
+ 226 00b4 75       		.byte	0x75
+ 227 00b5 00       		.sleb128 0
+ 228 00b6 31       		.byte	0x31
+ 229 00b7 25       		.byte	0x25
+ 230 00b8 3A       		.byte	0x3a
+ 231 00b9 1D       		.byte	0x1d
+ 232 00ba 0A       		.byte	0xa
+ 233 00bb FFFF     		.2byte	0xffff
+ 234 00bd 1A       		.byte	0x1a
+ 235 00be 9F       		.byte	0x9f
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 6
+
+
+ 236 00bf 06       		.uleb128 0x6
+ 237 00c0 7400     		.ascii	"t\000"
+ 238 00c2 01       		.byte	0x1
+ 239 00c3 22       		.byte	0x22
+ 240 00c4 65000000 		.4byte	0x65
+ 241 00c8 1C       		.byte	0x1c
+ 242 00c9 75       		.byte	0x75
+ 243 00ca 00       		.sleb128 0
+ 244 00cb F7       		.byte	0xf7
+ 245 00cc 25       		.uleb128 0x25
+ 246 00cd 44       		.byte	0x44
+ 247 00ce F7       		.byte	0xf7
+ 248 00cf 25       		.uleb128 0x25
+ 249 00d0 1B       		.byte	0x1b
+ 250 00d1 F7       		.byte	0xf7
+ 251 00d2 00       		.uleb128 0
+ 252 00d3 0A       		.byte	0xa
+ 253 00d4 FFFF     		.2byte	0xffff
+ 254 00d6 1A       		.byte	0x1a
+ 255 00d7 3A       		.byte	0x3a
+ 256 00d8 1E       		.byte	0x1e
+ 257 00d9 75       		.byte	0x75
+ 258 00da 00       		.sleb128 0
+ 259 00db 31       		.byte	0x31
+ 260 00dc 25       		.byte	0x25
+ 261 00dd 3A       		.byte	0x3a
+ 262 00de 1D       		.byte	0x1d
+ 263 00df 0A       		.byte	0xa
+ 264 00e0 FFFF     		.2byte	0xffff
+ 265 00e2 1A       		.byte	0x1a
+ 266 00e3 22       		.byte	0x22
+ 267 00e4 9F       		.byte	0x9f
+ 268 00e5 07       		.uleb128 0x7
+ 269 00e6 48000000 		.4byte	.LBB2
+ 270 00ea 8C000000 		.4byte	.LBE2
+ 271 00ee 08       		.uleb128 0x8
+ 272 00ef 4B000000 		.4byte	.LASF12
+ 273 00f3 01       		.byte	0x1
+ 274 00f4 26       		.byte	0x26
+ 275 00f5 18010000 		.4byte	0x118
+ 276 00f9 05       		.byte	0x5
+ 277 00fa 03       		.byte	0x3
+ 278 00fb 00000000 		.4byte	stepmotorSteps.4185
+ 279 00ff 00       		.byte	0
+ 280 0100 00       		.byte	0
+ 281 0101 09       		.uleb128 0x9
+ 282 0102 3E000000 		.4byte	0x3e
+ 283 0106 11010000 		.4byte	0x111
+ 284 010a 0A       		.uleb128 0xa
+ 285 010b 11010000 		.4byte	0x111
+ 286 010f 03       		.byte	0x3
+ 287 0110 00       		.byte	0
+ 288 0111 02       		.uleb128 0x2
+ 289 0112 04       		.byte	0x4
+ 290 0113 07       		.byte	0x7
+ 291 0114 38010000 		.4byte	.LASF13
+ 292 0118 0B       		.uleb128 0xb
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 7
+
+
+ 293 0119 01010000 		.4byte	0x101
+ 294 011d 0C       		.uleb128 0xc
+ 295 011e 24000000 		.4byte	.LASF14
+ 296 0122 03       		.byte	0x3
+ 297 0123 18       		.byte	0x18
+ 298 0124 33000000 		.4byte	0x33
+ 299 0128 01       		.byte	0x1
+ 300 0129 05       		.byte	0x5
+ 301 012a 03       		.byte	0x3
+ 302 012b 00000000 		.4byte	temp
+ 303 012f 0C       		.uleb128 0xc
+ 304 0130 05010000 		.4byte	.LASF15
+ 305 0134 01       		.byte	0x1
+ 306 0135 1A       		.byte	0x1a
+ 307 0136 65000000 		.4byte	0x65
+ 308 013a 01       		.byte	0x1
+ 309 013b 05       		.byte	0x5
+ 310 013c 03       		.byte	0x3
+ 311 013d 00000000 		.4byte	step
+ 312 0141 00       		.byte	0
+ 313              		.section	.debug_abbrev,"",%progbits
+ 314              	.Ldebug_abbrev0:
+ 315 0000 01       		.uleb128 0x1
+ 316 0001 11       		.uleb128 0x11
+ 317 0002 01       		.byte	0x1
+ 318 0003 25       		.uleb128 0x25
+ 319 0004 0E       		.uleb128 0xe
+ 320 0005 13       		.uleb128 0x13
+ 321 0006 0B       		.uleb128 0xb
+ 322 0007 03       		.uleb128 0x3
+ 323 0008 0E       		.uleb128 0xe
+ 324 0009 1B       		.uleb128 0x1b
+ 325 000a 0E       		.uleb128 0xe
+ 326 000b 11       		.uleb128 0x11
+ 327 000c 01       		.uleb128 0x1
+ 328 000d 12       		.uleb128 0x12
+ 329 000e 01       		.uleb128 0x1
+ 330 000f 10       		.uleb128 0x10
+ 331 0010 06       		.uleb128 0x6
+ 332 0011 00       		.byte	0
+ 333 0012 00       		.byte	0
+ 334 0013 02       		.uleb128 0x2
+ 335 0014 24       		.uleb128 0x24
+ 336 0015 00       		.byte	0
+ 337 0016 0B       		.uleb128 0xb
+ 338 0017 0B       		.uleb128 0xb
+ 339 0018 3E       		.uleb128 0x3e
+ 340 0019 0B       		.uleb128 0xb
+ 341 001a 03       		.uleb128 0x3
+ 342 001b 0E       		.uleb128 0xe
+ 343 001c 00       		.byte	0
+ 344 001d 00       		.byte	0
+ 345 001e 03       		.uleb128 0x3
+ 346 001f 16       		.uleb128 0x16
+ 347 0020 00       		.byte	0
+ 348 0021 03       		.uleb128 0x3
+ 349 0022 0E       		.uleb128 0xe
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 8
+
+
+ 350 0023 3A       		.uleb128 0x3a
+ 351 0024 0B       		.uleb128 0xb
+ 352 0025 3B       		.uleb128 0x3b
+ 353 0026 0B       		.uleb128 0xb
+ 354 0027 49       		.uleb128 0x49
+ 355 0028 13       		.uleb128 0x13
+ 356 0029 00       		.byte	0
+ 357 002a 00       		.byte	0
+ 358 002b 04       		.uleb128 0x4
+ 359 002c 24       		.uleb128 0x24
+ 360 002d 00       		.byte	0
+ 361 002e 0B       		.uleb128 0xb
+ 362 002f 0B       		.uleb128 0xb
+ 363 0030 3E       		.uleb128 0x3e
+ 364 0031 0B       		.uleb128 0xb
+ 365 0032 03       		.uleb128 0x3
+ 366 0033 08       		.uleb128 0x8
+ 367 0034 00       		.byte	0
+ 368 0035 00       		.byte	0
+ 369 0036 05       		.uleb128 0x5
+ 370 0037 2E       		.uleb128 0x2e
+ 371 0038 01       		.byte	0x1
+ 372 0039 3F       		.uleb128 0x3f
+ 373 003a 0C       		.uleb128 0xc
+ 374 003b 03       		.uleb128 0x3
+ 375 003c 0E       		.uleb128 0xe
+ 376 003d 3A       		.uleb128 0x3a
+ 377 003e 0B       		.uleb128 0xb
+ 378 003f 3B       		.uleb128 0x3b
+ 379 0040 0B       		.uleb128 0xb
+ 380 0041 27       		.uleb128 0x27
+ 381 0042 0C       		.uleb128 0xc
+ 382 0043 11       		.uleb128 0x11
+ 383 0044 01       		.uleb128 0x1
+ 384 0045 12       		.uleb128 0x12
+ 385 0046 01       		.uleb128 0x1
+ 386 0047 40       		.uleb128 0x40
+ 387 0048 06       		.uleb128 0x6
+ 388 0049 9642     		.uleb128 0x2116
+ 389 004b 0C       		.uleb128 0xc
+ 390 004c 01       		.uleb128 0x1
+ 391 004d 13       		.uleb128 0x13
+ 392 004e 00       		.byte	0
+ 393 004f 00       		.byte	0
+ 394 0050 06       		.uleb128 0x6
+ 395 0051 34       		.uleb128 0x34
+ 396 0052 00       		.byte	0
+ 397 0053 03       		.uleb128 0x3
+ 398 0054 08       		.uleb128 0x8
+ 399 0055 3A       		.uleb128 0x3a
+ 400 0056 0B       		.uleb128 0xb
+ 401 0057 3B       		.uleb128 0x3b
+ 402 0058 0B       		.uleb128 0xb
+ 403 0059 49       		.uleb128 0x49
+ 404 005a 13       		.uleb128 0x13
+ 405 005b 02       		.uleb128 0x2
+ 406 005c 0A       		.uleb128 0xa
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 9
+
+
+ 407 005d 00       		.byte	0
+ 408 005e 00       		.byte	0
+ 409 005f 07       		.uleb128 0x7
+ 410 0060 0B       		.uleb128 0xb
+ 411 0061 01       		.byte	0x1
+ 412 0062 11       		.uleb128 0x11
+ 413 0063 01       		.uleb128 0x1
+ 414 0064 12       		.uleb128 0x12
+ 415 0065 01       		.uleb128 0x1
+ 416 0066 00       		.byte	0
+ 417 0067 00       		.byte	0
+ 418 0068 08       		.uleb128 0x8
+ 419 0069 34       		.uleb128 0x34
+ 420 006a 00       		.byte	0
+ 421 006b 03       		.uleb128 0x3
+ 422 006c 0E       		.uleb128 0xe
+ 423 006d 3A       		.uleb128 0x3a
+ 424 006e 0B       		.uleb128 0xb
+ 425 006f 3B       		.uleb128 0x3b
+ 426 0070 0B       		.uleb128 0xb
+ 427 0071 49       		.uleb128 0x49
+ 428 0072 13       		.uleb128 0x13
+ 429 0073 02       		.uleb128 0x2
+ 430 0074 0A       		.uleb128 0xa
+ 431 0075 00       		.byte	0
+ 432 0076 00       		.byte	0
+ 433 0077 09       		.uleb128 0x9
+ 434 0078 01       		.uleb128 0x1
+ 435 0079 01       		.byte	0x1
+ 436 007a 49       		.uleb128 0x49
+ 437 007b 13       		.uleb128 0x13
+ 438 007c 01       		.uleb128 0x1
+ 439 007d 13       		.uleb128 0x13
+ 440 007e 00       		.byte	0
+ 441 007f 00       		.byte	0
+ 442 0080 0A       		.uleb128 0xa
+ 443 0081 21       		.uleb128 0x21
+ 444 0082 00       		.byte	0
+ 445 0083 49       		.uleb128 0x49
+ 446 0084 13       		.uleb128 0x13
+ 447 0085 2F       		.uleb128 0x2f
+ 448 0086 0B       		.uleb128 0xb
+ 449 0087 00       		.byte	0
+ 450 0088 00       		.byte	0
+ 451 0089 0B       		.uleb128 0xb
+ 452 008a 26       		.uleb128 0x26
+ 453 008b 00       		.byte	0
+ 454 008c 49       		.uleb128 0x49
+ 455 008d 13       		.uleb128 0x13
+ 456 008e 00       		.byte	0
+ 457 008f 00       		.byte	0
+ 458 0090 0C       		.uleb128 0xc
+ 459 0091 34       		.uleb128 0x34
+ 460 0092 00       		.byte	0
+ 461 0093 03       		.uleb128 0x3
+ 462 0094 0E       		.uleb128 0xe
+ 463 0095 3A       		.uleb128 0x3a
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 10
+
+
+ 464 0096 0B       		.uleb128 0xb
+ 465 0097 3B       		.uleb128 0x3b
+ 466 0098 0B       		.uleb128 0xb
+ 467 0099 49       		.uleb128 0x49
+ 468 009a 13       		.uleb128 0x13
+ 469 009b 3F       		.uleb128 0x3f
+ 470 009c 0C       		.uleb128 0xc
+ 471 009d 02       		.uleb128 0x2
+ 472 009e 0A       		.uleb128 0xa
+ 473 009f 00       		.byte	0
+ 474 00a0 00       		.byte	0
+ 475 00a1 00       		.byte	0
+ 476              		.section	.debug_loc,"",%progbits
+ 477              	.Ldebug_loc0:
+ 478              	.LLST0:
+ 479 0000 00000000 		.4byte	.LFB0-.Ltext0
+ 480 0004 08000000 		.4byte	.LCFI0-.Ltext0
+ 481 0008 0200     		.2byte	0x2
+ 482 000a 7D       		.byte	0x7d
+ 483 000b 00       		.sleb128 0
+ 484 000c 08000000 		.4byte	.LCFI0-.Ltext0
+ 485 0010 C0000000 		.4byte	.LFE0-.Ltext0
+ 486 0014 0200     		.2byte	0x2
+ 487 0016 7D       		.byte	0x7d
+ 488 0017 20       		.sleb128 32
+ 489 0018 00000000 		.4byte	0
+ 490 001c 00000000 		.4byte	0
+ 491              		.section	.debug_aranges,"",%progbits
+ 492 0000 1C000000 		.4byte	0x1c
+ 493 0004 0200     		.2byte	0x2
+ 494 0006 00000000 		.4byte	.Ldebug_info0
+ 495 000a 04       		.byte	0x4
+ 496 000b 00       		.byte	0
+ 497 000c 0000     		.2byte	0
+ 498 000e 0000     		.2byte	0
+ 499 0010 00000000 		.4byte	.Ltext0
+ 500 0014 C0000000 		.4byte	.Letext0-.Ltext0
+ 501 0018 00000000 		.4byte	0
+ 502 001c 00000000 		.4byte	0
+ 503              		.section	.debug_line,"",%progbits
+ 504              	.Ldebug_line0:
+ 505 0000 64000000 		.section	.debug_str,"MS",%progbits,1
+ 505      02004500 
+ 505      00000201 
+ 505      FB0E0D00 
+ 505      01010101 
+ 506              	.LASF8:
+ 507 0000 6C6F6E67 		.ascii	"long long int\000"
+ 507      206C6F6E 
+ 507      6720696E 
+ 507      7400
+ 508              	.LASF16:
+ 509 000e 4952515F 		.ascii	"IRQ_Test\000"
+ 509      54657374 
+ 509      00
+ 510              	.LASF4:
+ 511 0017 756E7369 		.ascii	"unsigned int\000"
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 11
+
+
+ 511      676E6564 
+ 511      20696E74 
+ 511      00
+ 512              	.LASF14:
+ 513 0024 74656D70 		.ascii	"temp\000"
+ 513      00
+ 514              	.LASF11:
+ 515 0029 433A5C45 		.ascii	"C:\\Embedded\\2148MiniDemo\\2148\\irq\000"
+ 515      6D626564 
+ 515      6465645C 
+ 515      32313438 
+ 515      4D696E69 
+ 516              	.LASF12:
+ 517 004b 73746570 		.ascii	"stepmotorSteps\000"
+ 517      6D6F746F 
+ 517      72537465 
+ 517      707300
+ 518              	.LASF5:
+ 519 005a 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 519      206C6F6E 
+ 519      6720756E 
+ 519      7369676E 
+ 519      65642069 
+ 520              	.LASF9:
+ 521 0071 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 521      43313120 
+ 521      352E342E 
+ 521      31203230 
+ 521      31363036 
+ 522 00a4 616E6368 		.ascii	"anch revision 237715] -mcpu=arm7tdmi -mthumb-interw"
+ 522      20726576 
+ 522      6973696F 
+ 522      6E203233 
+ 522      37373135 
+ 523 00d7 6F726B20 		.ascii	"ork -gdwarf-2 -Os\000"
+ 523      2D676477 
+ 523      6172662D 
+ 523      32202D4F 
+ 523      7300
+ 524              	.LASF10:
+ 525 00e9 6972715F 		.ascii	"irq_handler.c\000"
+ 525      68616E64 
+ 525      6C65722E 
+ 525      6300
+ 526              	.LASF1:
+ 527 00f7 756E7369 		.ascii	"unsigned char\000"
+ 527      676E6564 
+ 527      20636861 
+ 527      7200
+ 528              	.LASF15:
+ 529 0105 73746570 		.ascii	"step\000"
+ 529      00
+ 530              	.LASF0:
+ 531 010a 73686F72 		.ascii	"short unsigned int\000"
+ 531      7420756E 
+ 531      7369676E 
+ 531      65642069 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 12
+
+
+ 531      6E7400
+ 532              	.LASF6:
+ 533 011d 7369676E 		.ascii	"signed char\000"
+ 533      65642063 
+ 533      68617200 
+ 534              	.LASF2:
+ 535 0129 74553136 		.ascii	"tU16\000"
+ 535      00
+ 536              	.LASF7:
+ 537 012e 73686F72 		.ascii	"short int\000"
+ 537      7420696E 
+ 537      7400
+ 538              	.LASF13:
+ 539 0138 73697A65 		.ascii	"sizetype\000"
+ 539      74797065 
+ 539      00
+ 540              	.LASF3:
+ 541 0141 74553332 		.ascii	"tU32\000"
+ 541      00
+ 542              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s 			page 13
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 irq_handler.c
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:20     .text:00000000 $a
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:23     .text:00000000 IRQ_Test
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:101    .text:000000a8 $d
+                            *COM*:00000002 temp
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:127    .bss:00000000 step
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:113    .rodata:00000000 $d
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:117    .rodata:00000000 stepmotorSteps.4185
+C:\Users\embedded\AppData\Local\Temp\cc706Tzv.s:123    .bss:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uidivmod
+__aeabi_uidiv

@@ -1,0 +1,3743 @@
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu arm7tdmi
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"i2c.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.align	1
+  20              		.global	i2cCheckStatus
+  21              		.code	16
+  22              		.thumb_func
+  23              		.type	i2cCheckStatus, %function
+  24              	i2cCheckStatus:
+  25              	.LFB0:
+  26              		.file 1 "i2c.c"
+   1:i2c.c         **** 
+   2:i2c.c         **** #include "general.h"
+   3:i2c.c         **** #include "i2c.h"
+   4:i2c.c         **** #include <lpc2xxx.h>
+   5:i2c.c         **** 
+   6:i2c.c         **** /******************************************************************************
+   7:i2c.c         ****  * Defines and typedefs
+   8:i2c.c         ****  *****************************************************************************/
+   9:i2c.c         **** 
+  10:i2c.c         **** #define I2C_CONSET (*((volatile unsigned char *) 0xE001C000))
+  11:i2c.c         **** #define I2C_STAT   (*((volatile unsigned char *) 0xE001C004))
+  12:i2c.c         **** #define I2C_DATA   (*((volatile unsigned char *) 0xE001C008))
+  13:i2c.c         **** #define I2C_ADDR   (*((volatile unsigned char *) 0xE001C00C))
+  14:i2c.c         **** #define I2C_SCLH   (*((volatile unsigned short*) 0xE001C010))
+  15:i2c.c         **** #define I2C_SCLL   (*((volatile unsigned short*) 0xE001C014))
+  16:i2c.c         **** #define I2C_CONCLR (*((volatile unsigned char *) 0xE001C018))
+  17:i2c.c         **** 
+  18:i2c.c         **** #define I2C_REG_CONSET      0x00000040 // Control Set Register        
+  19:i2c.c         **** #define I2C_REG_CONSET_MASK 0x0000007C // Used bits                   
+  20:i2c.c         **** #define I2C_REG_DATA        0x00000000 // Rejestr danych
+  21:i2c.c         **** #define I2C_REG_DATA_MASK   0x000000FF // Used bits                 
+  22:i2c.c         **** #define I2C_REG_ADDR        0x00000000 // Rejestr adresu urzadzenia slave
+  23:i2c.c         **** #define I2C_REG_ADDR_MASK   0x000000FF // Used bits                   
+  24:i2c.c         **** #define I2C_REG_SCLH        0x00000040 // SCL Duty Cycle high register 
+  25:i2c.c         **** #define I2C_REG_SCLH_MASK   0x0000FFFF // Used bits                   
+  26:i2c.c         **** #define I2C_REG_SCLL        0x00000040 // SCL Duty Cycle low register  
+  27:i2c.c         **** #define I2C_REG_SCLL_MASK   0x0000FFFF // Used bits                    
+  28:i2c.c         **** 
+  29:i2c.c         **** /******************************************************************************
+  30:i2c.c         ****  *
+  31:i2c.c         ****  * Opis:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 2
+
+
+  32:i2c.c         ****  *    Sprawdzenie statusu transmisji przez i2c.
+  33:i2c.c         ****  *
+  34:i2c.c         ****  *  Zwraca:
+  35:i2c.c         ****  *      00h Blad magistrali
+  36:i2c.c         ****  *      08h START komunikat przeslany
+  37:i2c.c         ****  *      10h Repeated START condition przeslany
+  38:i2c.c         ****  *      18h SLA + W przeslany, ACK otrzymany
+  39:i2c.c         ****  *      20h SLA + W przeslany, ACK nie otrzymany
+  40:i2c.c         ****  *      28h Bajt danych przeslany, ACK otrzymany
+  41:i2c.c         ****  *      30h Bajt danych przeslany, ACK nie otrzymany
+  42:i2c.c         ****  *      38h Arbitration lost
+  43:i2c.c         ****  *      40h SLA + R przeslany, ACK otrzymany
+  44:i2c.c         ****  *      48h SLA + R przeslany, ACK nie otrzymany
+  45:i2c.c         ****  *      50h Bajt danych otrzymany w master mode, ACK przeslany
+  46:i2c.c         ****  *      58h Bajt danych otrzymany w master mode, ACK nie przeslany
+  47:i2c.c         ****  *      60h SLA + W otrzymany, ACK przeslany
+  48:i2c.c         ****  *      68h Arbitration lost, SLA + W otrzymany, ACK przeslany
+  49:i2c.c         ****  *      70h General call address otrzymany, ACK przeslany
+  50:i2c.c         ****  *      78h Arbitration lost, general call addr otrzymany, ACK przeslany
+  51:i2c.c         ****  *      80h Bajt danych otrzymany with own SLA, ACK przeslany
+  52:i2c.c         ****  *      88h Bajt danych otrzymany with own SLA, ACK nie przeslany
+  53:i2c.c         ****  *      90h Bajt danych otrzymany after general call, ACK przeslany
+  54:i2c.c         ****  *      98h Bajt danych otrzymany after general call, ACK nie przeslany
+  55:i2c.c         ****  *      A0h STOP or repeated START condition otrzymany w trybie slave
+  56:i2c.c         ****  *      A8h SLA + R otrzymany, ACK przeslany
+  57:i2c.c         ****  *      B0h Arbitration lost, SLA + R otrzymany, ACK przeslany
+  58:i2c.c         ****  *      B8h Bajt danych przeslany w trybie slave, ACK otrzymany
+  59:i2c.c         ****  *      C0h Bajt danych przeslany w trybie slave, ACK nie otrzymany
+  60:i2c.c         ****  *      C8h Ostatni bajt przeslany w trybie slave, ACK otrzymany
+  61:i2c.c         ****  *      F8h No relevant status information, SI=0
+  62:i2c.c         ****  *      FFh BLAD
+  63:i2c.c         ****  *
+  64:i2c.c         ****  *****************************************************************************/
+  65:i2c.c         **** tU8 i2cCheckStatus(void)
+  66:i2c.c         **** {
+  27              		.loc 1 66 0
+  28              		.cfi_startproc
+  29              		@ Function supports interworking.
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+  33              	.LVL0:
+  67:i2c.c         ****   tU8 status = 0;
+  68:i2c.c         ****   
+  69:i2c.c         ****   while( (I2C_CONSET & 0x08)  == 0)   // dopoki flaga przerwan == 0, oczekiwanie na zmiane statusu 
+  34              		.loc 1 69 0
+  35 0000 0823     		movs	r3, #8
+  36 0002 0349     		ldr	r1, .L6
+  37              	.L2:
+  38              		.loc 1 69 0 is_stmt 0 discriminator 1
+  39 0004 0A78     		ldrb	r2, [r1]
+  40 0006 1A42     		tst	r2, r3
+  41 0008 FCD0     		beq	.L2
+  70:i2c.c         ****   {
+  71:i2c.c         ****     ;
+  72:i2c.c         ****   }
+  73:i2c.c         **** 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 3
+
+
+  74:i2c.c         ****   status = I2C_STAT; //odczytanie statusu i wpisanie do zmiennej (flaga nie jest czyszczona tutaj!)
+  42              		.loc 1 74 0 is_stmt 1
+  43 000a 024B     		ldr	r3, .L6+4
+  75:i2c.c         **** 
+  76:i2c.c         ****   return status;
+  77:i2c.c         **** }
+  44              		.loc 1 77 0
+  45              		@ sp needed
+  74:i2c.c         **** 
+  46              		.loc 1 74 0
+  47 000c 1878     		ldrb	r0, [r3]
+  48              	.LVL1:
+  49              		.loc 1 77 0
+  50 000e 7047     		bx	lr
+  51              	.L7:
+  52              		.align	2
+  53              	.L6:
+  54 0010 00C001E0 		.word	-536756224
+  55 0014 04C001E0 		.word	-536756220
+  56              		.cfi_endproc
+  57              	.LFE0:
+  58              		.size	i2cCheckStatus, .-i2cCheckStatus
+  59              		.align	1
+  60              		.global	i2cInit
+  61              		.code	16
+  62              		.thumb_func
+  63              		.type	i2cInit, %function
+  64              	i2cInit:
+  65              	.LFB1:
+  78:i2c.c         **** 
+  79:i2c.c         **** /******************************************************************************
+  80:i2c.c         ****  *
+  81:i2c.c         ****  * Opis:
+  82:i2c.c         ****  *    Zainicjowanie magistrali i2c.
+  83:i2c.c         ****  *
+  84:i2c.c         ****  *****************************************************************************/
+  85:i2c.c         **** void i2cInit(void)
+  86:i2c.c         **** {
+  66              		.loc 1 86 0
+  67              		.cfi_startproc
+  68              		@ Function supports interworking.
+  69              		@ args = 0, pretend = 0, frame = 0
+  70              		@ frame_needed = 0, uses_anonymous_args = 0
+  71              		@ link register save eliminated.
+  87:i2c.c         ****   PINSEL0  |= 0x50;
+  72              		.loc 1 87 0
+  73 0018 5021     		movs	r1, #80
+  74 001a 0C4A     		ldr	r2, .L9
+  75 001c 1368     		ldr	r3, [r2]
+  76 001e 0B43     		orrs	r3, r1
+  77 0020 1360     		str	r3, [r2]
+  88:i2c.c         **** 
+  89:i2c.c         ****   I2C_CONCLR = 0x6c;    //czyszczenie flag
+  78              		.loc 1 89 0
+  79 0022 6C22     		movs	r2, #108
+  80 0024 0A4B     		ldr	r3, .L9+4
+  81 0026 1A70     		strb	r2, [r3]
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 4
+
+
+  90:i2c.c         **** 
+  91:i2c.c         ****   I2C_SCLL   = ( I2C_SCLL   & ~I2C_REG_SCLL_MASK )   | I2C_REG_SCLL; //reset rejestrow
+  82              		.loc 1 91 0
+  83 0028 0A4B     		ldr	r3, .L9+8
+  84 002a 1A88     		ldrh	r2, [r3]
+  85 002c 4022     		movs	r2, #64
+  86 002e 1A80     		strh	r2, [r3]
+  92:i2c.c         ****   I2C_SCLH   = ( I2C_SCLH   & ~I2C_REG_SCLH_MASK )   | I2C_REG_SCLH;
+  87              		.loc 1 92 0
+  88 0030 094B     		ldr	r3, .L9+12
+  89 0032 1988     		ldrh	r1, [r3]
+  90 0034 1A80     		strh	r2, [r3]
+  93:i2c.c         ****   I2C_ADDR   = ( I2C_ADDR   & ~I2C_REG_ADDR_MASK )   | I2C_REG_ADDR;
+  91              		.loc 1 93 0
+  92 0036 094B     		ldr	r3, .L9+16
+  93 0038 1978     		ldrb	r1, [r3]
+  94 003a 0021     		movs	r1, #0
+  94:i2c.c         ****   I2C_CONSET = ( I2C_CONSET & ~I2C_REG_CONSET_MASK ) | I2C_REG_CONSET;
+  95              		.loc 1 94 0
+  96 003c 7C20     		movs	r0, #124
+  93:i2c.c         ****   I2C_ADDR   = ( I2C_ADDR   & ~I2C_REG_ADDR_MASK )   | I2C_REG_ADDR;
+  97              		.loc 1 93 0
+  98 003e 1970     		strb	r1, [r3]
+  99              		.loc 1 94 0
+ 100 0040 0749     		ldr	r1, .L9+20
+ 101 0042 0B78     		ldrb	r3, [r1]
+ 102 0044 8343     		bics	r3, r0
+ 103 0046 1343     		orrs	r3, r2
+ 104 0048 0B70     		strb	r3, [r1]
+  95:i2c.c         **** }
+ 105              		.loc 1 95 0
+ 106              		@ sp needed
+ 107 004a 7047     		bx	lr
+ 108              	.L10:
+ 109              		.align	2
+ 110              	.L9:
+ 111 004c 00C002E0 		.word	-536690688
+ 112 0050 18C001E0 		.word	-536756200
+ 113 0054 14C001E0 		.word	-536756204
+ 114 0058 10C001E0 		.word	-536756208
+ 115 005c 0CC001E0 		.word	-536756212
+ 116 0060 00C001E0 		.word	-536756224
+ 117              		.cfi_endproc
+ 118              	.LFE1:
+ 119              		.size	i2cInit, .-i2cInit
+ 120              		.align	1
+ 121              		.global	i2cStart
+ 122              		.code	16
+ 123              		.thumb_func
+ 124              		.type	i2cStart, %function
+ 125              	i2cStart:
+ 126              	.LFB2:
+  96:i2c.c         **** 
+  97:i2c.c         **** /******************************************************************************
+  98:i2c.c         ****  *
+  99:i2c.c         ****  * Opis:
+ 100:i2c.c         ****  *    Generuje komunikat startu kiedy I2C jest wolna.
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 5
+
+
+ 101:i2c.c         ****  *
+ 102:i2c.c         ****  * Zwraca:
+ 103:i2c.c         ****  *    I2C_CODE_OK lun kod statusu i2c.
+ 104:i2c.c         ****  *
+ 105:i2c.c         ****  *****************************************************************************/
+ 106:i2c.c         **** tS8
+ 107:i2c.c         **** i2cStart(void)
+ 108:i2c.c         **** {
+ 127              		.loc 1 108 0
+ 128              		.cfi_startproc
+ 129              		@ Function supports interworking.
+ 130              		@ args = 0, pretend = 0, frame = 0
+ 131              		@ frame_needed = 0, uses_anonymous_args = 0
+ 132              	.LVL2:
+ 109:i2c.c         ****   tU8   status  = 0;
+ 110:i2c.c         ****   tS8   retCode = 0;
+ 111:i2c.c         **** 
+ 112:i2c.c         ****   I2C_CONSET |= 0x20; // ustawienie flagi startu na 1
+ 133              		.loc 1 112 0
+ 134 0064 2021     		movs	r1, #32
+ 108:i2c.c         ****   tU8   status  = 0;
+ 135              		.loc 1 108 0
+ 136 0066 10B5     		push	{r4, lr}
+ 137              	.LCFI0:
+ 138              		.cfi_def_cfa_offset 8
+ 139              		.cfi_offset 4, -8
+ 140              		.cfi_offset 14, -4
+ 113:i2c.c         **** 
+ 114:i2c.c         ****   while(1)   // czekaj dopoki wyslany zostanie komunikat startu
+ 115:i2c.c         ****   {
+ 116:i2c.c         ****     status = i2cCheckStatus(); //odczytanie obecnego statusu i2c
+ 117:i2c.c         **** 
+ 118:i2c.c         ****     if((status == 0x08) || (status == 0x10)) //czy komunikat start zostal wyslany
+ 141              		.loc 1 118 0
+ 142 0068 0824     		movs	r4, #8
+ 112:i2c.c         **** 
+ 143              		.loc 1 112 0
+ 144 006a 0D4A     		ldr	r2, .L16
+ 145 006c 1378     		ldrb	r3, [r2]
+ 146 006e 0B43     		orrs	r3, r1
+ 147 0070 1370     		strb	r3, [r2]
+ 148              	.LVL3:
+ 149              	.L14:
+ 116:i2c.c         **** 
+ 150              		.loc 1 116 0
+ 151 0072 FFF7FEFF 		bl	i2cCheckStatus
+ 152              	.LVL4:
+ 153              		.loc 1 118 0
+ 154 0076 0300     		movs	r3, r0
+ 155 0078 083B     		subs	r3, r3, #8
+ 156 007a A343     		bics	r3, r4
+ 157 007c 1B06     		lsls	r3, r3, #24
+ 158 007e 1B0E     		lsrs	r3, r3, #24
+ 159 0080 084A     		ldr	r2, .L16+4
+ 160 0082 06D0     		beq	.L15
+ 119:i2c.c         ****     {
+ 120:i2c.c         ****       retCode = I2C_CODE_OK; 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 6
+
+
+ 121:i2c.c         ****       break;
+ 122:i2c.c         ****     }
+ 123:i2c.c         **** 
+ 124:i2c.c         ****     else if(status != 0xf8) //BLAD
+ 161              		.loc 1 124 0
+ 162 0084 F828     		cmp	r0, #248
+ 163 0086 02D0     		beq	.L13
+ 125:i2c.c         ****     {
+ 126:i2c.c         ****       retCode = (tS8) status;
+ 164              		.loc 1 126 0
+ 165 0088 0006     		lsls	r0, r0, #24
+ 166              	.LVL5:
+ 167 008a 0016     		asrs	r0, r0, #24
+ 168              	.LVL6:
+ 127:i2c.c         ****       break;
+ 169              		.loc 1 127 0
+ 170 008c 02E0     		b	.L12
+ 171              	.LVL7:
+ 172              	.L13:
+ 128:i2c.c         ****     }
+ 129:i2c.c         **** 
+ 130:i2c.c         ****     else
+ 131:i2c.c         ****     {
+ 132:i2c.c         ****       I2C_CONCLR = 0x08; //czyszczenie flagi SI w przypadku gdy odczytany status nie odpowiada zadn
+ 173              		.loc 1 132 0
+ 174 008e 1470     		strb	r4, [r2]
+ 133:i2c.c         ****     }    
+ 134:i2c.c         ****   }
+ 175              		.loc 1 134 0
+ 176 0090 EFE7     		b	.L14
+ 177              	.L15:
+ 120:i2c.c         ****       break;
+ 178              		.loc 1 120 0
+ 179 0092 0120     		movs	r0, #1
+ 180              	.LVL8:
+ 181              	.L12:
+ 135:i2c.c         **** 
+ 136:i2c.c         ****   I2C_CONCLR = 0x20; //czyszczenie flagi startu
+ 182              		.loc 1 136 0
+ 183 0094 2023     		movs	r3, #32
+ 137:i2c.c         **** 
+ 138:i2c.c         ****   return retCode;
+ 139:i2c.c         **** }
+ 184              		.loc 1 139 0
+ 185              		@ sp needed
+ 136:i2c.c         **** 
+ 186              		.loc 1 136 0
+ 187 0096 1370     		strb	r3, [r2]
+ 188              		.loc 1 139 0
+ 189 0098 10BC     		pop	{r4}
+ 190 009a 02BC     		pop	{r1}
+ 191 009c 0847     		bx	r1
+ 192              	.L17:
+ 193 009e C046     		.align	2
+ 194              	.L16:
+ 195 00a0 00C001E0 		.word	-536756224
+ 196 00a4 18C001E0 		.word	-536756200
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 7
+
+
+ 197              		.cfi_endproc
+ 198              	.LFE2:
+ 199              		.size	i2cStart, .-i2cStart
+ 200              		.align	1
+ 201              		.global	i2cRepeatStart
+ 202              		.code	16
+ 203              		.thumb_func
+ 204              		.type	i2cRepeatStart, %function
+ 205              	i2cRepeatStart:
+ 206              	.LFB3:
+ 140:i2c.c         **** 
+ 141:i2c.c         **** /******************************************************************************
+ 142:i2c.c         ****  *
+ 143:i2c.c         ****  * Opis:
+ 144:i2c.c         ****  *    Generuje komunikat startu gdy i2c jest wolne
+ 145:i2c.c         ****  *
+ 146:i2c.c         ****  * Zwraca:
+ 147:i2c.c         ****  *    I2C_CODE_OK lub kod statusu i2c
+ 148:i2c.c         ****  *
+ 149:i2c.c         ****  *****************************************************************************/
+ 150:i2c.c         **** tS8 i2cRepeatStart(void)
+ 151:i2c.c         **** {
+ 207              		.loc 1 151 0
+ 208              		.cfi_startproc
+ 209              		@ Function supports interworking.
+ 210              		@ args = 0, pretend = 0, frame = 0
+ 211              		@ frame_needed = 0, uses_anonymous_args = 0
+ 212              	.LVL9:
+ 152:i2c.c         ****   tU8   status  = 0;
+ 153:i2c.c         ****   tS8   retCode = 0;
+ 154:i2c.c         **** 
+ 155:i2c.c         ****   I2C_CONSET |= 0x20; // ustawienie flagi startu na 1
+ 213              		.loc 1 155 0
+ 214 00a8 2021     		movs	r1, #32
+ 151:i2c.c         ****   tU8   status  = 0;
+ 215              		.loc 1 151 0
+ 216 00aa 70B5     		push	{r4, r5, r6, lr}
+ 217              	.LCFI1:
+ 218              		.cfi_def_cfa_offset 16
+ 219              		.cfi_offset 4, -16
+ 220              		.cfi_offset 5, -12
+ 221              		.cfi_offset 6, -8
+ 222              		.cfi_offset 14, -4
+ 156:i2c.c         ****   I2C_CONCLR = 0x08;  // wyczyszczenie flagi przerwan
+ 223              		.loc 1 156 0
+ 224 00ac 0825     		movs	r5, #8
+ 155:i2c.c         ****   I2C_CONCLR = 0x08;  // wyczyszczenie flagi przerwan
+ 225              		.loc 1 155 0
+ 226 00ae 0C4A     		ldr	r2, .L24
+ 227 00b0 1378     		ldrb	r3, [r2]
+ 228 00b2 0B43     		orrs	r3, r1
+ 229 00b4 1370     		strb	r3, [r2]
+ 230              		.loc 1 156 0
+ 231 00b6 0B4C     		ldr	r4, .L24+4
+ 232              	.LVL10:
+ 233              	.L23:
+ 234 00b8 2570     		strb	r5, [r4]
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 8
+
+
+ 157:i2c.c         **** 
+ 158:i2c.c         ****   while(1) // czekaj dopoki wyslany zostanie komunikat startu
+ 159:i2c.c         ****   {
+ 160:i2c.c         ****     status = i2cCheckStatus(); //pobranie aktualnego statusu i2c
+ 235              		.loc 1 160 0
+ 236 00ba FFF7FEFF 		bl	i2cCheckStatus
+ 237              	.LVL11:
+ 161:i2c.c         **** 
+ 162:i2c.c         ****     if((status == 0x08) || (status == 0x10)) //sprawdzenie czy status ustawiony na start
+ 238              		.loc 1 162 0
+ 239 00be 0300     		movs	r3, r0
+ 240 00c0 083B     		subs	r3, r3, #8
+ 241 00c2 AB43     		bics	r3, r5
+ 242 00c4 1B06     		lsls	r3, r3, #24
+ 243 00c6 1B0E     		lsrs	r3, r3, #24
+ 244 00c8 04D0     		beq	.L22
+ 163:i2c.c         ****     {
+ 164:i2c.c         ****       retCode = I2C_CODE_OK;
+ 165:i2c.c         ****       break;
+ 166:i2c.c         ****     }
+ 167:i2c.c         **** 
+ 168:i2c.c         ****     else if(status != 0xf8) //BLAD
+ 245              		.loc 1 168 0
+ 246 00ca F828     		cmp	r0, #248
+ 247 00cc F4D0     		beq	.L23
+ 169:i2c.c         ****     {
+ 170:i2c.c         ****       retCode = (tS8) status;
+ 248              		.loc 1 170 0
+ 249 00ce 0006     		lsls	r0, r0, #24
+ 250              	.LVL12:
+ 251 00d0 0016     		asrs	r0, r0, #24
+ 252              	.LVL13:
+ 171:i2c.c         ****       break;
+ 253              		.loc 1 171 0
+ 254 00d2 00E0     		b	.L19
+ 255              	.LVL14:
+ 256              	.L22:
+ 164:i2c.c         ****       break;
+ 257              		.loc 1 164 0
+ 258 00d4 0120     		movs	r0, #1
+ 259              	.LVL15:
+ 260              	.L19:
+ 172:i2c.c         ****     }
+ 173:i2c.c         **** 
+ 174:i2c.c         ****     else
+ 175:i2c.c         ****     {
+ 176:i2c.c         ****       I2C_CONCLR = 0x08; // wyczyszczenie flagi przerwan
+ 177:i2c.c         ****     }    
+ 178:i2c.c         ****   }
+ 179:i2c.c         **** 
+ 180:i2c.c         ****   I2C_CONCLR = 0x20; //wyczyszczenie flagi startu
+ 261              		.loc 1 180 0
+ 262 00d6 2023     		movs	r3, #32
+ 181:i2c.c         **** 
+ 182:i2c.c         ****   return retCode;
+ 183:i2c.c         **** }
+ 263              		.loc 1 183 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 9
+
+
+ 264              		@ sp needed
+ 180:i2c.c         **** 
+ 265              		.loc 1 180 0
+ 266 00d8 2370     		strb	r3, [r4]
+ 267              		.loc 1 183 0
+ 268 00da 70BC     		pop	{r4, r5, r6}
+ 269 00dc 02BC     		pop	{r1}
+ 270 00de 0847     		bx	r1
+ 271              	.L25:
+ 272              		.align	2
+ 273              	.L24:
+ 274 00e0 00C001E0 		.word	-536756224
+ 275 00e4 18C001E0 		.word	-536756200
+ 276              		.cfi_endproc
+ 277              	.LFE3:
+ 278              		.size	i2cRepeatStart, .-i2cRepeatStart
+ 279              		.align	1
+ 280              		.global	i2cStop
+ 281              		.code	16
+ 282              		.thumb_func
+ 283              		.type	i2cStop, %function
+ 284              	i2cStop:
+ 285              	.LFB4:
+ 184:i2c.c         **** 
+ 185:i2c.c         **** /******************************************************************************
+ 186:i2c.c         ****  *
+ 187:i2c.c         ****  * Opis:
+ 188:i2c.c         ****  *    Generuje stop
+ 189:i2c.c         ****  *
+ 190:i2c.c         ****  * Zwraca:
+ 191:i2c.c         ****  *    I2C_CODE_OK
+ 192:i2c.c         ****  *
+ 193:i2c.c         ****  *****************************************************************************/
+ 194:i2c.c         **** tS8 i2cStop(void)
+ 195:i2c.c         **** {
+ 286              		.loc 1 195 0
+ 287              		.cfi_startproc
+ 288              		@ Function supports interworking.
+ 289              		@ args = 0, pretend = 0, frame = 0
+ 290              		@ frame_needed = 0, uses_anonymous_args = 0
+ 291              		@ link register save eliminated.
+ 196:i2c.c         ****   I2C_CONSET |= 0x10; // STO = 1, ustawienie flagi stop 
+ 292              		.loc 1 196 0
+ 293 00e8 1022     		movs	r2, #16
+ 197:i2c.c         ****   I2C_CONCLR = 0x08;  // czysczenie flagi SI   
+ 294              		.loc 1 197 0
+ 295 00ea 0820     		movs	r0, #8
+ 196:i2c.c         ****   I2C_CONSET |= 0x10; // STO = 1, ustawienie flagi stop 
+ 296              		.loc 1 196 0
+ 297 00ec 054B     		ldr	r3, .L29
+ 298 00ee 1978     		ldrb	r1, [r3]
+ 299 00f0 1143     		orrs	r1, r2
+ 300 00f2 1970     		strb	r1, [r3]
+ 301              		.loc 1 197 0
+ 302 00f4 0449     		ldr	r1, .L29+4
+ 303 00f6 0870     		strb	r0, [r1]
+ 304              	.L27:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 10
+
+
+ 198:i2c.c         **** 
+ 199:i2c.c         ****   while((I2C_CONSET & 0x10) == 0x10 ) //oczekiwanie do wykrycia komunikatu stop
+ 305              		.loc 1 199 0 discriminator 1
+ 306 00f8 1978     		ldrb	r1, [r3]
+ 307 00fa 1142     		tst	r1, r2
+ 308 00fc FCD1     		bne	.L27
+ 200:i2c.c         ****   {
+ 201:i2c.c         ****     ;
+ 202:i2c.c         ****   }
+ 203:i2c.c         **** 
+ 204:i2c.c         ****   return I2C_CODE_OK;
+ 205:i2c.c         **** }
+ 309              		.loc 1 205 0
+ 310 00fe 0120     		movs	r0, #1
+ 311              		@ sp needed
+ 312 0100 7047     		bx	lr
+ 313              	.L30:
+ 314 0102 C046     		.align	2
+ 315              	.L29:
+ 316 0104 00C001E0 		.word	-536756224
+ 317 0108 18C001E0 		.word	-536756200
+ 318              		.cfi_endproc
+ 319              	.LFE4:
+ 320              		.size	i2cStop, .-i2cStop
+ 321              		.align	1
+ 322              		.global	i2cPutChar
+ 323              		.code	16
+ 324              		.thumb_func
+ 325              		.type	i2cPutChar, %function
+ 326              	i2cPutChar:
+ 327              	.LFB5:
+ 206:i2c.c         **** 
+ 207:i2c.c         **** /******************************************************************************
+ 208:i2c.c         ****  *
+ 209:i2c.c         ****  * Opis:
+ 210:i2c.c         ****  *    Wyslanie znaku przez magistrale 
+ 211:i2c.c         ****  *
+ 212:i2c.c         ****  * Parametry:
+ 213:i2c.c         ****  *     data - znak ktory chcemy wyslac
+ 214:i2c.c         ****  *
+ 215:i2c.c         ****  * Zwraca:
+ 216:i2c.c         ****  *    I2C_CODE_OK   - powodzenie wyslania znaku
+ 217:i2c.c         ****  *    I2C_CODE_BUSY - rejestr danych nie jest gotowy
+ 218:i2c.c         ****  *
+ 219:i2c.c         ****  *****************************************************************************/
+ 220:i2c.c         **** tS8 i2cPutChar(tU8 data)
+ 221:i2c.c         **** {
+ 328              		.loc 1 221 0
+ 329              		.cfi_startproc
+ 330              		@ Function supports interworking.
+ 331              		@ args = 0, pretend = 0, frame = 0
+ 332              		@ frame_needed = 0, uses_anonymous_args = 0
+ 333              		@ link register save eliminated.
+ 334              	.LVL16:
+ 222:i2c.c         ****   tS8 retCode = 0;
+ 223:i2c.c         **** 
+ 224:i2c.c         ****   if((I2C_CONSET & 0x08) != 0)  //sprawdzenie czy SI = 1 (czy mozna uzyskac dostep do rejestru dany
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 11
+
+
+ 335              		.loc 1 224 0
+ 336 010c 064B     		ldr	r3, .L34
+ 337 010e 1A78     		ldrb	r2, [r3]
+ 338 0110 0823     		movs	r3, #8
+ 339 0112 1A42     		tst	r2, r3
+ 340 0114 05D0     		beq	.L33
+ 225:i2c.c         ****   {
+ 226:i2c.c         ****     I2C_DATA   = data; 			//wyslane znaku
+ 341              		.loc 1 226 0
+ 342 0116 054A     		ldr	r2, .L34+4
+ 343 0118 1070     		strb	r0, [r2]
+ 227:i2c.c         ****     I2C_CONCLR = 0x08; 			//czysczenie flagi SI
+ 344              		.loc 1 227 0
+ 345 011a 054A     		ldr	r2, .L34+8
+ 228:i2c.c         ****     retCode    = I2C_CODE_OK;   //powodzenie wyslania
+ 346              		.loc 1 228 0
+ 347 011c 0120     		movs	r0, #1
+ 348              	.LVL17:
+ 227:i2c.c         ****     I2C_CONCLR = 0x08; 			//czysczenie flagi SI
+ 349              		.loc 1 227 0
+ 350 011e 1370     		strb	r3, [r2]
+ 351              	.LVL18:
+ 352 0120 01E0     		b	.L32
+ 353              	.LVL19:
+ 354              	.L33:
+ 229:i2c.c         ****   }
+ 230:i2c.c         ****   else
+ 231:i2c.c         ****   {
+ 232:i2c.c         ****     retCode = I2C_CODE_BUSY;    //gdy rejestr danych jest zajety
+ 355              		.loc 1 232 0
+ 356 0122 0420     		movs	r0, #4
+ 357              	.LVL20:
+ 358 0124 4042     		rsbs	r0, r0, #0
+ 359              	.LVL21:
+ 360              	.L32:
+ 233:i2c.c         ****   }
+ 234:i2c.c         **** 
+ 235:i2c.c         ****   return retCode;
+ 236:i2c.c         **** }
+ 361              		.loc 1 236 0
+ 362              		@ sp needed
+ 363 0126 7047     		bx	lr
+ 364              	.L35:
+ 365              		.align	2
+ 366              	.L34:
+ 367 0128 00C001E0 		.word	-536756224
+ 368 012c 08C001E0 		.word	-536756216
+ 369 0130 18C001E0 		.word	-536756200
+ 370              		.cfi_endproc
+ 371              	.LFE5:
+ 372              		.size	i2cPutChar, .-i2cPutChar
+ 373              		.align	1
+ 374              		.global	i2cGetChar
+ 375              		.code	16
+ 376              		.thumb_func
+ 377              		.type	i2cGetChar, %function
+ 378              	i2cGetChar:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 12
+
+
+ 379              	.LFB6:
+ 237:i2c.c         **** 
+ 238:i2c.c         **** /******************************************************************************
+ 239:i2c.c         ****  *
+ 240:i2c.c         ****  * Opis:
+ 241:i2c.c         ****  *    Odczytanie znaku z rejestru danych
+ 242:i2c.c         ****  *
+ 243:i2c.c         ****  * Parametry:
+ 244:i2c.c         ****  *     mode  - I2C_MODE_ACK0 ustawia ACK=0. Slave wysyla kolejny bajt
+ 245:i2c.c         ****  *             I2C_MODE_ACK1 ustawia ACK=1. Slave wysyla ostatni bajt
+ 246:i2c.c         ****  *             I2C_MODE_READ tryb odczytu danych z rejestru danych
+ 247:i2c.c         ****  *     pData - wskaznik na zmienna gdzie zapisujemy odczytane dane
+ 248:i2c.c         ****  *
+ 249:i2c.c         ****  * Zwraca:
+ 250:i2c.c         ****  *    I2C_CODE_OK    - powodzenie
+ 251:i2c.c         ****  *    I2C_CODE_EMPTY - brak danych w rejestrze
+ 252:i2c.c         ****  *
+ 253:i2c.c         ****  *****************************************************************************/
+ 254:i2c.c         **** tS8 i2cGetChar(tU8  mode, tU8* pData)
+ 255:i2c.c         **** {
+ 380              		.loc 1 255 0
+ 381              		.cfi_startproc
+ 382              		@ Function supports interworking.
+ 383              		@ args = 0, pretend = 0, frame = 0
+ 384              		@ frame_needed = 0, uses_anonymous_args = 0
+ 385              		@ link register save eliminated.
+ 386              	.LVL22:
+ 256:i2c.c         ****   tS8 retCode = I2C_CODE_OK;
+ 257:i2c.c         **** 
+ 258:i2c.c         ****   if(mode == I2C_MODE_ACK0)
+ 387              		.loc 1 258 0
+ 388 0134 0028     		cmp	r0, #0
+ 389 0136 09D1     		bne	.L37
+ 259:i2c.c         ****   {
+ 260:i2c.c         ****     //tryb master zmieniony z transmisji na odbiór
+ 261:i2c.c         **** 
+ 262:i2c.c         ****     I2C_CONSET |= 0x04; //ustawienie ACK=0 (informacja dla slave aby ten wyslal kolejny bajt)
+ 390              		.loc 1 262 0
+ 391 0138 0421     		movs	r1, #4
+ 392              	.LVL23:
+ 393 013a 0F4A     		ldr	r2, .L43
+ 394 013c 1378     		ldrb	r3, [r2]
+ 395 013e 0B43     		orrs	r3, r1
+ 396 0140 1370     		strb	r3, [r2]
+ 263:i2c.c         ****     I2C_CONCLR = 0x08;  //czyszczenie flagi przerwan
+ 397              		.loc 1 263 0
+ 398 0142 0822     		movs	r2, #8
+ 399 0144 0D4B     		ldr	r3, .L43+4
+ 400              	.L42:
+ 401 0146 1A70     		strb	r2, [r3]
+ 256:i2c.c         ****   tS8 retCode = I2C_CODE_OK;
+ 402              		.loc 1 256 0
+ 403 0148 0123     		movs	r3, #1
+ 404 014a 13E0     		b	.L38
+ 405              	.LVL24:
+ 406              	.L37:
+ 264:i2c.c         ****   }
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 13
+
+
+ 265:i2c.c         ****   else if(mode == I2C_MODE_ACK1)
+ 407              		.loc 1 265 0
+ 408 014c 0128     		cmp	r0, #1
+ 409 014e 04D1     		bne	.L39
+ 266:i2c.c         ****   {
+ 267:i2c.c         ****     I2C_CONCLR = 0x04; // ustawia ACK=1 (informacja dla slave aby wyslal ostatni bajt danych)
+ 410              		.loc 1 267 0
+ 411 0150 0422     		movs	r2, #4
+ 412 0152 0A4B     		ldr	r3, .L43+4
+ 413 0154 1A70     		strb	r2, [r3]
+ 268:i2c.c         ****     I2C_CONCLR = 0x08; 
+ 414              		.loc 1 268 0
+ 415 0156 9218     		adds	r2, r2, r2
+ 416 0158 F5E7     		b	.L42
+ 417              	.L39:
+ 256:i2c.c         **** 
+ 418              		.loc 1 256 0
+ 419 015a 0123     		movs	r3, #1
+ 269:i2c.c         ****   }
+ 270:i2c.c         ****   else if(mode == I2C_MODE_READ) //sprawdzenie czy tryb master jest ustawiony na odczyt
+ 420              		.loc 1 270 0
+ 421 015c 0228     		cmp	r0, #2
+ 422 015e 09D1     		bne	.L38
+ 423              	.LVL25:
+ 424              	.LBB12:
+ 425              	.LBB13:
+ 271:i2c.c         ****   {
+ 272:i2c.c         ****     if((I2C_CONSET & 0x08) != 0)  // sprawdzenie czy rejestr danych jest dostepny
+ 426              		.loc 1 272 0
+ 427 0160 054A     		ldr	r2, .L43
+ 428 0162 1278     		ldrb	r2, [r2]
+ 429 0164 1207     		lsls	r2, r2, #28
+ 430 0166 03D5     		bpl	.L41
+ 273:i2c.c         ****     {
+ 274:i2c.c         ****       *pData = (tU8) I2C_DATA;  //odczytanie znaku z rejestru danych, przepisanie do zmiennej
+ 431              		.loc 1 274 0
+ 432 0168 054A     		ldr	r2, .L43+8
+ 433 016a 1278     		ldrb	r2, [r2]
+ 434 016c 0A70     		strb	r2, [r1]
+ 435 016e 01E0     		b	.L38
+ 436              	.L41:
+ 275:i2c.c         ****     }
+ 276:i2c.c         ****     else
+ 277:i2c.c         ****     {
+ 278:i2c.c         ****       retCode = I2C_CODE_EMPTY; //brak dostepnych danych do odczytu
+ 437              		.loc 1 278 0
+ 438 0170 0323     		movs	r3, #3
+ 439 0172 5B42     		rsbs	r3, r3, #0
+ 440              	.LVL26:
+ 441              	.L38:
+ 442              	.LBE13:
+ 443              	.LBE12:
+ 279:i2c.c         ****     }
+ 280:i2c.c         ****   }
+ 281:i2c.c         **** 
+ 282:i2c.c         ****   return retCode;
+ 283:i2c.c         **** }
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 14
+
+
+ 444              		.loc 1 283 0
+ 445 0174 1800     		movs	r0, r3
+ 446              	.LVL27:
+ 447              		@ sp needed
+ 448 0176 7047     		bx	lr
+ 449              	.L44:
+ 450              		.align	2
+ 451              	.L43:
+ 452 0178 00C001E0 		.word	-536756224
+ 453 017c 18C001E0 		.word	-536756200
+ 454 0180 08C001E0 		.word	-536756216
+ 455              		.cfi_endproc
+ 456              	.LFE6:
+ 457              		.size	i2cGetChar, .-i2cGetChar
+ 458              		.align	1
+ 459              		.global	i2cWrite
+ 460              		.code	16
+ 461              		.thumb_func
+ 462              		.type	i2cWrite, %function
+ 463              	i2cWrite:
+ 464              	.LFB7:
+ 284:i2c.c         **** 
+ 285:i2c.c         **** /******************************************************************************
+ 286:i2c.c         ****  *
+ 287:i2c.c         ****  * Opis:
+ 288:i2c.c         ****  *    Wysylanie danych na magistrale i2c
+ 289:i2c.c         ****  *
+ 290:i2c.c         ****  * Parametry:
+ 291:i2c.c         ****  *     addr  - adres urzadzenia
+ 292:i2c.c         ****  *     pData - dane do transmisji
+ 293:i2c.c         ****  *     len   - ilosc bajtow do wyslania
+ 294:i2c.c         ****  *
+ 295:i2c.c         ****  * Zwraca:
+ 296:i2c.c         ****  *    I2C_CODE_OK    - powodzenie
+ 297:i2c.c         ****  *    I2C_CODE_ERROR - BLAD
+ 298:i2c.c         ****  *
+ 299:i2c.c         ****  *****************************************************************************/
+ 300:i2c.c         **** tS8 i2cWrite(tU8  addr, tU8* pData, tU16 len)
+ 301:i2c.c         **** {
+ 465              		.loc 1 301 0
+ 466              		.cfi_startproc
+ 467              		@ Function supports interworking.
+ 468              		@ args = 0, pretend = 0, frame = 0
+ 469              		@ frame_needed = 0, uses_anonymous_args = 0
+ 470              	.LVL28:
+ 471 0184 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 472              	.LCFI2:
+ 473              		.cfi_def_cfa_offset 24
+ 474              		.cfi_offset 3, -24
+ 475              		.cfi_offset 4, -20
+ 476              		.cfi_offset 5, -16
+ 477              		.cfi_offset 6, -12
+ 478              		.cfi_offset 7, -8
+ 479              		.cfi_offset 14, -4
+ 480              		.loc 1 301 0
+ 481 0186 0500     		movs	r5, r0
+ 482 0188 0E00     		movs	r6, r1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 15
+
+
+ 483 018a 1700     		movs	r7, r2
+ 302:i2c.c         ****   tS8 retCode = 0;
+ 303:i2c.c         ****   tU8 status  = 0;
+ 304:i2c.c         ****   tU8 i       = 0;
+ 305:i2c.c         **** 
+ 306:i2c.c         ****   retCode = i2cStart(); // generowanie komunikatu start
+ 484              		.loc 1 306 0
+ 485 018c FFF7FEFF 		bl	i2cStart
+ 486              	.LVL29:
+ 487 0190 0400     		movs	r4, r0
+ 488              	.LVL30:
+ 307:i2c.c         **** 
+ 308:i2c.c         ****   // transmisja adresu
+ 309:i2c.c         ****   if(retCode == I2C_CODE_OK)
+ 489              		.loc 1 309 0
+ 490 0192 0128     		cmp	r0, #1
+ 491 0194 25D1     		bne	.L46
+ 492              	.LVL31:
+ 493              	.L48:
+ 310:i2c.c         ****   {
+ 311:i2c.c         ****     /* write SLA+W */
+ 312:i2c.c         ****     retCode = i2cPutChar(addr);
+ 313:i2c.c         **** 	
+ 314:i2c.c         ****     while(retCode == I2C_CODE_BUSY) //dopoki rejestr danych zajety
+ 315:i2c.c         ****     {
+ 316:i2c.c         ****       retCode = i2cPutChar(addr);
+ 494              		.loc 1 316 0
+ 495 0196 2800     		movs	r0, r5
+ 496 0198 FFF7FEFF 		bl	i2cPutChar
+ 497              	.LVL32:
+ 498 019c 0400     		movs	r4, r0
+ 499              	.LVL33:
+ 314:i2c.c         ****     {
+ 500              		.loc 1 314 0
+ 501 019e 031D     		adds	r3, r0, #4
+ 502 01a0 F9D0     		beq	.L48
+ 503 01a2 0025     		movs	r5, #0
+ 317:i2c.c         ****     }
+ 318:i2c.c         ****   }
+ 319:i2c.c         **** 
+ 320:i2c.c         ****   if(retCode == I2C_CODE_OK)
+ 504              		.loc 1 320 0
+ 505 01a4 0128     		cmp	r0, #1
+ 506 01a6 1CD1     		bne	.L46
+ 507              	.LVL34:
+ 508              	.L49:
+ 321:i2c.c         ****   {
+ 322:i2c.c         ****     // oczekuj dopoki wyslany zostanie adres
+ 323:i2c.c         ****     for(i = 0; i < len; i++)
+ 509              		.loc 1 323 0 discriminator 1
+ 510 01a8 BD42     		cmp	r5, r7
+ 511 01aa 1AD2     		bcs	.L46
+ 512              	.L61:
+ 324:i2c.c         ****     {
+ 325:i2c.c         **** 	  // oczekuj dopoki wyslane zostana dane
+ 326:i2c.c         ****       while(1)
+ 327:i2c.c         ****       {
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 16
+
+
+ 328:i2c.c         ****         status = i2cCheckStatus(); // odczyt aktualnego statusu i2c
+ 513              		.loc 1 328 0
+ 514 01ac FFF7FEFF 		bl	i2cCheckStatus
+ 515              	.LVL35:
+ 329:i2c.c         **** 
+ 330:i2c.c         ****         // SLA+W wyslane i bit ACK otrzymany lub bajt wyslany i bit ACK otrzymany
+ 331:i2c.c         **** 
+ 332:i2c.c         ****         if( (status == 0x18) || (status == 0x28) )
+ 516              		.loc 1 332 0
+ 517 01b0 0300     		movs	r3, r0
+ 518 01b2 1022     		movs	r2, #16
+ 519 01b4 183B     		subs	r3, r3, #24
+ 520 01b6 9343     		bics	r3, r2
+ 521 01b8 1B06     		lsls	r3, r3, #24
+ 522 01ba 1B0E     		lsrs	r3, r3, #24
+ 523 01bc 07D1     		bne	.L50
+ 524              	.LVL36:
+ 525              	.L52:
+ 333:i2c.c         ****         {
+ 334:i2c.c         ****           // Dane wyslane i otrzymano bit ACK
+ 335:i2c.c         **** 
+ 336:i2c.c         ****           retCode = i2cPutChar(*pData); // zapisuj dane
+ 337:i2c.c         **** 		  
+ 338:i2c.c         ****           while(retCode == I2C_CODE_BUSY)
+ 339:i2c.c         ****           {
+ 340:i2c.c         ****             retCode = i2cPutChar(*pData);
+ 526              		.loc 1 340 0
+ 527 01be 3078     		ldrb	r0, [r6]
+ 528 01c0 FFF7FEFF 		bl	i2cPutChar
+ 529              	.LVL37:
+ 530 01c4 0400     		movs	r4, r0
+ 531              	.LVL38:
+ 338:i2c.c         ****           {
+ 532              		.loc 1 338 0
+ 533 01c6 031D     		adds	r3, r0, #4
+ 534 01c8 F9D0     		beq	.L52
+ 341:i2c.c         ****           }
+ 342:i2c.c         ****           pData++;
+ 535              		.loc 1 342 0
+ 536 01ca 0136     		adds	r6, r6, #1
+ 537              	.LVL39:
+ 343:i2c.c         **** 
+ 344:i2c.c         ****           break;
+ 538              		.loc 1 344 0
+ 539 01cc 05E0     		b	.L53
+ 540              	.LVL40:
+ 541              	.L50:
+ 345:i2c.c         ****         }
+ 346:i2c.c         **** 
+ 347:i2c.c         ****         else if( status != 0xf8 ) //gdy status nie jest odpowiedni BLAD
+ 542              		.loc 1 347 0
+ 543 01ce F828     		cmp	r0, #248
+ 544 01d0 ECD0     		beq	.L61
+ 348:i2c.c         ****         {
+ 349:i2c.c         ****           i = len;
+ 350:i2c.c         ****           retCode = I2C_CODE_ERROR;
+ 545              		.loc 1 350 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 17
+
+
+ 546 01d2 0124     		movs	r4, #1
+ 547              	.LVL41:
+ 349:i2c.c         ****           retCode = I2C_CODE_ERROR;
+ 548              		.loc 1 349 0
+ 549 01d4 3D06     		lsls	r5, r7, #24
+ 550              	.LVL42:
+ 551 01d6 2D0E     		lsrs	r5, r5, #24
+ 552              	.LVL43:
+ 553              		.loc 1 350 0
+ 554 01d8 6442     		rsbs	r4, r4, #0
+ 555              	.LVL44:
+ 556              	.L53:
+ 323:i2c.c         ****     {
+ 557              		.loc 1 323 0 discriminator 2
+ 558 01da 0135     		adds	r5, r5, #1
+ 559              	.LVL45:
+ 560 01dc 2D06     		lsls	r5, r5, #24
+ 561 01de 2D0E     		lsrs	r5, r5, #24
+ 562              	.LVL46:
+ 563 01e0 E2E7     		b	.L49
+ 564              	.LVL47:
+ 565              	.L46:
+ 351:i2c.c         ****           break;
+ 352:i2c.c         ****         }
+ 353:i2c.c         ****       }
+ 354:i2c.c         ****     }
+ 355:i2c.c         ****   }
+ 356:i2c.c         **** 
+ 357:i2c.c         ****  	  // oczekuj dopoki wyslane zostana dane
+ 358:i2c.c         ****   while(1)
+ 359:i2c.c         ****   {
+ 360:i2c.c         ****     status = i2cCheckStatus(); //odczytaj aktualny status i2c
+ 361:i2c.c         **** 
+ 362:i2c.c         ****     /* 
+ 363:i2c.c         ****      * SLA+W wyslany, ACK otrzymany lub
+ 364:i2c.c         ****      * bajt danych wyslany, ACK otrzymany
+ 365:i2c.c         ****      */
+ 366:i2c.c         **** 	 
+ 367:i2c.c         ****     if( (status == 0x18) || (status == 0x28) )
+ 566              		.loc 1 367 0
+ 567 01e2 1025     		movs	r5, #16
+ 568              	.L56:
+ 569              	.LVL48:
+ 360:i2c.c         **** 
+ 570              		.loc 1 360 0
+ 571 01e4 FFF7FEFF 		bl	i2cCheckStatus
+ 572              	.LVL49:
+ 573              		.loc 1 367 0
+ 574 01e8 0300     		movs	r3, r0
+ 575 01ea 183B     		subs	r3, r3, #24
+ 576 01ec AB43     		bics	r3, r5
+ 577 01ee 1B06     		lsls	r3, r3, #24
+ 578 01f0 1B0E     		lsrs	r3, r3, #24
+ 579 01f2 03D0     		beq	.L55
+ 368:i2c.c         ****     {
+ 369:i2c.c         ****       // dane wyslane i ACK otrzymane
+ 370:i2c.c         ****       break;
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 18
+
+
+ 371:i2c.c         ****     }
+ 372:i2c.c         **** 
+ 373:i2c.c         ****     else if(status != 0xf8 ) // BLAD - brak odpowiedniego statusu i2c
+ 580              		.loc 1 373 0
+ 581 01f4 F828     		cmp	r0, #248
+ 582 01f6 F5D0     		beq	.L56
+ 374:i2c.c         ****     {
+ 375:i2c.c         ****       i = len;
+ 376:i2c.c         ****       retCode = I2C_CODE_ERROR;
+ 583              		.loc 1 376 0
+ 584 01f8 0124     		movs	r4, #1
+ 585              	.LVL50:
+ 586 01fa 6442     		rsbs	r4, r4, #0
+ 587              	.L55:
+ 588              	.LVL51:
+ 377:i2c.c         ****       break;
+ 378:i2c.c         ****     }
+ 379:i2c.c         ****   }
+ 380:i2c.c         **** 
+ 381:i2c.c         ****   i2cStop(); // generowanie komunikatu stop
+ 589              		.loc 1 381 0
+ 590 01fc FFF7FEFF 		bl	i2cStop
+ 591              	.LVL52:
+ 382:i2c.c         **** 
+ 383:i2c.c         ****   return retCode;
+ 384:i2c.c         **** }
+ 592              		.loc 1 384 0
+ 593              		@ sp needed
+ 594 0200 2000     		movs	r0, r4
+ 595              	.LVL53:
+ 596              	.LVL54:
+ 597 0202 F8BC     		pop	{r3, r4, r5, r6, r7}
+ 598 0204 02BC     		pop	{r1}
+ 599 0206 0847     		bx	r1
+ 600              		.cfi_endproc
+ 601              	.LFE7:
+ 602              		.size	i2cWrite, .-i2cWrite
+ 603              		.align	1
+ 604              		.global	i2cWaitTransmit
+ 605              		.code	16
+ 606              		.thumb_func
+ 607              		.type	i2cWaitTransmit, %function
+ 608              	i2cWaitTransmit:
+ 609              	.LFB8:
+ 385:i2c.c         **** 
+ 386:i2c.c         **** tS8
+ 387:i2c.c         **** i2cWaitTransmit(void)
+ 388:i2c.c         **** {
+ 610              		.loc 1 388 0
+ 611              		.cfi_startproc
+ 612              		@ Function supports interworking.
+ 613              		@ args = 0, pretend = 0, frame = 0
+ 614              		@ frame_needed = 0, uses_anonymous_args = 0
+ 615              	.LVL55:
+ 616 0208 10B5     		push	{r4, lr}
+ 617              	.LCFI3:
+ 618              		.cfi_def_cfa_offset 8
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 19
+
+
+ 619              		.cfi_offset 4, -8
+ 620              		.cfi_offset 14, -4
+ 389:i2c.c         ****   tU8 status = 0;
+ 390:i2c.c         **** 
+ 391:i2c.c         ****   while(1) // oczekuj dopoki dane zostana wyslane
+ 392:i2c.c         ****   {
+ 393:i2c.c         ****     status = i2cCheckStatus(); // odczytaj aktualny status
+ 394:i2c.c         **** 
+ 395:i2c.c         ****     /* 
+ 396:i2c.c         ****      * SLA+W wyslany, ACK otrzymane lub
+ 397:i2c.c         ****      * bajt danych wyslany, ACK otrzymany
+ 398:i2c.c         ****      */
+ 399:i2c.c         ****     if( (status == 0x18) || (status == 0x28) )
+ 621              		.loc 1 399 0
+ 622 020a 1024     		movs	r4, #16
+ 623              	.LVL56:
+ 624              	.L67:
+ 393:i2c.c         **** 
+ 625              		.loc 1 393 0
+ 626 020c FFF7FEFF 		bl	i2cCheckStatus
+ 627              	.LVL57:
+ 628              		.loc 1 399 0
+ 629 0210 0300     		movs	r3, r0
+ 630 0212 183B     		subs	r3, r3, #24
+ 631 0214 A343     		bics	r3, r4
+ 632 0216 1B06     		lsls	r3, r3, #24
+ 633 0218 1B0E     		lsrs	r3, r3, #24
+ 634 021a 04D0     		beq	.L68
+ 400:i2c.c         ****     {
+ 401:i2c.c         ****       return I2C_CODE_OK; // dane wyslane i bit ACK otrzymany
+ 402:i2c.c         ****     }
+ 403:i2c.c         **** 
+ 404:i2c.c         ****     else if(status != 0xf8 ) // BLAD, brak odpowiedniego kodu statusu
+ 635              		.loc 1 404 0
+ 636 021c F828     		cmp	r0, #248
+ 637 021e F5D0     		beq	.L67
+ 405:i2c.c         ****     {
+ 406:i2c.c         ****       return I2C_CODE_ERROR;
+ 638              		.loc 1 406 0
+ 639 0220 0120     		movs	r0, #1
+ 640              	.LVL58:
+ 641 0222 4042     		rsbs	r0, r0, #0
+ 642 0224 00E0     		b	.L66
+ 643              	.LVL59:
+ 644              	.L68:
+ 401:i2c.c         ****     }
+ 645              		.loc 1 401 0
+ 646 0226 0120     		movs	r0, #1
+ 647              	.LVL60:
+ 648              	.L66:
+ 407:i2c.c         ****     }
+ 408:i2c.c         ****   }
+ 409:i2c.c         **** }
+ 649              		.loc 1 409 0
+ 650              		@ sp needed
+ 651 0228 10BC     		pop	{r4}
+ 652 022a 02BC     		pop	{r1}
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 20
+
+
+ 653 022c 0847     		bx	r1
+ 654              		.cfi_endproc
+ 655              	.LFE8:
+ 656              		.size	i2cWaitTransmit, .-i2cWaitTransmit
+ 657              		.align	1
+ 658              		.global	i2cWriteWithWait
+ 659              		.code	16
+ 660              		.thumb_func
+ 661              		.type	i2cWriteWithWait, %function
+ 662              	i2cWriteWithWait:
+ 663              	.LFB9:
+ 410:i2c.c         **** 
+ 411:i2c.c         **** tS8
+ 412:i2c.c         **** i2cWriteWithWait(tU8 data)
+ 413:i2c.c         **** {
+ 664              		.loc 1 413 0
+ 665              		.cfi_startproc
+ 666              		@ Function supports interworking.
+ 667              		@ args = 0, pretend = 0, frame = 0
+ 668              		@ frame_needed = 0, uses_anonymous_args = 0
+ 669              	.LVL61:
+ 670 022e 10B5     		push	{r4, lr}
+ 671              	.LCFI4:
+ 672              		.cfi_def_cfa_offset 8
+ 673              		.cfi_offset 4, -8
+ 674              		.cfi_offset 14, -4
+ 675 0230 0400     		movs	r4, r0
+ 676              	.LVL62:
+ 677              	.L73:
+ 414:i2c.c         ****   tS8 retCode = 0;
+ 415:i2c.c         ****   
+ 416:i2c.c         ****   retCode = i2cPutChar(data);
+ 417:i2c.c         ****   while(retCode == I2C_CODE_BUSY)
+ 418:i2c.c         ****   {
+ 419:i2c.c         ****     retCode = i2cPutChar(data);
+ 678              		.loc 1 419 0
+ 679 0232 2000     		movs	r0, r4
+ 680 0234 FFF7FEFF 		bl	i2cPutChar
+ 681              	.LVL63:
+ 417:i2c.c         ****   {
+ 682              		.loc 1 417 0
+ 683 0238 031D     		adds	r3, r0, #4
+ 684 023a FAD0     		beq	.L73
+ 420:i2c.c         ****   }
+ 421:i2c.c         **** 
+ 422:i2c.c         ****   if(retCode == I2C_CODE_OK)
+ 685              		.loc 1 422 0
+ 686 023c 0128     		cmp	r0, #1
+ 687 023e 01D1     		bne	.L74
+ 423:i2c.c         ****     retCode = i2cWaitTransmit();
+ 688              		.loc 1 423 0
+ 689 0240 FFF7FEFF 		bl	i2cWaitTransmit
+ 690              	.LVL64:
+ 691              	.L74:
+ 424:i2c.c         **** 
+ 425:i2c.c         ****   return retCode;
+ 426:i2c.c         **** }
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 21
+
+
+ 692              		.loc 1 426 0
+ 693              		@ sp needed
+ 694 0244 10BC     		pop	{r4}
+ 695 0246 02BC     		pop	{r1}
+ 696 0248 0847     		bx	r1
+ 697              		.cfi_endproc
+ 698              	.LFE9:
+ 699              		.size	i2cWriteWithWait, .-i2cWriteWithWait
+ 700              		.align	1
+ 701              		.global	i2cMyWrite
+ 702              		.code	16
+ 703              		.thumb_func
+ 704              		.type	i2cMyWrite, %function
+ 705              	i2cMyWrite:
+ 706              	.LFB10:
+ 427:i2c.c         **** 
+ 428:i2c.c         **** tS8 i2cMyWrite(tU8  addr, tU8* pData, tU16 len)
+ 429:i2c.c         **** {
+ 707              		.loc 1 429 0
+ 708              		.cfi_startproc
+ 709              		@ Function supports interworking.
+ 710              		@ args = 0, pretend = 0, frame = 0
+ 711              		@ frame_needed = 0, uses_anonymous_args = 0
+ 712              	.LVL65:
+ 713 024a F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 714              	.LCFI5:
+ 715              		.cfi_def_cfa_offset 24
+ 716              		.cfi_offset 3, -24
+ 717              		.cfi_offset 4, -20
+ 718              		.cfi_offset 5, -16
+ 719              		.cfi_offset 6, -12
+ 720              		.cfi_offset 7, -8
+ 721              		.cfi_offset 14, -4
+ 722              		.loc 1 429 0
+ 723 024c 0500     		movs	r5, r0
+ 724 024e 0F00     		movs	r7, r1
+ 725 0250 1600     		movs	r6, r2
+ 430:i2c.c         ****   tS8 retCode = 0;
+ 431:i2c.c         ****   tU8 i       = 0;
+ 432:i2c.c         **** 
+ 433:i2c.c         ****   do
+ 434:i2c.c         ****   {
+ 435:i2c.c         ****     // generuj komunikat start
+ 436:i2c.c         ****     retCode = i2cStart();
+ 726              		.loc 1 436 0
+ 727 0252 FFF7FEFF 		bl	i2cStart
+ 728              	.LVL66:
+ 729 0256 0400     		movs	r4, r0
+ 730              	.LVL67:
+ 437:i2c.c         ****     if(retCode != I2C_CODE_OK)
+ 731              		.loc 1 437 0
+ 732 0258 0128     		cmp	r0, #1
+ 733 025a 11D1     		bne	.L76
+ 438:i2c.c         ****       break;
+ 439:i2c.c         **** 
+ 440:i2c.c         ****     /* write address */
+ 441:i2c.c         ****     retCode = i2cWriteWithWait(addr);
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 22
+
+
+ 734              		.loc 1 441 0
+ 735 025c 2800     		movs	r0, r5
+ 736              	.LVL68:
+ 737 025e FFF7FEFF 		bl	i2cWriteWithWait
+ 738              	.LVL69:
+ 739 0262 0025     		movs	r5, #0
+ 740 0264 0400     		movs	r4, r0
+ 741              	.LVL70:
+ 442:i2c.c         ****     if(retCode != I2C_CODE_OK)
+ 742              		.loc 1 442 0
+ 743 0266 0128     		cmp	r0, #1
+ 744 0268 0AD1     		bne	.L76
+ 745              	.LVL71:
+ 746              	.L78:
+ 443:i2c.c         ****       break;
+ 444:i2c.c         **** 
+ 445:i2c.c         ****     for(i = 0; i <len; i++)
+ 747              		.loc 1 445 0 discriminator 1
+ 748 026a 2B06     		lsls	r3, r5, #24
+ 749 026c 1B0E     		lsrs	r3, r3, #24
+ 750 026e B342     		cmp	r3, r6
+ 751 0270 06D2     		bcs	.L76
+ 446:i2c.c         ****     {
+ 447:i2c.c         ****       retCode = i2cWriteWithWait(*pData);
+ 752              		.loc 1 447 0
+ 753 0272 785D     		ldrb	r0, [r7, r5]
+ 754 0274 FFF7FEFF 		bl	i2cWriteWithWait
+ 755              	.LVL72:
+ 756 0278 0135     		adds	r5, r5, #1
+ 757              	.LVL73:
+ 448:i2c.c         ****       if(retCode != I2C_CODE_OK)
+ 758              		.loc 1 448 0
+ 759 027a 0128     		cmp	r0, #1
+ 760 027c F5D0     		beq	.L78
+ 447:i2c.c         ****       if(retCode != I2C_CODE_OK)
+ 761              		.loc 1 447 0
+ 762 027e 0400     		movs	r4, r0
+ 763              	.LVL74:
+ 764              	.L76:
+ 449:i2c.c         ****         break;
+ 450:i2c.c         **** 
+ 451:i2c.c         ****       pData++;
+ 452:i2c.c         ****     }
+ 453:i2c.c         **** 
+ 454:i2c.c         ****   } while(0);
+ 455:i2c.c         **** 
+ 456:i2c.c         ****   /* generate Stop condition */
+ 457:i2c.c         ****   i2cStop();
+ 765              		.loc 1 457 0
+ 766 0280 FFF7FEFF 		bl	i2cStop
+ 767              	.LVL75:
+ 458:i2c.c         **** 
+ 459:i2c.c         **** 
+ 460:i2c.c         ****   return retCode;
+ 461:i2c.c         **** }
+ 768              		.loc 1 461 0
+ 769              		@ sp needed
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 23
+
+
+ 770 0284 2000     		movs	r0, r4
+ 771              	.LVL76:
+ 772 0286 F8BC     		pop	{r3, r4, r5, r6, r7}
+ 773 0288 02BC     		pop	{r1}
+ 774 028a 0847     		bx	r1
+ 775              		.cfi_endproc
+ 776              	.LFE10:
+ 777              		.size	i2cMyWrite, .-i2cMyWrite
+ 778              		.align	1
+ 779              		.global	i2cRead
+ 780              		.code	16
+ 781              		.thumb_func
+ 782              		.type	i2cRead, %function
+ 783              	i2cRead:
+ 784              	.LFB11:
+ 462:i2c.c         **** 
+ 463:i2c.c         **** /******************************************************************************
+ 464:i2c.c         ****  *
+ 465:i2c.c         ****  * Opis:
+ 466:i2c.c         ****  *    Read a specified number of bytes from the I2C network.
+ 467:i2c.c         ****  *
+ 468:i2c.c         ****  * Params:
+ 469:i2c.c         ****  *    [in] addr - adres
+ 470:i2c.c         ****  *    [in] pBuf - bufor do odbioru danych
+ 471:i2c.c         ****  *    [in] len  - ilosc bajtow do odbioru
+ 472:i2c.c         ****  *
+ 473:i2c.c         ****  * Zwraca:
+ 474:i2c.c         ****  *    I2C_CODE_OK lub I2C status code
+ 475:i2c.c         ****  *
+ 476:i2c.c         ****  *****************************************************************************/
+ 477:i2c.c         **** tS8 i2cRead(tU8  addr, tU8* pBuf, tU16 len)
+ 478:i2c.c         **** {
+ 785              		.loc 1 478 0
+ 786              		.cfi_startproc
+ 787              		@ Function supports interworking.
+ 788              		@ args = 0, pretend = 0, frame = 8
+ 789              		@ frame_needed = 0, uses_anonymous_args = 0
+ 790              	.LVL77:
+ 791 028c F7B5     		push	{r0, r1, r2, r4, r5, r6, r7, lr}
+ 792              	.LCFI6:
+ 793              		.cfi_def_cfa_offset 32
+ 794              		.cfi_offset 0, -32
+ 795              		.cfi_offset 1, -28
+ 796              		.cfi_offset 2, -24
+ 797              		.cfi_offset 4, -20
+ 798              		.cfi_offset 5, -16
+ 799              		.cfi_offset 6, -12
+ 800              		.cfi_offset 7, -8
+ 801              		.cfi_offset 14, -4
+ 802              		.loc 1 478 0
+ 803 028e 0500     		movs	r5, r0
+ 804 0290 0F00     		movs	r7, r1
+ 805 0292 0192     		str	r2, [sp, #4]
+ 479:i2c.c         ****   tS8 retCode = 0;
+ 480:i2c.c         ****   tU8 status  = 0;
+ 481:i2c.c         ****   tU8 i       = 0;
+ 482:i2c.c         **** 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 24
+
+
+ 483:i2c.c         ****   retCode = i2cStart(); //generowanie sygnalu start
+ 806              		.loc 1 483 0
+ 807 0294 FFF7FEFF 		bl	i2cStart
+ 808              	.LVL78:
+ 809 0298 0400     		movs	r4, r0
+ 810              	.LVL79:
+ 484:i2c.c         **** 
+ 485:i2c.c         ****   // wyslanie adresu
+ 486:i2c.c         ****   if(retCode == I2C_CODE_OK )
+ 811              		.loc 1 486 0
+ 812 029a 0128     		cmp	r0, #1
+ 813 029c 3BD1     		bne	.L82
+ 814              	.LVL80:
+ 815              	.L84:
+ 487:i2c.c         ****   {
+ 488:i2c.c         ****     /* write SLA+R */
+ 489:i2c.c         ****     retCode = i2cPutChar(addr);
+ 490:i2c.c         ****     while(retCode == I2C_CODE_BUSY)
+ 491:i2c.c         ****     {
+ 492:i2c.c         ****       retCode = i2cPutChar(addr);
+ 816              		.loc 1 492 0
+ 817 029e 2800     		movs	r0, r5
+ 818 02a0 FFF7FEFF 		bl	i2cPutChar
+ 819              	.LVL81:
+ 820 02a4 0400     		movs	r4, r0
+ 821              	.LVL82:
+ 490:i2c.c         ****     {
+ 822              		.loc 1 490 0
+ 823 02a6 031D     		adds	r3, r0, #4
+ 824 02a8 F9D0     		beq	.L84
+ 493:i2c.c         ****     }
+ 494:i2c.c         ****   }
+ 495:i2c.c         **** 
+ 496:i2c.c         ****   if(retCode == I2C_CODE_OK )
+ 825              		.loc 1 496 0
+ 826 02aa 0128     		cmp	r0, #1
+ 827 02ac 33D1     		bne	.L82
+ 828 02ae 0300     		movs	r3, r0
+ 829 02b0 0400     		movs	r4, r0
+ 497:i2c.c         ****   {
+ 498:i2c.c         **** 	 
+ 499:i2c.c         ****     //oczekuj dopoki wyslany zostanie adres i odbieraj dane
+ 500:i2c.c         ****     for(i = 1; i <= len; i++ )
+ 501:i2c.c         ****     {
+ 502:i2c.c         ****       // oczekuj az wyslane zostana dane
+ 503:i2c.c         ****       while(1)
+ 504:i2c.c         ****       {
+ 505:i2c.c         ****         status = i2cCheckStatus(); // odczytaj status i2c
+ 506:i2c.c         **** 		
+ 507:i2c.c         ****         /*
+ 508:i2c.c         ****          * SLA+R wyslany, ACK otrzymany lub
+ 509:i2c.c         ****          * SLA+R wyslany, ACK nie otrzymany lub
+ 510:i2c.c         ****          * bajt danych otrzymany w trybie master, ACK wyslany
+ 511:i2c.c         ****          */
+ 512:i2c.c         **** 		 
+ 513:i2c.c         ****         if((status == 0x40 ) || (status == 0x48 ) || (status == 0x50 ))
+ 830              		.loc 1 513 0 discriminator 1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 25
+
+
+ 831 02b2 0825     		movs	r5, #8
+ 832              	.LVL83:
+ 833              	.L85:
+ 500:i2c.c         ****     {
+ 834              		.loc 1 500 0 discriminator 1
+ 835 02b4 019A     		ldr	r2, [sp, #4]
+ 836 02b6 2604     		lsls	r6, r4, #16
+ 837 02b8 360C     		lsrs	r6, r6, #16
+ 838 02ba 9642     		cmp	r6, r2
+ 839 02bc 2AD8     		bhi	.L106
+ 840              	.LVL84:
+ 841              	.L99:
+ 505:i2c.c         **** 		
+ 842              		.loc 1 505 0
+ 843 02be FFF7FEFF 		bl	i2cCheckStatus
+ 844              	.LVL85:
+ 845              		.loc 1 513 0
+ 846 02c2 0300     		movs	r3, r0
+ 847 02c4 AB43     		bics	r3, r5
+ 848 02c6 1B06     		lsls	r3, r3, #24
+ 849 02c8 1B0E     		lsrs	r3, r3, #24
+ 850 02ca 402B     		cmp	r3, #64
+ 851 02cc 01D0     		beq	.L86
+ 852              		.loc 1 513 0 is_stmt 0 discriminator 2
+ 853 02ce 5028     		cmp	r0, #80
+ 854 02d0 15D1     		bne	.L87
+ 855              	.L86:
+ 514:i2c.c         ****         {
+ 515:i2c.c         ****           // dane otrzymane
+ 516:i2c.c         **** 
+ 517:i2c.c         ****           if(i == len)
+ 856              		.loc 1 517 0 is_stmt 1
+ 857 02d2 0199     		ldr	r1, [sp, #4]
+ 858 02d4 134A     		ldr	r2, .L107
+ 859 02d6 144B     		ldr	r3, .L107+4
+ 860 02d8 8E42     		cmp	r6, r1
+ 861 02da 02D1     		bne	.L88
+ 862              	.LVL86:
+ 863              	.LBB26:
+ 864              	.LBB27:
+ 267:i2c.c         ****     I2C_CONCLR = 0x08; 
+ 865              		.loc 1 267 0
+ 866 02dc 0421     		movs	r1, #4
+ 867 02de 1170     		strb	r1, [r2]
+ 868 02e0 03E0     		b	.L103
+ 869              	.LVL87:
+ 870              	.L88:
+ 871              	.LBE27:
+ 872              	.LBE26:
+ 873              	.LBB28:
+ 874              	.LBB29:
+ 262:i2c.c         ****     I2C_CONCLR = 0x08;  //czyszczenie flagi przerwan
+ 875              		.loc 1 262 0
+ 876 02e2 0420     		movs	r0, #4
+ 877              	.LVL88:
+ 878 02e4 1978     		ldrb	r1, [r3]
+ 879 02e6 0143     		orrs	r1, r0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 26
+
+
+ 880 02e8 1970     		strb	r1, [r3]
+ 881              	.LVL89:
+ 882              	.L103:
+ 263:i2c.c         ****   }
+ 883              		.loc 1 263 0
+ 884 02ea 1570     		strb	r5, [r2]
+ 885              	.LVL90:
+ 886              	.L90:
+ 887              	.LBE29:
+ 888              	.LBE28:
+ 889              	.LBB30:
+ 890              	.LBB31:
+ 891              	.LBB32:
+ 892              	.LBB33:
+ 272:i2c.c         ****     {
+ 893              		.loc 1 272 0
+ 894 02ec 1A78     		ldrb	r2, [r3]
+ 895 02ee 2A42     		tst	r2, r5
+ 896 02f0 FCD0     		beq	.L90
+ 274:i2c.c         ****     }
+ 897              		.loc 1 274 0
+ 898 02f2 0E4B     		ldr	r3, .L107+8
+ 899 02f4 1B78     		ldrb	r3, [r3]
+ 900 02f6 3B70     		strb	r3, [r7]
+ 901              	.LVL91:
+ 902              	.LBE33:
+ 903              	.LBE32:
+ 904              	.LBE31:
+ 905              	.LBE30:
+ 518:i2c.c         ****           {
+ 519:i2c.c         ****             retCode = i2cGetChar(I2C_MODE_ACK1, pBuf); // generowanie bitu NACK
+ 520:i2c.c         ****           }
+ 521:i2c.c         ****           else
+ 522:i2c.c         ****           {
+ 523:i2c.c         ****             retCode = i2cGetChar(I2C_MODE_ACK0, pBuf);
+ 524:i2c.c         ****           }
+ 525:i2c.c         **** 
+ 526:i2c.c         ****           retCode = i2cGetChar(I2C_MODE_READ, pBuf); //tryb odczytywania danych
+ 527:i2c.c         ****           while(retCode == I2C_CODE_EMPTY)
+ 528:i2c.c         ****           {
+ 529:i2c.c         ****             retCode = i2cGetChar(I2C_MODE_READ, pBuf);
+ 530:i2c.c         ****           }
+ 531:i2c.c         ****           pBuf++;
+ 906              		.loc 1 531 0
+ 907 02f8 0137     		adds	r7, r7, #1
+ 908              	.LVL92:
+ 532:i2c.c         **** 
+ 533:i2c.c         ****           break;
+ 909              		.loc 1 533 0
+ 910 02fa 0123     		movs	r3, #1
+ 911 02fc 06E0     		b	.L92
+ 912              	.LVL93:
+ 913              	.L87:
+ 534:i2c.c         ****         }
+ 535:i2c.c         **** 
+ 536:i2c.c         ****         else if(status != 0xf8 ) // BLAD - brak odpowiedniego statusu i2c
+ 914              		.loc 1 536 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 27
+
+
+ 915 02fe F828     		cmp	r0, #248
+ 916 0300 DDD0     		beq	.L99
+ 537:i2c.c         ****         {
+ 538:i2c.c         ****           i = len;
+ 917              		.loc 1 538 0
+ 918 0302 019B     		ldr	r3, [sp, #4]
+ 919 0304 1C06     		lsls	r4, r3, #24
+ 920              	.LVL94:
+ 539:i2c.c         ****           retCode = I2C_CODE_ERROR;
+ 921              		.loc 1 539 0
+ 922 0306 0123     		movs	r3, #1
+ 538:i2c.c         ****           retCode = I2C_CODE_ERROR;
+ 923              		.loc 1 538 0
+ 924 0308 240E     		lsrs	r4, r4, #24
+ 925              	.LVL95:
+ 926              		.loc 1 539 0
+ 927 030a 5B42     		rsbs	r3, r3, #0
+ 928              	.LVL96:
+ 929              	.L92:
+ 500:i2c.c         ****     {
+ 930              		.loc 1 500 0 discriminator 2
+ 931 030c 0134     		adds	r4, r4, #1
+ 932              	.LVL97:
+ 933 030e 2406     		lsls	r4, r4, #24
+ 934 0310 240E     		lsrs	r4, r4, #24
+ 935              	.LVL98:
+ 936 0312 CFE7     		b	.L85
+ 937              	.L106:
+ 938 0314 1C00     		movs	r4, r3
+ 939              	.LVL99:
+ 940              	.L82:
+ 540:i2c.c         ****           break;
+ 541:i2c.c         ****         }
+ 542:i2c.c         ****       }
+ 543:i2c.c         ****     }
+ 544:i2c.c         ****   }
+ 545:i2c.c         **** 
+ 546:i2c.c         ****   i2cStop(); //zatrzymanie transmisji
+ 941              		.loc 1 546 0
+ 942 0316 FFF7FEFF 		bl	i2cStop
+ 943              	.LVL100:
+ 547:i2c.c         **** 
+ 548:i2c.c         ****   return retCode;
+ 549:i2c.c         **** }
+ 944              		.loc 1 549 0
+ 945              		@ sp needed
+ 946 031a 2000     		movs	r0, r4
+ 947              	.LVL101:
+ 948              	.LVL102:
+ 949 031c FEBC     		pop	{r1, r2, r3, r4, r5, r6, r7}
+ 950 031e 02BC     		pop	{r1}
+ 951 0320 0847     		bx	r1
+ 952              	.L108:
+ 953 0322 C046     		.align	2
+ 954              	.L107:
+ 955 0324 18C001E0 		.word	-536756200
+ 956 0328 00C001E0 		.word	-536756224
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 28
+
+
+ 957 032c 08C001E0 		.word	-536756216
+ 958              		.cfi_endproc
+ 959              	.LFE11:
+ 960              		.size	i2cRead, .-i2cRead
+ 961              	.Letext0:
+ 962              		.file 2 "general.h"
+ 963              		.section	.debug_info,"",%progbits
+ 964              	.Ldebug_info0:
+ 965 0000 A9050000 		.4byte	0x5a9
+ 966 0004 0200     		.2byte	0x2
+ 967 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 968 000a 04       		.byte	0x4
+ 969 000b 01       		.uleb128 0x1
+ 970 000c 3F010000 		.4byte	.LASF23
+ 971 0010 0C       		.byte	0xc
+ 972 0011 34010000 		.4byte	.LASF24
+ 973 0015 EE000000 		.4byte	.LASF25
+ 974 0019 00000000 		.4byte	.Ltext0
+ 975 001d 30030000 		.4byte	.Letext0
+ 976 0021 00000000 		.4byte	.Ldebug_line0
+ 977 0025 02       		.uleb128 0x2
+ 978 0026 74553800 		.ascii	"tU8\000"
+ 979 002a 02       		.byte	0x2
+ 980 002b 12       		.byte	0x12
+ 981 002c 30000000 		.4byte	0x30
+ 982 0030 03       		.uleb128 0x3
+ 983 0031 01       		.byte	0x1
+ 984 0032 08       		.byte	0x8
+ 985 0033 B1000000 		.4byte	.LASF1
+ 986 0037 04       		.uleb128 0x4
+ 987 0038 3A010000 		.4byte	.LASF0
+ 988 003c 02       		.byte	0x2
+ 989 003d 13       		.byte	0x13
+ 990 003e 42000000 		.4byte	0x42
+ 991 0042 03       		.uleb128 0x3
+ 992 0043 02       		.byte	0x2
+ 993 0044 07       		.byte	0x7
+ 994 0045 15010000 		.4byte	.LASF2
+ 995 0049 03       		.uleb128 0x3
+ 996 004a 04       		.byte	0x4
+ 997 004b 07       		.byte	0x7
+ 998 004c 28000000 		.4byte	.LASF3
+ 999 0050 03       		.uleb128 0x3
+ 1000 0051 08       		.byte	0x8
+ 1001 0052 07       		.byte	0x7
+ 1002 0053 80000000 		.4byte	.LASF4
+ 1003 0057 02       		.uleb128 0x2
+ 1004 0058 74533800 		.ascii	"tS8\000"
+ 1005 005c 02       		.byte	0x2
+ 1006 005d 16       		.byte	0x16
+ 1007 005e 62000000 		.4byte	0x62
+ 1008 0062 03       		.uleb128 0x3
+ 1009 0063 01       		.byte	0x1
+ 1010 0064 06       		.byte	0x6
+ 1011 0065 28010000 		.4byte	.LASF5
+ 1012 0069 03       		.uleb128 0x3
+ 1013 006a 02       		.byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 29
+
+
+ 1014 006b 05       		.byte	0x5
+ 1015 006c E4000000 		.4byte	.LASF6
+ 1016 0070 05       		.uleb128 0x5
+ 1017 0071 04       		.byte	0x4
+ 1018 0072 05       		.byte	0x5
+ 1019 0073 696E7400 		.ascii	"int\000"
+ 1020 0077 03       		.uleb128 0x3
+ 1021 0078 08       		.byte	0x8
+ 1022 0079 05       		.byte	0x5
+ 1023 007a 00000000 		.4byte	.LASF7
+ 1024 007e 06       		.uleb128 0x6
+ 1025 007f 01       		.byte	0x1
+ 1026 0080 43000000 		.4byte	.LASF26
+ 1027 0084 01       		.byte	0x1
+ 1028 0085 FE       		.byte	0xfe
+ 1029 0086 01       		.byte	0x1
+ 1030 0087 57000000 		.4byte	0x57
+ 1031 008b 01       		.byte	0x1
+ 1032 008c B3000000 		.4byte	0xb3
+ 1033 0090 07       		.uleb128 0x7
+ 1034 0091 3E000000 		.4byte	.LASF8
+ 1035 0095 01       		.byte	0x1
+ 1036 0096 FE       		.byte	0xfe
+ 1037 0097 25000000 		.4byte	0x25
+ 1038 009b 07       		.uleb128 0x7
+ 1039 009c BF010000 		.4byte	.LASF9
+ 1040 00a0 01       		.byte	0x1
+ 1041 00a1 FE       		.byte	0xfe
+ 1042 00a2 B3000000 		.4byte	0xb3
+ 1043 00a6 08       		.uleb128 0x8
+ 1044 00a7 4E000000 		.4byte	.LASF13
+ 1045 00ab 01       		.byte	0x1
+ 1046 00ac 0001     		.2byte	0x100
+ 1047 00ae 57000000 		.4byte	0x57
+ 1048 00b2 00       		.byte	0
+ 1049 00b3 09       		.uleb128 0x9
+ 1050 00b4 04       		.byte	0x4
+ 1051 00b5 25000000 		.4byte	0x25
+ 1052 00b9 0A       		.uleb128 0xa
+ 1053 00ba 01       		.byte	0x1
+ 1054 00bb 19000000 		.4byte	.LASF10
+ 1055 00bf 01       		.byte	0x1
+ 1056 00c0 41       		.byte	0x41
+ 1057 00c1 01       		.byte	0x1
+ 1058 00c2 25000000 		.4byte	0x25
+ 1059 00c6 00000000 		.4byte	.LFB0
+ 1060 00ca 18000000 		.4byte	.LFE0
+ 1061 00ce 02       		.byte	0x2
+ 1062 00cf 7D       		.byte	0x7d
+ 1063 00d0 00       		.sleb128 0
+ 1064 00d1 01       		.byte	0x1
+ 1065 00d2 E6000000 		.4byte	0xe6
+ 1066 00d6 0B       		.uleb128 0xb
+ 1067 00d7 61000000 		.4byte	.LASF12
+ 1068 00db 01       		.byte	0x1
+ 1069 00dc 43       		.byte	0x43
+ 1070 00dd 25000000 		.4byte	0x25
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 30
+
+
+ 1071 00e1 00000000 		.4byte	.LLST0
+ 1072 00e5 00       		.byte	0
+ 1073 00e6 0C       		.uleb128 0xc
+ 1074 00e7 01       		.byte	0x1
+ 1075 00e8 68000000 		.4byte	.LASF27
+ 1076 00ec 01       		.byte	0x1
+ 1077 00ed 55       		.byte	0x55
+ 1078 00ee 01       		.byte	0x1
+ 1079 00ef 18000000 		.4byte	.LFB1
+ 1080 00f3 64000000 		.4byte	.LFE1
+ 1081 00f7 02       		.byte	0x2
+ 1082 00f8 7D       		.byte	0x7d
+ 1083 00f9 00       		.sleb128 0
+ 1084 00fa 01       		.byte	0x1
+ 1085 00fb 0D       		.uleb128 0xd
+ 1086 00fc 01       		.byte	0x1
+ 1087 00fd 35000000 		.4byte	.LASF11
+ 1088 0101 01       		.byte	0x1
+ 1089 0102 6B       		.byte	0x6b
+ 1090 0103 01       		.byte	0x1
+ 1091 0104 57000000 		.4byte	0x57
+ 1092 0108 64000000 		.4byte	.LFB2
+ 1093 010c A8000000 		.4byte	.LFE2
+ 1094 0110 1F000000 		.4byte	.LLST1
+ 1095 0114 01       		.byte	0x1
+ 1096 0115 41010000 		.4byte	0x141
+ 1097 0119 0B       		.uleb128 0xb
+ 1098 011a 61000000 		.4byte	.LASF12
+ 1099 011e 01       		.byte	0x1
+ 1100 011f 6D       		.byte	0x6d
+ 1101 0120 25000000 		.4byte	0x25
+ 1102 0124 3F000000 		.4byte	.LLST2
+ 1103 0128 0B       		.uleb128 0xb
+ 1104 0129 4E000000 		.4byte	.LASF13
+ 1105 012d 01       		.byte	0x1
+ 1106 012e 6E       		.byte	0x6e
+ 1107 012f 57000000 		.4byte	0x57
+ 1108 0133 69000000 		.4byte	.LLST3
+ 1109 0137 0E       		.uleb128 0xe
+ 1110 0138 76000000 		.4byte	.LVL4
+ 1111 013c B9000000 		.4byte	0xb9
+ 1112 0140 00       		.byte	0
+ 1113 0141 0D       		.uleb128 0xd
+ 1114 0142 01       		.byte	0x1
+ 1115 0143 D5000000 		.4byte	.LASF14
+ 1116 0147 01       		.byte	0x1
+ 1117 0148 96       		.byte	0x96
+ 1118 0149 01       		.byte	0x1
+ 1119 014a 57000000 		.4byte	0x57
+ 1120 014e A8000000 		.4byte	.LFB3
+ 1121 0152 E8000000 		.4byte	.LFE3
+ 1122 0156 9F000000 		.4byte	.LLST4
+ 1123 015a 01       		.byte	0x1
+ 1124 015b 87010000 		.4byte	0x187
+ 1125 015f 0B       		.uleb128 0xb
+ 1126 0160 61000000 		.4byte	.LASF12
+ 1127 0164 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 31
+
+
+ 1128 0165 98       		.byte	0x98
+ 1129 0166 25000000 		.4byte	0x25
+ 1130 016a BF000000 		.4byte	.LLST5
+ 1131 016e 0B       		.uleb128 0xb
+ 1132 016f 4E000000 		.4byte	.LASF13
+ 1133 0173 01       		.byte	0x1
+ 1134 0174 99       		.byte	0x99
+ 1135 0175 57000000 		.4byte	0x57
+ 1136 0179 E9000000 		.4byte	.LLST6
+ 1137 017d 0E       		.uleb128 0xe
+ 1138 017e BE000000 		.4byte	.LVL11
+ 1139 0182 B9000000 		.4byte	0xb9
+ 1140 0186 00       		.byte	0
+ 1141 0187 0F       		.uleb128 0xf
+ 1142 0188 01       		.byte	0x1
+ 1143 0189 78000000 		.4byte	.LASF28
+ 1144 018d 01       		.byte	0x1
+ 1145 018e C2       		.byte	0xc2
+ 1146 018f 01       		.byte	0x1
+ 1147 0190 57000000 		.4byte	0x57
+ 1148 0194 E8000000 		.4byte	.LFB4
+ 1149 0198 0C010000 		.4byte	.LFE4
+ 1150 019c 02       		.byte	0x2
+ 1151 019d 7D       		.byte	0x7d
+ 1152 019e 00       		.sleb128 0
+ 1153 019f 01       		.byte	0x1
+ 1154 01a0 0A       		.uleb128 0xa
+ 1155 01a1 01       		.byte	0x1
+ 1156 01a2 56000000 		.4byte	.LASF15
+ 1157 01a6 01       		.byte	0x1
+ 1158 01a7 DC       		.byte	0xdc
+ 1159 01a8 01       		.byte	0x1
+ 1160 01a9 57000000 		.4byte	0x57
+ 1161 01ad 0C010000 		.4byte	.LFB5
+ 1162 01b1 34010000 		.4byte	.LFE5
+ 1163 01b5 02       		.byte	0x2
+ 1164 01b6 7D       		.byte	0x7d
+ 1165 01b7 00       		.sleb128 0
+ 1166 01b8 01       		.byte	0x1
+ 1167 01b9 DC010000 		.4byte	0x1dc
+ 1168 01bd 10       		.uleb128 0x10
+ 1169 01be D0000000 		.4byte	.LASF17
+ 1170 01c2 01       		.byte	0x1
+ 1171 01c3 DC       		.byte	0xdc
+ 1172 01c4 25000000 		.4byte	0x25
+ 1173 01c8 1F010000 		.4byte	.LLST7
+ 1174 01cc 0B       		.uleb128 0xb
+ 1175 01cd 4E000000 		.4byte	.LASF13
+ 1176 01d1 01       		.byte	0x1
+ 1177 01d2 DE       		.byte	0xde
+ 1178 01d3 57000000 		.4byte	0x57
+ 1179 01d7 69010000 		.4byte	.LLST8
+ 1180 01db 00       		.byte	0
+ 1181 01dc 11       		.uleb128 0x11
+ 1182 01dd 7E000000 		.4byte	0x7e
+ 1183 01e1 34010000 		.4byte	.LFB6
+ 1184 01e5 84010000 		.4byte	.LFE6
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 32
+
+
+ 1185 01e9 02       		.byte	0x2
+ 1186 01ea 7D       		.byte	0x7d
+ 1187 01eb 00       		.sleb128 0
+ 1188 01ec 01       		.byte	0x1
+ 1189 01ed 38020000 		.4byte	0x238
+ 1190 01f1 12       		.uleb128 0x12
+ 1191 01f2 90000000 		.4byte	0x90
+ 1192 01f6 A0010000 		.4byte	.LLST9
+ 1193 01fa 12       		.uleb128 0x12
+ 1194 01fb 9B000000 		.4byte	0x9b
+ 1195 01ff C1010000 		.4byte	.LLST10
+ 1196 0203 13       		.uleb128 0x13
+ 1197 0204 A6000000 		.4byte	0xa6
+ 1198 0208 FB010000 		.4byte	.LLST11
+ 1199 020c 14       		.uleb128 0x14
+ 1200 020d 60010000 		.4byte	.LBB12
+ 1201 0211 74010000 		.4byte	.LBE12
+ 1202 0215 12       		.uleb128 0x12
+ 1203 0216 90000000 		.4byte	0x90
+ 1204 021a 1A020000 		.4byte	.LLST12
+ 1205 021e 12       		.uleb128 0x12
+ 1206 021f 9B000000 		.4byte	0x9b
+ 1207 0223 2E020000 		.4byte	.LLST13
+ 1208 0227 14       		.uleb128 0x14
+ 1209 0228 60010000 		.4byte	.LBB13
+ 1210 022c 74010000 		.4byte	.LBE13
+ 1211 0230 15       		.uleb128 0x15
+ 1212 0231 A6000000 		.4byte	0xa6
+ 1213 0235 00       		.byte	0
+ 1214 0236 00       		.byte	0
+ 1215 0237 00       		.byte	0
+ 1216 0238 16       		.uleb128 0x16
+ 1217 0239 01       		.byte	0x1
+ 1218 023a 0C010000 		.4byte	.LASF16
+ 1219 023e 01       		.byte	0x1
+ 1220 023f 2C01     		.2byte	0x12c
+ 1221 0241 01       		.byte	0x1
+ 1222 0242 57000000 		.4byte	0x57
+ 1223 0246 84010000 		.4byte	.LFB7
+ 1224 024a 08020000 		.4byte	.LFE7
+ 1225 024e 41020000 		.4byte	.LLST14
+ 1226 0252 01       		.byte	0x1
+ 1227 0253 F7020000 		.4byte	0x2f7
+ 1228 0257 17       		.uleb128 0x17
+ 1229 0258 97000000 		.4byte	.LASF18
+ 1230 025c 01       		.byte	0x1
+ 1231 025d 2C01     		.2byte	0x12c
+ 1232 025f 25000000 		.4byte	0x25
+ 1233 0263 61020000 		.4byte	.LLST15
+ 1234 0267 17       		.uleb128 0x17
+ 1235 0268 BF010000 		.4byte	.LASF9
+ 1236 026c 01       		.byte	0x1
+ 1237 026d 2C01     		.2byte	0x12c
+ 1238 026f B3000000 		.4byte	0xb3
+ 1239 0273 82020000 		.4byte	.LLST16
+ 1240 0277 18       		.uleb128 0x18
+ 1241 0278 6C656E00 		.ascii	"len\000"
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 33
+
+
+ 1242 027c 01       		.byte	0x1
+ 1243 027d 2C01     		.2byte	0x12c
+ 1244 027f 37000000 		.4byte	0x37
+ 1245 0283 A0020000 		.4byte	.LLST17
+ 1246 0287 19       		.uleb128 0x19
+ 1247 0288 4E000000 		.4byte	.LASF13
+ 1248 028c 01       		.byte	0x1
+ 1249 028d 2E01     		.2byte	0x12e
+ 1250 028f 57000000 		.4byte	0x57
+ 1251 0293 C1020000 		.4byte	.LLST18
+ 1252 0297 19       		.uleb128 0x19
+ 1253 0298 61000000 		.4byte	.LASF12
+ 1254 029c 01       		.byte	0x1
+ 1255 029d 2F01     		.2byte	0x12f
+ 1256 029f 25000000 		.4byte	0x25
+ 1257 02a3 3A030000 		.4byte	.LLST19
+ 1258 02a7 1A       		.uleb128 0x1a
+ 1259 02a8 6900     		.ascii	"i\000"
+ 1260 02aa 01       		.byte	0x1
+ 1261 02ab 3001     		.2byte	0x130
+ 1262 02ad 25000000 		.4byte	0x25
+ 1263 02b1 6F030000 		.4byte	.LLST20
+ 1264 02b5 0E       		.uleb128 0xe
+ 1265 02b6 90010000 		.4byte	.LVL29
+ 1266 02ba FB000000 		.4byte	0xfb
+ 1267 02be 1B       		.uleb128 0x1b
+ 1268 02bf 9C010000 		.4byte	.LVL32
+ 1269 02c3 A0010000 		.4byte	0x1a0
+ 1270 02c7 D2020000 		.4byte	0x2d2
+ 1271 02cb 1C       		.uleb128 0x1c
+ 1272 02cc 01       		.byte	0x1
+ 1273 02cd 50       		.byte	0x50
+ 1274 02ce 02       		.byte	0x2
+ 1275 02cf 75       		.byte	0x75
+ 1276 02d0 00       		.sleb128 0
+ 1277 02d1 00       		.byte	0
+ 1278 02d2 0E       		.uleb128 0xe
+ 1279 02d3 B0010000 		.4byte	.LVL35
+ 1280 02d7 B9000000 		.4byte	0xb9
+ 1281 02db 0E       		.uleb128 0xe
+ 1282 02dc C4010000 		.4byte	.LVL37
+ 1283 02e0 A0010000 		.4byte	0x1a0
+ 1284 02e4 0E       		.uleb128 0xe
+ 1285 02e5 E8010000 		.4byte	.LVL49
+ 1286 02e9 B9000000 		.4byte	0xb9
+ 1287 02ed 0E       		.uleb128 0xe
+ 1288 02ee 00020000 		.4byte	.LVL52
+ 1289 02f2 87010000 		.4byte	0x187
+ 1290 02f6 00       		.byte	0
+ 1291 02f7 16       		.uleb128 0x16
+ 1292 02f8 01       		.byte	0x1
+ 1293 02f9 9C000000 		.4byte	.LASF19
+ 1294 02fd 01       		.byte	0x1
+ 1295 02fe 8301     		.2byte	0x183
+ 1296 0300 01       		.byte	0x1
+ 1297 0301 57000000 		.4byte	0x57
+ 1298 0305 08020000 		.4byte	.LFB8
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 34
+
+
+ 1299 0309 2E020000 		.4byte	.LFE8
+ 1300 030d A4030000 		.4byte	.LLST21
+ 1301 0311 01       		.byte	0x1
+ 1302 0312 30030000 		.4byte	0x330
+ 1303 0316 19       		.uleb128 0x19
+ 1304 0317 61000000 		.4byte	.LASF12
+ 1305 031b 01       		.byte	0x1
+ 1306 031c 8501     		.2byte	0x185
+ 1307 031e 25000000 		.4byte	0x25
+ 1308 0322 C4030000 		.4byte	.LLST22
+ 1309 0326 0E       		.uleb128 0xe
+ 1310 0327 10020000 		.4byte	.LVL57
+ 1311 032b B9000000 		.4byte	0xb9
+ 1312 032f 00       		.byte	0
+ 1313 0330 16       		.uleb128 0x16
+ 1314 0331 01       		.byte	0x1
+ 1315 0332 BF000000 		.4byte	.LASF20
+ 1316 0336 01       		.byte	0x1
+ 1317 0337 9C01     		.2byte	0x19c
+ 1318 0339 01       		.byte	0x1
+ 1319 033a 57000000 		.4byte	0x57
+ 1320 033e 2E020000 		.4byte	.LFB9
+ 1321 0342 4A020000 		.4byte	.LFE9
+ 1322 0346 EE030000 		.4byte	.LLST23
+ 1323 034a 01       		.byte	0x1
+ 1324 034b 8D030000 		.4byte	0x38d
+ 1325 034f 17       		.uleb128 0x17
+ 1326 0350 D0000000 		.4byte	.LASF17
+ 1327 0354 01       		.byte	0x1
+ 1328 0355 9C01     		.2byte	0x19c
+ 1329 0357 25000000 		.4byte	0x25
+ 1330 035b 0E040000 		.4byte	.LLST24
+ 1331 035f 19       		.uleb128 0x19
+ 1332 0360 4E000000 		.4byte	.LASF13
+ 1333 0364 01       		.byte	0x1
+ 1334 0365 9E01     		.2byte	0x19e
+ 1335 0367 57000000 		.4byte	0x57
+ 1336 036b 2F040000 		.4byte	.LLST25
+ 1337 036f 1B       		.uleb128 0x1b
+ 1338 0370 38020000 		.4byte	.LVL63
+ 1339 0374 A0010000 		.4byte	0x1a0
+ 1340 0378 83030000 		.4byte	0x383
+ 1341 037c 1C       		.uleb128 0x1c
+ 1342 037d 01       		.byte	0x1
+ 1343 037e 50       		.byte	0x50
+ 1344 037f 02       		.byte	0x2
+ 1345 0380 74       		.byte	0x74
+ 1346 0381 00       		.sleb128 0
+ 1347 0382 00       		.byte	0
+ 1348 0383 0E       		.uleb128 0xe
+ 1349 0384 44020000 		.4byte	.LVL64
+ 1350 0388 F7020000 		.4byte	0x2f7
+ 1351 038c 00       		.byte	0
+ 1352 038d 16       		.uleb128 0x16
+ 1353 038e 01       		.byte	0x1
+ 1354 038f 0E000000 		.4byte	.LASF21
+ 1355 0393 01       		.byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 35
+
+
+ 1356 0394 AC01     		.2byte	0x1ac
+ 1357 0396 01       		.byte	0x1
+ 1358 0397 57000000 		.4byte	0x57
+ 1359 039b 4A020000 		.4byte	.LFB10
+ 1360 039f 8C020000 		.4byte	.LFE10
+ 1361 03a3 4D040000 		.4byte	.LLST26
+ 1362 03a7 01       		.byte	0x1
+ 1363 03a8 2A040000 		.4byte	0x42a
+ 1364 03ac 17       		.uleb128 0x17
+ 1365 03ad 97000000 		.4byte	.LASF18
+ 1366 03b1 01       		.byte	0x1
+ 1367 03b2 AC01     		.2byte	0x1ac
+ 1368 03b4 25000000 		.4byte	0x25
+ 1369 03b8 6D040000 		.4byte	.LLST27
+ 1370 03bc 17       		.uleb128 0x17
+ 1371 03bd BF010000 		.4byte	.LASF9
+ 1372 03c1 01       		.byte	0x1
+ 1373 03c2 AC01     		.2byte	0x1ac
+ 1374 03c4 B3000000 		.4byte	0xb3
+ 1375 03c8 8E040000 		.4byte	.LLST28
+ 1376 03cc 18       		.uleb128 0x18
+ 1377 03cd 6C656E00 		.ascii	"len\000"
+ 1378 03d1 01       		.byte	0x1
+ 1379 03d2 AC01     		.2byte	0x1ac
+ 1380 03d4 37000000 		.4byte	0x37
+ 1381 03d8 CE040000 		.4byte	.LLST29
+ 1382 03dc 19       		.uleb128 0x19
+ 1383 03dd 4E000000 		.4byte	.LASF13
+ 1384 03e1 01       		.byte	0x1
+ 1385 03e2 AE01     		.2byte	0x1ae
+ 1386 03e4 57000000 		.4byte	0x57
+ 1387 03e8 EF040000 		.4byte	.LLST30
+ 1388 03ec 1A       		.uleb128 0x1a
+ 1389 03ed 6900     		.ascii	"i\000"
+ 1390 03ef 01       		.byte	0x1
+ 1391 03f0 AF01     		.2byte	0x1af
+ 1392 03f2 25000000 		.4byte	0x25
+ 1393 03f6 46050000 		.4byte	.LLST31
+ 1394 03fa 0E       		.uleb128 0xe
+ 1395 03fb 56020000 		.4byte	.LVL66
+ 1396 03ff FB000000 		.4byte	0xfb
+ 1397 0403 1B       		.uleb128 0x1b
+ 1398 0404 62020000 		.4byte	.LVL69
+ 1399 0408 30030000 		.4byte	0x330
+ 1400 040c 17040000 		.4byte	0x417
+ 1401 0410 1C       		.uleb128 0x1c
+ 1402 0411 01       		.byte	0x1
+ 1403 0412 50       		.byte	0x50
+ 1404 0413 02       		.byte	0x2
+ 1405 0414 75       		.byte	0x75
+ 1406 0415 00       		.sleb128 0
+ 1407 0416 00       		.byte	0
+ 1408 0417 0E       		.uleb128 0xe
+ 1409 0418 78020000 		.4byte	.LVL72
+ 1410 041c 30030000 		.4byte	0x330
+ 1411 0420 0E       		.uleb128 0xe
+ 1412 0421 84020000 		.4byte	.LVL75
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 36
+
+
+ 1413 0425 87010000 		.4byte	0x187
+ 1414 0429 00       		.byte	0
+ 1415 042a 1D       		.uleb128 0x1d
+ 1416 042b 01       		.byte	0x1
+ 1417 042c 70000000 		.4byte	.LASF29
+ 1418 0430 01       		.byte	0x1
+ 1419 0431 DD01     		.2byte	0x1dd
+ 1420 0433 01       		.byte	0x1
+ 1421 0434 57000000 		.4byte	0x57
+ 1422 0438 8C020000 		.4byte	.LFB11
+ 1423 043c 30030000 		.4byte	.LFE11
+ 1424 0440 65050000 		.4byte	.LLST32
+ 1425 0444 01       		.byte	0x1
+ 1426 0445 17       		.uleb128 0x17
+ 1427 0446 97000000 		.4byte	.LASF18
+ 1428 044a 01       		.byte	0x1
+ 1429 044b DD01     		.2byte	0x1dd
+ 1430 044d 25000000 		.4byte	0x25
+ 1431 0451 85050000 		.4byte	.LLST33
+ 1432 0455 17       		.uleb128 0x17
+ 1433 0456 AC000000 		.4byte	.LASF22
+ 1434 045a 01       		.byte	0x1
+ 1435 045b DD01     		.2byte	0x1dd
+ 1436 045d B3000000 		.4byte	0xb3
+ 1437 0461 A6050000 		.4byte	.LLST34
+ 1438 0465 18       		.uleb128 0x18
+ 1439 0466 6C656E00 		.ascii	"len\000"
+ 1440 046a 01       		.byte	0x1
+ 1441 046b DD01     		.2byte	0x1dd
+ 1442 046d 37000000 		.4byte	0x37
+ 1443 0471 C4050000 		.4byte	.LLST35
+ 1444 0475 19       		.uleb128 0x19
+ 1445 0476 4E000000 		.4byte	.LASF13
+ 1446 047a 01       		.byte	0x1
+ 1447 047b DF01     		.2byte	0x1df
+ 1448 047d 57000000 		.4byte	0x57
+ 1449 0481 E5050000 		.4byte	.LLST36
+ 1450 0485 19       		.uleb128 0x19
+ 1451 0486 61000000 		.4byte	.LASF12
+ 1452 048a 01       		.byte	0x1
+ 1453 048b E001     		.2byte	0x1e0
+ 1454 048d 25000000 		.4byte	0x25
+ 1455 0491 56060000 		.4byte	.LLST37
+ 1456 0495 1A       		.uleb128 0x1a
+ 1457 0496 6900     		.ascii	"i\000"
+ 1458 0498 01       		.byte	0x1
+ 1459 0499 E101     		.2byte	0x1e1
+ 1460 049b 25000000 		.4byte	0x25
+ 1461 049f 80060000 		.4byte	.LLST38
+ 1462 04a3 1E       		.uleb128 0x1e
+ 1463 04a4 7E000000 		.4byte	0x7e
+ 1464 04a8 DC020000 		.4byte	.LBB26
+ 1465 04ac E2020000 		.4byte	.LBE26
+ 1466 04b0 01       		.byte	0x1
+ 1467 04b1 0702     		.2byte	0x207
+ 1468 04b3 DD040000 		.4byte	0x4dd
+ 1469 04b7 12       		.uleb128 0x12
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 37
+
+
+ 1470 04b8 9B000000 		.4byte	0x9b
+ 1471 04bc B5060000 		.4byte	.LLST39
+ 1472 04c0 12       		.uleb128 0x12
+ 1473 04c1 90000000 		.4byte	0x90
+ 1474 04c5 C8060000 		.4byte	.LLST40
+ 1475 04c9 14       		.uleb128 0x14
+ 1476 04ca DC020000 		.4byte	.LBB27
+ 1477 04ce E2020000 		.4byte	.LBE27
+ 1478 04d2 13       		.uleb128 0x13
+ 1479 04d3 A6000000 		.4byte	0xa6
+ 1480 04d7 C8060000 		.4byte	.LLST40
+ 1481 04db 00       		.byte	0
+ 1482 04dc 00       		.byte	0
+ 1483 04dd 1E       		.uleb128 0x1e
+ 1484 04de 7E000000 		.4byte	0x7e
+ 1485 04e2 E2020000 		.4byte	.LBB28
+ 1486 04e6 EC020000 		.4byte	.LBE28
+ 1487 04ea 01       		.byte	0x1
+ 1488 04eb 0B02     		.2byte	0x20b
+ 1489 04ed 17050000 		.4byte	0x517
+ 1490 04f1 12       		.uleb128 0x12
+ 1491 04f2 9B000000 		.4byte	0x9b
+ 1492 04f6 DC060000 		.4byte	.LLST42
+ 1493 04fa 12       		.uleb128 0x12
+ 1494 04fb 90000000 		.4byte	0x90
+ 1495 04ff EF060000 		.4byte	.LLST43
+ 1496 0503 14       		.uleb128 0x14
+ 1497 0504 E2020000 		.4byte	.LBB29
+ 1498 0508 EC020000 		.4byte	.LBE29
+ 1499 050c 13       		.uleb128 0x13
+ 1500 050d A6000000 		.4byte	0xa6
+ 1501 0511 03070000 		.4byte	.LLST44
+ 1502 0515 00       		.byte	0
+ 1503 0516 00       		.byte	0
+ 1504 0517 1E       		.uleb128 0x1e
+ 1505 0518 7E000000 		.4byte	0x7e
+ 1506 051c EC020000 		.4byte	.LBB30
+ 1507 0520 F8020000 		.4byte	.LBE30
+ 1508 0524 01       		.byte	0x1
+ 1509 0525 1102     		.2byte	0x211
+ 1510 0527 7C050000 		.4byte	0x57c
+ 1511 052b 12       		.uleb128 0x12
+ 1512 052c 9B000000 		.4byte	0x9b
+ 1513 0530 17070000 		.4byte	.LLST45
+ 1514 0534 12       		.uleb128 0x12
+ 1515 0535 90000000 		.4byte	0x90
+ 1516 0539 37070000 		.4byte	.LLST46
+ 1517 053d 14       		.uleb128 0x14
+ 1518 053e EC020000 		.4byte	.LBB31
+ 1519 0542 F8020000 		.4byte	.LBE31
+ 1520 0546 13       		.uleb128 0x13
+ 1521 0547 A6000000 		.4byte	0xa6
+ 1522 054b 4B070000 		.4byte	.LLST47
+ 1523 054f 14       		.uleb128 0x14
+ 1524 0550 EC020000 		.4byte	.LBB32
+ 1525 0554 F8020000 		.4byte	.LBE32
+ 1526 0558 12       		.uleb128 0x12
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 38
+
+
+ 1527 0559 90000000 		.4byte	0x90
+ 1528 055d 37070000 		.4byte	.LLST46
+ 1529 0561 12       		.uleb128 0x12
+ 1530 0562 9B000000 		.4byte	0x9b
+ 1531 0566 17070000 		.4byte	.LLST45
+ 1532 056a 14       		.uleb128 0x14
+ 1533 056b EC020000 		.4byte	.LBB33
+ 1534 056f F8020000 		.4byte	.LBE33
+ 1535 0573 15       		.uleb128 0x15
+ 1536 0574 A6000000 		.4byte	0xa6
+ 1537 0578 00       		.byte	0
+ 1538 0579 00       		.byte	0
+ 1539 057a 00       		.byte	0
+ 1540 057b 00       		.byte	0
+ 1541 057c 0E       		.uleb128 0xe
+ 1542 057d 98020000 		.4byte	.LVL78
+ 1543 0581 FB000000 		.4byte	0xfb
+ 1544 0585 1B       		.uleb128 0x1b
+ 1545 0586 A4020000 		.4byte	.LVL81
+ 1546 058a A0010000 		.4byte	0x1a0
+ 1547 058e 99050000 		.4byte	0x599
+ 1548 0592 1C       		.uleb128 0x1c
+ 1549 0593 01       		.byte	0x1
+ 1550 0594 50       		.byte	0x50
+ 1551 0595 02       		.byte	0x2
+ 1552 0596 75       		.byte	0x75
+ 1553 0597 00       		.sleb128 0
+ 1554 0598 00       		.byte	0
+ 1555 0599 0E       		.uleb128 0xe
+ 1556 059a C2020000 		.4byte	.LVL85
+ 1557 059e B9000000 		.4byte	0xb9
+ 1558 05a2 0E       		.uleb128 0xe
+ 1559 05a3 1A030000 		.4byte	.LVL100
+ 1560 05a7 87010000 		.4byte	0x187
+ 1561 05ab 00       		.byte	0
+ 1562 05ac 00       		.byte	0
+ 1563              		.section	.debug_abbrev,"",%progbits
+ 1564              	.Ldebug_abbrev0:
+ 1565 0000 01       		.uleb128 0x1
+ 1566 0001 11       		.uleb128 0x11
+ 1567 0002 01       		.byte	0x1
+ 1568 0003 25       		.uleb128 0x25
+ 1569 0004 0E       		.uleb128 0xe
+ 1570 0005 13       		.uleb128 0x13
+ 1571 0006 0B       		.uleb128 0xb
+ 1572 0007 03       		.uleb128 0x3
+ 1573 0008 0E       		.uleb128 0xe
+ 1574 0009 1B       		.uleb128 0x1b
+ 1575 000a 0E       		.uleb128 0xe
+ 1576 000b 11       		.uleb128 0x11
+ 1577 000c 01       		.uleb128 0x1
+ 1578 000d 12       		.uleb128 0x12
+ 1579 000e 01       		.uleb128 0x1
+ 1580 000f 10       		.uleb128 0x10
+ 1581 0010 06       		.uleb128 0x6
+ 1582 0011 00       		.byte	0
+ 1583 0012 00       		.byte	0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 39
+
+
+ 1584 0013 02       		.uleb128 0x2
+ 1585 0014 16       		.uleb128 0x16
+ 1586 0015 00       		.byte	0
+ 1587 0016 03       		.uleb128 0x3
+ 1588 0017 08       		.uleb128 0x8
+ 1589 0018 3A       		.uleb128 0x3a
+ 1590 0019 0B       		.uleb128 0xb
+ 1591 001a 3B       		.uleb128 0x3b
+ 1592 001b 0B       		.uleb128 0xb
+ 1593 001c 49       		.uleb128 0x49
+ 1594 001d 13       		.uleb128 0x13
+ 1595 001e 00       		.byte	0
+ 1596 001f 00       		.byte	0
+ 1597 0020 03       		.uleb128 0x3
+ 1598 0021 24       		.uleb128 0x24
+ 1599 0022 00       		.byte	0
+ 1600 0023 0B       		.uleb128 0xb
+ 1601 0024 0B       		.uleb128 0xb
+ 1602 0025 3E       		.uleb128 0x3e
+ 1603 0026 0B       		.uleb128 0xb
+ 1604 0027 03       		.uleb128 0x3
+ 1605 0028 0E       		.uleb128 0xe
+ 1606 0029 00       		.byte	0
+ 1607 002a 00       		.byte	0
+ 1608 002b 04       		.uleb128 0x4
+ 1609 002c 16       		.uleb128 0x16
+ 1610 002d 00       		.byte	0
+ 1611 002e 03       		.uleb128 0x3
+ 1612 002f 0E       		.uleb128 0xe
+ 1613 0030 3A       		.uleb128 0x3a
+ 1614 0031 0B       		.uleb128 0xb
+ 1615 0032 3B       		.uleb128 0x3b
+ 1616 0033 0B       		.uleb128 0xb
+ 1617 0034 49       		.uleb128 0x49
+ 1618 0035 13       		.uleb128 0x13
+ 1619 0036 00       		.byte	0
+ 1620 0037 00       		.byte	0
+ 1621 0038 05       		.uleb128 0x5
+ 1622 0039 24       		.uleb128 0x24
+ 1623 003a 00       		.byte	0
+ 1624 003b 0B       		.uleb128 0xb
+ 1625 003c 0B       		.uleb128 0xb
+ 1626 003d 3E       		.uleb128 0x3e
+ 1627 003e 0B       		.uleb128 0xb
+ 1628 003f 03       		.uleb128 0x3
+ 1629 0040 08       		.uleb128 0x8
+ 1630 0041 00       		.byte	0
+ 1631 0042 00       		.byte	0
+ 1632 0043 06       		.uleb128 0x6
+ 1633 0044 2E       		.uleb128 0x2e
+ 1634 0045 01       		.byte	0x1
+ 1635 0046 3F       		.uleb128 0x3f
+ 1636 0047 0C       		.uleb128 0xc
+ 1637 0048 03       		.uleb128 0x3
+ 1638 0049 0E       		.uleb128 0xe
+ 1639 004a 3A       		.uleb128 0x3a
+ 1640 004b 0B       		.uleb128 0xb
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 40
+
+
+ 1641 004c 3B       		.uleb128 0x3b
+ 1642 004d 0B       		.uleb128 0xb
+ 1643 004e 27       		.uleb128 0x27
+ 1644 004f 0C       		.uleb128 0xc
+ 1645 0050 49       		.uleb128 0x49
+ 1646 0051 13       		.uleb128 0x13
+ 1647 0052 20       		.uleb128 0x20
+ 1648 0053 0B       		.uleb128 0xb
+ 1649 0054 01       		.uleb128 0x1
+ 1650 0055 13       		.uleb128 0x13
+ 1651 0056 00       		.byte	0
+ 1652 0057 00       		.byte	0
+ 1653 0058 07       		.uleb128 0x7
+ 1654 0059 05       		.uleb128 0x5
+ 1655 005a 00       		.byte	0
+ 1656 005b 03       		.uleb128 0x3
+ 1657 005c 0E       		.uleb128 0xe
+ 1658 005d 3A       		.uleb128 0x3a
+ 1659 005e 0B       		.uleb128 0xb
+ 1660 005f 3B       		.uleb128 0x3b
+ 1661 0060 0B       		.uleb128 0xb
+ 1662 0061 49       		.uleb128 0x49
+ 1663 0062 13       		.uleb128 0x13
+ 1664 0063 00       		.byte	0
+ 1665 0064 00       		.byte	0
+ 1666 0065 08       		.uleb128 0x8
+ 1667 0066 34       		.uleb128 0x34
+ 1668 0067 00       		.byte	0
+ 1669 0068 03       		.uleb128 0x3
+ 1670 0069 0E       		.uleb128 0xe
+ 1671 006a 3A       		.uleb128 0x3a
+ 1672 006b 0B       		.uleb128 0xb
+ 1673 006c 3B       		.uleb128 0x3b
+ 1674 006d 05       		.uleb128 0x5
+ 1675 006e 49       		.uleb128 0x49
+ 1676 006f 13       		.uleb128 0x13
+ 1677 0070 00       		.byte	0
+ 1678 0071 00       		.byte	0
+ 1679 0072 09       		.uleb128 0x9
+ 1680 0073 0F       		.uleb128 0xf
+ 1681 0074 00       		.byte	0
+ 1682 0075 0B       		.uleb128 0xb
+ 1683 0076 0B       		.uleb128 0xb
+ 1684 0077 49       		.uleb128 0x49
+ 1685 0078 13       		.uleb128 0x13
+ 1686 0079 00       		.byte	0
+ 1687 007a 00       		.byte	0
+ 1688 007b 0A       		.uleb128 0xa
+ 1689 007c 2E       		.uleb128 0x2e
+ 1690 007d 01       		.byte	0x1
+ 1691 007e 3F       		.uleb128 0x3f
+ 1692 007f 0C       		.uleb128 0xc
+ 1693 0080 03       		.uleb128 0x3
+ 1694 0081 0E       		.uleb128 0xe
+ 1695 0082 3A       		.uleb128 0x3a
+ 1696 0083 0B       		.uleb128 0xb
+ 1697 0084 3B       		.uleb128 0x3b
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 41
+
+
+ 1698 0085 0B       		.uleb128 0xb
+ 1699 0086 27       		.uleb128 0x27
+ 1700 0087 0C       		.uleb128 0xc
+ 1701 0088 49       		.uleb128 0x49
+ 1702 0089 13       		.uleb128 0x13
+ 1703 008a 11       		.uleb128 0x11
+ 1704 008b 01       		.uleb128 0x1
+ 1705 008c 12       		.uleb128 0x12
+ 1706 008d 01       		.uleb128 0x1
+ 1707 008e 40       		.uleb128 0x40
+ 1708 008f 0A       		.uleb128 0xa
+ 1709 0090 9742     		.uleb128 0x2117
+ 1710 0092 0C       		.uleb128 0xc
+ 1711 0093 01       		.uleb128 0x1
+ 1712 0094 13       		.uleb128 0x13
+ 1713 0095 00       		.byte	0
+ 1714 0096 00       		.byte	0
+ 1715 0097 0B       		.uleb128 0xb
+ 1716 0098 34       		.uleb128 0x34
+ 1717 0099 00       		.byte	0
+ 1718 009a 03       		.uleb128 0x3
+ 1719 009b 0E       		.uleb128 0xe
+ 1720 009c 3A       		.uleb128 0x3a
+ 1721 009d 0B       		.uleb128 0xb
+ 1722 009e 3B       		.uleb128 0x3b
+ 1723 009f 0B       		.uleb128 0xb
+ 1724 00a0 49       		.uleb128 0x49
+ 1725 00a1 13       		.uleb128 0x13
+ 1726 00a2 02       		.uleb128 0x2
+ 1727 00a3 06       		.uleb128 0x6
+ 1728 00a4 00       		.byte	0
+ 1729 00a5 00       		.byte	0
+ 1730 00a6 0C       		.uleb128 0xc
+ 1731 00a7 2E       		.uleb128 0x2e
+ 1732 00a8 00       		.byte	0
+ 1733 00a9 3F       		.uleb128 0x3f
+ 1734 00aa 0C       		.uleb128 0xc
+ 1735 00ab 03       		.uleb128 0x3
+ 1736 00ac 0E       		.uleb128 0xe
+ 1737 00ad 3A       		.uleb128 0x3a
+ 1738 00ae 0B       		.uleb128 0xb
+ 1739 00af 3B       		.uleb128 0x3b
+ 1740 00b0 0B       		.uleb128 0xb
+ 1741 00b1 27       		.uleb128 0x27
+ 1742 00b2 0C       		.uleb128 0xc
+ 1743 00b3 11       		.uleb128 0x11
+ 1744 00b4 01       		.uleb128 0x1
+ 1745 00b5 12       		.uleb128 0x12
+ 1746 00b6 01       		.uleb128 0x1
+ 1747 00b7 40       		.uleb128 0x40
+ 1748 00b8 0A       		.uleb128 0xa
+ 1749 00b9 9742     		.uleb128 0x2117
+ 1750 00bb 0C       		.uleb128 0xc
+ 1751 00bc 00       		.byte	0
+ 1752 00bd 00       		.byte	0
+ 1753 00be 0D       		.uleb128 0xd
+ 1754 00bf 2E       		.uleb128 0x2e
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 42
+
+
+ 1755 00c0 01       		.byte	0x1
+ 1756 00c1 3F       		.uleb128 0x3f
+ 1757 00c2 0C       		.uleb128 0xc
+ 1758 00c3 03       		.uleb128 0x3
+ 1759 00c4 0E       		.uleb128 0xe
+ 1760 00c5 3A       		.uleb128 0x3a
+ 1761 00c6 0B       		.uleb128 0xb
+ 1762 00c7 3B       		.uleb128 0x3b
+ 1763 00c8 0B       		.uleb128 0xb
+ 1764 00c9 27       		.uleb128 0x27
+ 1765 00ca 0C       		.uleb128 0xc
+ 1766 00cb 49       		.uleb128 0x49
+ 1767 00cc 13       		.uleb128 0x13
+ 1768 00cd 11       		.uleb128 0x11
+ 1769 00ce 01       		.uleb128 0x1
+ 1770 00cf 12       		.uleb128 0x12
+ 1771 00d0 01       		.uleb128 0x1
+ 1772 00d1 40       		.uleb128 0x40
+ 1773 00d2 06       		.uleb128 0x6
+ 1774 00d3 9742     		.uleb128 0x2117
+ 1775 00d5 0C       		.uleb128 0xc
+ 1776 00d6 01       		.uleb128 0x1
+ 1777 00d7 13       		.uleb128 0x13
+ 1778 00d8 00       		.byte	0
+ 1779 00d9 00       		.byte	0
+ 1780 00da 0E       		.uleb128 0xe
+ 1781 00db 898201   		.uleb128 0x4109
+ 1782 00de 00       		.byte	0
+ 1783 00df 11       		.uleb128 0x11
+ 1784 00e0 01       		.uleb128 0x1
+ 1785 00e1 31       		.uleb128 0x31
+ 1786 00e2 13       		.uleb128 0x13
+ 1787 00e3 00       		.byte	0
+ 1788 00e4 00       		.byte	0
+ 1789 00e5 0F       		.uleb128 0xf
+ 1790 00e6 2E       		.uleb128 0x2e
+ 1791 00e7 00       		.byte	0
+ 1792 00e8 3F       		.uleb128 0x3f
+ 1793 00e9 0C       		.uleb128 0xc
+ 1794 00ea 03       		.uleb128 0x3
+ 1795 00eb 0E       		.uleb128 0xe
+ 1796 00ec 3A       		.uleb128 0x3a
+ 1797 00ed 0B       		.uleb128 0xb
+ 1798 00ee 3B       		.uleb128 0x3b
+ 1799 00ef 0B       		.uleb128 0xb
+ 1800 00f0 27       		.uleb128 0x27
+ 1801 00f1 0C       		.uleb128 0xc
+ 1802 00f2 49       		.uleb128 0x49
+ 1803 00f3 13       		.uleb128 0x13
+ 1804 00f4 11       		.uleb128 0x11
+ 1805 00f5 01       		.uleb128 0x1
+ 1806 00f6 12       		.uleb128 0x12
+ 1807 00f7 01       		.uleb128 0x1
+ 1808 00f8 40       		.uleb128 0x40
+ 1809 00f9 0A       		.uleb128 0xa
+ 1810 00fa 9742     		.uleb128 0x2117
+ 1811 00fc 0C       		.uleb128 0xc
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 43
+
+
+ 1812 00fd 00       		.byte	0
+ 1813 00fe 00       		.byte	0
+ 1814 00ff 10       		.uleb128 0x10
+ 1815 0100 05       		.uleb128 0x5
+ 1816 0101 00       		.byte	0
+ 1817 0102 03       		.uleb128 0x3
+ 1818 0103 0E       		.uleb128 0xe
+ 1819 0104 3A       		.uleb128 0x3a
+ 1820 0105 0B       		.uleb128 0xb
+ 1821 0106 3B       		.uleb128 0x3b
+ 1822 0107 0B       		.uleb128 0xb
+ 1823 0108 49       		.uleb128 0x49
+ 1824 0109 13       		.uleb128 0x13
+ 1825 010a 02       		.uleb128 0x2
+ 1826 010b 06       		.uleb128 0x6
+ 1827 010c 00       		.byte	0
+ 1828 010d 00       		.byte	0
+ 1829 010e 11       		.uleb128 0x11
+ 1830 010f 2E       		.uleb128 0x2e
+ 1831 0110 01       		.byte	0x1
+ 1832 0111 31       		.uleb128 0x31
+ 1833 0112 13       		.uleb128 0x13
+ 1834 0113 11       		.uleb128 0x11
+ 1835 0114 01       		.uleb128 0x1
+ 1836 0115 12       		.uleb128 0x12
+ 1837 0116 01       		.uleb128 0x1
+ 1838 0117 40       		.uleb128 0x40
+ 1839 0118 0A       		.uleb128 0xa
+ 1840 0119 9742     		.uleb128 0x2117
+ 1841 011b 0C       		.uleb128 0xc
+ 1842 011c 01       		.uleb128 0x1
+ 1843 011d 13       		.uleb128 0x13
+ 1844 011e 00       		.byte	0
+ 1845 011f 00       		.byte	0
+ 1846 0120 12       		.uleb128 0x12
+ 1847 0121 05       		.uleb128 0x5
+ 1848 0122 00       		.byte	0
+ 1849 0123 31       		.uleb128 0x31
+ 1850 0124 13       		.uleb128 0x13
+ 1851 0125 02       		.uleb128 0x2
+ 1852 0126 06       		.uleb128 0x6
+ 1853 0127 00       		.byte	0
+ 1854 0128 00       		.byte	0
+ 1855 0129 13       		.uleb128 0x13
+ 1856 012a 34       		.uleb128 0x34
+ 1857 012b 00       		.byte	0
+ 1858 012c 31       		.uleb128 0x31
+ 1859 012d 13       		.uleb128 0x13
+ 1860 012e 02       		.uleb128 0x2
+ 1861 012f 06       		.uleb128 0x6
+ 1862 0130 00       		.byte	0
+ 1863 0131 00       		.byte	0
+ 1864 0132 14       		.uleb128 0x14
+ 1865 0133 0B       		.uleb128 0xb
+ 1866 0134 01       		.byte	0x1
+ 1867 0135 11       		.uleb128 0x11
+ 1868 0136 01       		.uleb128 0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 44
+
+
+ 1869 0137 12       		.uleb128 0x12
+ 1870 0138 01       		.uleb128 0x1
+ 1871 0139 00       		.byte	0
+ 1872 013a 00       		.byte	0
+ 1873 013b 15       		.uleb128 0x15
+ 1874 013c 34       		.uleb128 0x34
+ 1875 013d 00       		.byte	0
+ 1876 013e 31       		.uleb128 0x31
+ 1877 013f 13       		.uleb128 0x13
+ 1878 0140 00       		.byte	0
+ 1879 0141 00       		.byte	0
+ 1880 0142 16       		.uleb128 0x16
+ 1881 0143 2E       		.uleb128 0x2e
+ 1882 0144 01       		.byte	0x1
+ 1883 0145 3F       		.uleb128 0x3f
+ 1884 0146 0C       		.uleb128 0xc
+ 1885 0147 03       		.uleb128 0x3
+ 1886 0148 0E       		.uleb128 0xe
+ 1887 0149 3A       		.uleb128 0x3a
+ 1888 014a 0B       		.uleb128 0xb
+ 1889 014b 3B       		.uleb128 0x3b
+ 1890 014c 05       		.uleb128 0x5
+ 1891 014d 27       		.uleb128 0x27
+ 1892 014e 0C       		.uleb128 0xc
+ 1893 014f 49       		.uleb128 0x49
+ 1894 0150 13       		.uleb128 0x13
+ 1895 0151 11       		.uleb128 0x11
+ 1896 0152 01       		.uleb128 0x1
+ 1897 0153 12       		.uleb128 0x12
+ 1898 0154 01       		.uleb128 0x1
+ 1899 0155 40       		.uleb128 0x40
+ 1900 0156 06       		.uleb128 0x6
+ 1901 0157 9742     		.uleb128 0x2117
+ 1902 0159 0C       		.uleb128 0xc
+ 1903 015a 01       		.uleb128 0x1
+ 1904 015b 13       		.uleb128 0x13
+ 1905 015c 00       		.byte	0
+ 1906 015d 00       		.byte	0
+ 1907 015e 17       		.uleb128 0x17
+ 1908 015f 05       		.uleb128 0x5
+ 1909 0160 00       		.byte	0
+ 1910 0161 03       		.uleb128 0x3
+ 1911 0162 0E       		.uleb128 0xe
+ 1912 0163 3A       		.uleb128 0x3a
+ 1913 0164 0B       		.uleb128 0xb
+ 1914 0165 3B       		.uleb128 0x3b
+ 1915 0166 05       		.uleb128 0x5
+ 1916 0167 49       		.uleb128 0x49
+ 1917 0168 13       		.uleb128 0x13
+ 1918 0169 02       		.uleb128 0x2
+ 1919 016a 06       		.uleb128 0x6
+ 1920 016b 00       		.byte	0
+ 1921 016c 00       		.byte	0
+ 1922 016d 18       		.uleb128 0x18
+ 1923 016e 05       		.uleb128 0x5
+ 1924 016f 00       		.byte	0
+ 1925 0170 03       		.uleb128 0x3
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 45
+
+
+ 1926 0171 08       		.uleb128 0x8
+ 1927 0172 3A       		.uleb128 0x3a
+ 1928 0173 0B       		.uleb128 0xb
+ 1929 0174 3B       		.uleb128 0x3b
+ 1930 0175 05       		.uleb128 0x5
+ 1931 0176 49       		.uleb128 0x49
+ 1932 0177 13       		.uleb128 0x13
+ 1933 0178 02       		.uleb128 0x2
+ 1934 0179 06       		.uleb128 0x6
+ 1935 017a 00       		.byte	0
+ 1936 017b 00       		.byte	0
+ 1937 017c 19       		.uleb128 0x19
+ 1938 017d 34       		.uleb128 0x34
+ 1939 017e 00       		.byte	0
+ 1940 017f 03       		.uleb128 0x3
+ 1941 0180 0E       		.uleb128 0xe
+ 1942 0181 3A       		.uleb128 0x3a
+ 1943 0182 0B       		.uleb128 0xb
+ 1944 0183 3B       		.uleb128 0x3b
+ 1945 0184 05       		.uleb128 0x5
+ 1946 0185 49       		.uleb128 0x49
+ 1947 0186 13       		.uleb128 0x13
+ 1948 0187 02       		.uleb128 0x2
+ 1949 0188 06       		.uleb128 0x6
+ 1950 0189 00       		.byte	0
+ 1951 018a 00       		.byte	0
+ 1952 018b 1A       		.uleb128 0x1a
+ 1953 018c 34       		.uleb128 0x34
+ 1954 018d 00       		.byte	0
+ 1955 018e 03       		.uleb128 0x3
+ 1956 018f 08       		.uleb128 0x8
+ 1957 0190 3A       		.uleb128 0x3a
+ 1958 0191 0B       		.uleb128 0xb
+ 1959 0192 3B       		.uleb128 0x3b
+ 1960 0193 05       		.uleb128 0x5
+ 1961 0194 49       		.uleb128 0x49
+ 1962 0195 13       		.uleb128 0x13
+ 1963 0196 02       		.uleb128 0x2
+ 1964 0197 06       		.uleb128 0x6
+ 1965 0198 00       		.byte	0
+ 1966 0199 00       		.byte	0
+ 1967 019a 1B       		.uleb128 0x1b
+ 1968 019b 898201   		.uleb128 0x4109
+ 1969 019e 01       		.byte	0x1
+ 1970 019f 11       		.uleb128 0x11
+ 1971 01a0 01       		.uleb128 0x1
+ 1972 01a1 31       		.uleb128 0x31
+ 1973 01a2 13       		.uleb128 0x13
+ 1974 01a3 01       		.uleb128 0x1
+ 1975 01a4 13       		.uleb128 0x13
+ 1976 01a5 00       		.byte	0
+ 1977 01a6 00       		.byte	0
+ 1978 01a7 1C       		.uleb128 0x1c
+ 1979 01a8 8A8201   		.uleb128 0x410a
+ 1980 01ab 00       		.byte	0
+ 1981 01ac 02       		.uleb128 0x2
+ 1982 01ad 0A       		.uleb128 0xa
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 46
+
+
+ 1983 01ae 9142     		.uleb128 0x2111
+ 1984 01b0 0A       		.uleb128 0xa
+ 1985 01b1 00       		.byte	0
+ 1986 01b2 00       		.byte	0
+ 1987 01b3 1D       		.uleb128 0x1d
+ 1988 01b4 2E       		.uleb128 0x2e
+ 1989 01b5 01       		.byte	0x1
+ 1990 01b6 3F       		.uleb128 0x3f
+ 1991 01b7 0C       		.uleb128 0xc
+ 1992 01b8 03       		.uleb128 0x3
+ 1993 01b9 0E       		.uleb128 0xe
+ 1994 01ba 3A       		.uleb128 0x3a
+ 1995 01bb 0B       		.uleb128 0xb
+ 1996 01bc 3B       		.uleb128 0x3b
+ 1997 01bd 05       		.uleb128 0x5
+ 1998 01be 27       		.uleb128 0x27
+ 1999 01bf 0C       		.uleb128 0xc
+ 2000 01c0 49       		.uleb128 0x49
+ 2001 01c1 13       		.uleb128 0x13
+ 2002 01c2 11       		.uleb128 0x11
+ 2003 01c3 01       		.uleb128 0x1
+ 2004 01c4 12       		.uleb128 0x12
+ 2005 01c5 01       		.uleb128 0x1
+ 2006 01c6 40       		.uleb128 0x40
+ 2007 01c7 06       		.uleb128 0x6
+ 2008 01c8 9742     		.uleb128 0x2117
+ 2009 01ca 0C       		.uleb128 0xc
+ 2010 01cb 00       		.byte	0
+ 2011 01cc 00       		.byte	0
+ 2012 01cd 1E       		.uleb128 0x1e
+ 2013 01ce 1D       		.uleb128 0x1d
+ 2014 01cf 01       		.byte	0x1
+ 2015 01d0 31       		.uleb128 0x31
+ 2016 01d1 13       		.uleb128 0x13
+ 2017 01d2 11       		.uleb128 0x11
+ 2018 01d3 01       		.uleb128 0x1
+ 2019 01d4 12       		.uleb128 0x12
+ 2020 01d5 01       		.uleb128 0x1
+ 2021 01d6 58       		.uleb128 0x58
+ 2022 01d7 0B       		.uleb128 0xb
+ 2023 01d8 59       		.uleb128 0x59
+ 2024 01d9 05       		.uleb128 0x5
+ 2025 01da 01       		.uleb128 0x1
+ 2026 01db 13       		.uleb128 0x13
+ 2027 01dc 00       		.byte	0
+ 2028 01dd 00       		.byte	0
+ 2029 01de 00       		.byte	0
+ 2030              		.section	.debug_loc,"",%progbits
+ 2031              	.Ldebug_loc0:
+ 2032              	.LLST0:
+ 2033 0000 00000000 		.4byte	.LVL0-.Ltext0
+ 2034 0004 0E000000 		.4byte	.LVL1-.Ltext0
+ 2035 0008 0200     		.2byte	0x2
+ 2036 000a 30       		.byte	0x30
+ 2037 000b 9F       		.byte	0x9f
+ 2038 000c 0E000000 		.4byte	.LVL1-.Ltext0
+ 2039 0010 18000000 		.4byte	.LFE0-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 47
+
+
+ 2040 0014 0100     		.2byte	0x1
+ 2041 0016 50       		.byte	0x50
+ 2042 0017 00000000 		.4byte	0
+ 2043 001b 00000000 		.4byte	0
+ 2044              	.LLST1:
+ 2045 001f 64000000 		.4byte	.LFB2-.Ltext0
+ 2046 0023 68000000 		.4byte	.LCFI0-.Ltext0
+ 2047 0027 0200     		.2byte	0x2
+ 2048 0029 7D       		.byte	0x7d
+ 2049 002a 00       		.sleb128 0
+ 2050 002b 68000000 		.4byte	.LCFI0-.Ltext0
+ 2051 002f A8000000 		.4byte	.LFE2-.Ltext0
+ 2052 0033 0200     		.2byte	0x2
+ 2053 0035 7D       		.byte	0x7d
+ 2054 0036 08       		.sleb128 8
+ 2055 0037 00000000 		.4byte	0
+ 2056 003b 00000000 		.4byte	0
+ 2057              	.LLST2:
+ 2058 003f 64000000 		.4byte	.LVL2-.Ltext0
+ 2059 0043 72000000 		.4byte	.LVL3-.Ltext0
+ 2060 0047 0200     		.2byte	0x2
+ 2061 0049 30       		.byte	0x30
+ 2062 004a 9F       		.byte	0x9f
+ 2063 004b 76000000 		.4byte	.LVL4-.Ltext0
+ 2064 004f 8A000000 		.4byte	.LVL5-.Ltext0
+ 2065 0053 0100     		.2byte	0x1
+ 2066 0055 50       		.byte	0x50
+ 2067 0056 8E000000 		.4byte	.LVL7-.Ltext0
+ 2068 005a 94000000 		.4byte	.LVL8-.Ltext0
+ 2069 005e 0100     		.2byte	0x1
+ 2070 0060 50       		.byte	0x50
+ 2071 0061 00000000 		.4byte	0
+ 2072 0065 00000000 		.4byte	0
+ 2073              	.LLST3:
+ 2074 0069 64000000 		.4byte	.LVL2-.Ltext0
+ 2075 006d 8C000000 		.4byte	.LVL6-.Ltext0
+ 2076 0071 0200     		.2byte	0x2
+ 2077 0073 30       		.byte	0x30
+ 2078 0074 9F       		.byte	0x9f
+ 2079 0075 8C000000 		.4byte	.LVL6-.Ltext0
+ 2080 0079 8E000000 		.4byte	.LVL7-.Ltext0
+ 2081 007d 0100     		.2byte	0x1
+ 2082 007f 50       		.byte	0x50
+ 2083 0080 8E000000 		.4byte	.LVL7-.Ltext0
+ 2084 0084 94000000 		.4byte	.LVL8-.Ltext0
+ 2085 0088 0200     		.2byte	0x2
+ 2086 008a 30       		.byte	0x30
+ 2087 008b 9F       		.byte	0x9f
+ 2088 008c 94000000 		.4byte	.LVL8-.Ltext0
+ 2089 0090 A8000000 		.4byte	.LFE2-.Ltext0
+ 2090 0094 0100     		.2byte	0x1
+ 2091 0096 50       		.byte	0x50
+ 2092 0097 00000000 		.4byte	0
+ 2093 009b 00000000 		.4byte	0
+ 2094              	.LLST4:
+ 2095 009f A8000000 		.4byte	.LFB3-.Ltext0
+ 2096 00a3 AC000000 		.4byte	.LCFI1-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 48
+
+
+ 2097 00a7 0200     		.2byte	0x2
+ 2098 00a9 7D       		.byte	0x7d
+ 2099 00aa 00       		.sleb128 0
+ 2100 00ab AC000000 		.4byte	.LCFI1-.Ltext0
+ 2101 00af E8000000 		.4byte	.LFE3-.Ltext0
+ 2102 00b3 0200     		.2byte	0x2
+ 2103 00b5 7D       		.byte	0x7d
+ 2104 00b6 10       		.sleb128 16
+ 2105 00b7 00000000 		.4byte	0
+ 2106 00bb 00000000 		.4byte	0
+ 2107              	.LLST5:
+ 2108 00bf A8000000 		.4byte	.LVL9-.Ltext0
+ 2109 00c3 B8000000 		.4byte	.LVL10-.Ltext0
+ 2110 00c7 0200     		.2byte	0x2
+ 2111 00c9 30       		.byte	0x30
+ 2112 00ca 9F       		.byte	0x9f
+ 2113 00cb BE000000 		.4byte	.LVL11-.Ltext0
+ 2114 00cf D0000000 		.4byte	.LVL12-.Ltext0
+ 2115 00d3 0100     		.2byte	0x1
+ 2116 00d5 50       		.byte	0x50
+ 2117 00d6 D4000000 		.4byte	.LVL14-.Ltext0
+ 2118 00da D6000000 		.4byte	.LVL15-.Ltext0
+ 2119 00de 0100     		.2byte	0x1
+ 2120 00e0 50       		.byte	0x50
+ 2121 00e1 00000000 		.4byte	0
+ 2122 00e5 00000000 		.4byte	0
+ 2123              	.LLST6:
+ 2124 00e9 A8000000 		.4byte	.LVL9-.Ltext0
+ 2125 00ed D2000000 		.4byte	.LVL13-.Ltext0
+ 2126 00f1 0200     		.2byte	0x2
+ 2127 00f3 30       		.byte	0x30
+ 2128 00f4 9F       		.byte	0x9f
+ 2129 00f5 D2000000 		.4byte	.LVL13-.Ltext0
+ 2130 00f9 D4000000 		.4byte	.LVL14-.Ltext0
+ 2131 00fd 0100     		.2byte	0x1
+ 2132 00ff 50       		.byte	0x50
+ 2133 0100 D4000000 		.4byte	.LVL14-.Ltext0
+ 2134 0104 D6000000 		.4byte	.LVL15-.Ltext0
+ 2135 0108 0200     		.2byte	0x2
+ 2136 010a 30       		.byte	0x30
+ 2137 010b 9F       		.byte	0x9f
+ 2138 010c D6000000 		.4byte	.LVL15-.Ltext0
+ 2139 0110 E8000000 		.4byte	.LFE3-.Ltext0
+ 2140 0114 0100     		.2byte	0x1
+ 2141 0116 50       		.byte	0x50
+ 2142 0117 00000000 		.4byte	0
+ 2143 011b 00000000 		.4byte	0
+ 2144              	.LLST7:
+ 2145 011f 0C010000 		.4byte	.LVL16-.Ltext0
+ 2146 0123 1E010000 		.4byte	.LVL17-.Ltext0
+ 2147 0127 0100     		.2byte	0x1
+ 2148 0129 50       		.byte	0x50
+ 2149 012a 1E010000 		.4byte	.LVL17-.Ltext0
+ 2150 012e 20010000 		.4byte	.LVL18-.Ltext0
+ 2151 0132 0600     		.2byte	0x6
+ 2152 0134 11       		.byte	0x11
+ 2153 0135 88808780 		.sleb128 -536756216
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 49
+
+
+ 2153      7E
+ 2154 013a 20010000 		.4byte	.LVL18-.Ltext0
+ 2155 013e 22010000 		.4byte	.LVL19-.Ltext0
+ 2156 0142 0400     		.2byte	0x4
+ 2157 0144 F3       		.byte	0xf3
+ 2158 0145 01       		.uleb128 0x1
+ 2159 0146 50       		.byte	0x50
+ 2160 0147 9F       		.byte	0x9f
+ 2161 0148 22010000 		.4byte	.LVL19-.Ltext0
+ 2162 014c 24010000 		.4byte	.LVL20-.Ltext0
+ 2163 0150 0100     		.2byte	0x1
+ 2164 0152 50       		.byte	0x50
+ 2165 0153 24010000 		.4byte	.LVL20-.Ltext0
+ 2166 0157 34010000 		.4byte	.LFE5-.Ltext0
+ 2167 015b 0400     		.2byte	0x4
+ 2168 015d F3       		.byte	0xf3
+ 2169 015e 01       		.uleb128 0x1
+ 2170 015f 50       		.byte	0x50
+ 2171 0160 9F       		.byte	0x9f
+ 2172 0161 00000000 		.4byte	0
+ 2173 0165 00000000 		.4byte	0
+ 2174              	.LLST8:
+ 2175 0169 0C010000 		.4byte	.LVL16-.Ltext0
+ 2176 016d 20010000 		.4byte	.LVL18-.Ltext0
+ 2177 0171 0200     		.2byte	0x2
+ 2178 0173 30       		.byte	0x30
+ 2179 0174 9F       		.byte	0x9f
+ 2180 0175 20010000 		.4byte	.LVL18-.Ltext0
+ 2181 0179 22010000 		.4byte	.LVL19-.Ltext0
+ 2182 017d 0200     		.2byte	0x2
+ 2183 017f 31       		.byte	0x31
+ 2184 0180 9F       		.byte	0x9f
+ 2185 0181 22010000 		.4byte	.LVL19-.Ltext0
+ 2186 0185 26010000 		.4byte	.LVL21-.Ltext0
+ 2187 0189 0200     		.2byte	0x2
+ 2188 018b 30       		.byte	0x30
+ 2189 018c 9F       		.byte	0x9f
+ 2190 018d 26010000 		.4byte	.LVL21-.Ltext0
+ 2191 0191 34010000 		.4byte	.LFE5-.Ltext0
+ 2192 0195 0100     		.2byte	0x1
+ 2193 0197 50       		.byte	0x50
+ 2194 0198 00000000 		.4byte	0
+ 2195 019c 00000000 		.4byte	0
+ 2196              	.LLST9:
+ 2197 01a0 34010000 		.4byte	.LVL22-.Ltext0
+ 2198 01a4 76010000 		.4byte	.LVL27-.Ltext0
+ 2199 01a8 0100     		.2byte	0x1
+ 2200 01aa 50       		.byte	0x50
+ 2201 01ab 76010000 		.4byte	.LVL27-.Ltext0
+ 2202 01af 84010000 		.4byte	.LFE6-.Ltext0
+ 2203 01b3 0400     		.2byte	0x4
+ 2204 01b5 F3       		.byte	0xf3
+ 2205 01b6 01       		.uleb128 0x1
+ 2206 01b7 50       		.byte	0x50
+ 2207 01b8 9F       		.byte	0x9f
+ 2208 01b9 00000000 		.4byte	0
+ 2209 01bd 00000000 		.4byte	0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 50
+
+
+ 2210              	.LLST10:
+ 2211 01c1 34010000 		.4byte	.LVL22-.Ltext0
+ 2212 01c5 3A010000 		.4byte	.LVL23-.Ltext0
+ 2213 01c9 0100     		.2byte	0x1
+ 2214 01cb 51       		.byte	0x51
+ 2215 01cc 3A010000 		.4byte	.LVL23-.Ltext0
+ 2216 01d0 4C010000 		.4byte	.LVL24-.Ltext0
+ 2217 01d4 0400     		.2byte	0x4
+ 2218 01d6 F3       		.byte	0xf3
+ 2219 01d7 01       		.uleb128 0x1
+ 2220 01d8 51       		.byte	0x51
+ 2221 01d9 9F       		.byte	0x9f
+ 2222 01da 4C010000 		.4byte	.LVL24-.Ltext0
+ 2223 01de 74010000 		.4byte	.LVL26-.Ltext0
+ 2224 01e2 0100     		.2byte	0x1
+ 2225 01e4 51       		.byte	0x51
+ 2226 01e5 74010000 		.4byte	.LVL26-.Ltext0
+ 2227 01e9 84010000 		.4byte	.LFE6-.Ltext0
+ 2228 01ed 0400     		.2byte	0x4
+ 2229 01ef F3       		.byte	0xf3
+ 2230 01f0 01       		.uleb128 0x1
+ 2231 01f1 51       		.byte	0x51
+ 2232 01f2 9F       		.byte	0x9f
+ 2233 01f3 00000000 		.4byte	0
+ 2234 01f7 00000000 		.4byte	0
+ 2235              	.LLST11:
+ 2236 01fb 34010000 		.4byte	.LVL22-.Ltext0
+ 2237 01ff 74010000 		.4byte	.LVL26-.Ltext0
+ 2238 0203 0200     		.2byte	0x2
+ 2239 0205 31       		.byte	0x31
+ 2240 0206 9F       		.byte	0x9f
+ 2241 0207 74010000 		.4byte	.LVL26-.Ltext0
+ 2242 020b 84010000 		.4byte	.LFE6-.Ltext0
+ 2243 020f 0100     		.2byte	0x1
+ 2244 0211 53       		.byte	0x53
+ 2245 0212 00000000 		.4byte	0
+ 2246 0216 00000000 		.4byte	0
+ 2247              	.LLST12:
+ 2248 021a 60010000 		.4byte	.LVL25-.Ltext0
+ 2249 021e 74010000 		.4byte	.LVL26-.Ltext0
+ 2250 0222 0200     		.2byte	0x2
+ 2251 0224 32       		.byte	0x32
+ 2252 0225 9F       		.byte	0x9f
+ 2253 0226 00000000 		.4byte	0
+ 2254 022a 00000000 		.4byte	0
+ 2255              	.LLST13:
+ 2256 022e 60010000 		.4byte	.LVL25-.Ltext0
+ 2257 0232 74010000 		.4byte	.LVL26-.Ltext0
+ 2258 0236 0100     		.2byte	0x1
+ 2259 0238 51       		.byte	0x51
+ 2260 0239 00000000 		.4byte	0
+ 2261 023d 00000000 		.4byte	0
+ 2262              	.LLST14:
+ 2263 0241 84010000 		.4byte	.LFB7-.Ltext0
+ 2264 0245 86010000 		.4byte	.LCFI2-.Ltext0
+ 2265 0249 0200     		.2byte	0x2
+ 2266 024b 7D       		.byte	0x7d
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 51
+
+
+ 2267 024c 00       		.sleb128 0
+ 2268 024d 86010000 		.4byte	.LCFI2-.Ltext0
+ 2269 0251 08020000 		.4byte	.LFE7-.Ltext0
+ 2270 0255 0200     		.2byte	0x2
+ 2271 0257 7D       		.byte	0x7d
+ 2272 0258 18       		.sleb128 24
+ 2273 0259 00000000 		.4byte	0
+ 2274 025d 00000000 		.4byte	0
+ 2275              	.LLST15:
+ 2276 0261 84010000 		.4byte	.LVL28-.Ltext0
+ 2277 0265 8F010000 		.4byte	.LVL29-1-.Ltext0
+ 2278 0269 0100     		.2byte	0x1
+ 2279 026b 50       		.byte	0x50
+ 2280 026c 8F010000 		.4byte	.LVL29-1-.Ltext0
+ 2281 0270 08020000 		.4byte	.LFE7-.Ltext0
+ 2282 0274 0400     		.2byte	0x4
+ 2283 0276 F3       		.byte	0xf3
+ 2284 0277 01       		.uleb128 0x1
+ 2285 0278 50       		.byte	0x50
+ 2286 0279 9F       		.byte	0x9f
+ 2287 027a 00000000 		.4byte	0
+ 2288 027e 00000000 		.4byte	0
+ 2289              	.LLST16:
+ 2290 0282 84010000 		.4byte	.LVL28-.Ltext0
+ 2291 0286 8F010000 		.4byte	.LVL29-1-.Ltext0
+ 2292 028a 0100     		.2byte	0x1
+ 2293 028c 51       		.byte	0x51
+ 2294 028d 8F010000 		.4byte	.LVL29-1-.Ltext0
+ 2295 0291 02020000 		.4byte	.LVL54-.Ltext0
+ 2296 0295 0100     		.2byte	0x1
+ 2297 0297 56       		.byte	0x56
+ 2298 0298 00000000 		.4byte	0
+ 2299 029c 00000000 		.4byte	0
+ 2300              	.LLST17:
+ 2301 02a0 84010000 		.4byte	.LVL28-.Ltext0
+ 2302 02a4 8F010000 		.4byte	.LVL29-1-.Ltext0
+ 2303 02a8 0100     		.2byte	0x1
+ 2304 02aa 52       		.byte	0x52
+ 2305 02ab 8F010000 		.4byte	.LVL29-1-.Ltext0
+ 2306 02af 08020000 		.4byte	.LFE7-.Ltext0
+ 2307 02b3 0400     		.2byte	0x4
+ 2308 02b5 F3       		.byte	0xf3
+ 2309 02b6 01       		.uleb128 0x1
+ 2310 02b7 52       		.byte	0x52
+ 2311 02b8 9F       		.byte	0x9f
+ 2312 02b9 00000000 		.4byte	0
+ 2313 02bd 00000000 		.4byte	0
+ 2314              	.LLST18:
+ 2315 02c1 84010000 		.4byte	.LVL28-.Ltext0
+ 2316 02c5 92010000 		.4byte	.LVL30-.Ltext0
+ 2317 02c9 0200     		.2byte	0x2
+ 2318 02cb 30       		.byte	0x30
+ 2319 02cc 9F       		.byte	0x9f
+ 2320 02cd 92010000 		.4byte	.LVL30-.Ltext0
+ 2321 02d1 96010000 		.4byte	.LVL31-.Ltext0
+ 2322 02d5 0100     		.2byte	0x1
+ 2323 02d7 50       		.byte	0x50
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 52
+
+
+ 2324 02d8 9E010000 		.4byte	.LVL33-.Ltext0
+ 2325 02dc A8010000 		.4byte	.LVL34-.Ltext0
+ 2326 02e0 0100     		.2byte	0x1
+ 2327 02e2 50       		.byte	0x50
+ 2328 02e3 A8010000 		.4byte	.LVL34-.Ltext0
+ 2329 02e7 BE010000 		.4byte	.LVL36-.Ltext0
+ 2330 02eb 0100     		.2byte	0x1
+ 2331 02ed 54       		.byte	0x54
+ 2332 02ee C6010000 		.4byte	.LVL38-.Ltext0
+ 2333 02f2 CE010000 		.4byte	.LVL40-.Ltext0
+ 2334 02f6 0100     		.2byte	0x1
+ 2335 02f8 50       		.byte	0x50
+ 2336 02f9 CE010000 		.4byte	.LVL40-.Ltext0
+ 2337 02fd D4010000 		.4byte	.LVL41-.Ltext0
+ 2338 0301 0100     		.2byte	0x1
+ 2339 0303 54       		.byte	0x54
+ 2340 0304 D8010000 		.4byte	.LVL43-.Ltext0
+ 2341 0308 DA010000 		.4byte	.LVL44-.Ltext0
+ 2342 030c 0300     		.2byte	0x3
+ 2343 030e 09       		.byte	0x9
+ 2344 030f FF       		.byte	0xff
+ 2345 0310 9F       		.byte	0x9f
+ 2346 0311 DA010000 		.4byte	.LVL44-.Ltext0
+ 2347 0315 E2010000 		.4byte	.LVL47-.Ltext0
+ 2348 0319 0100     		.2byte	0x1
+ 2349 031b 54       		.byte	0x54
+ 2350 031c E4010000 		.4byte	.LVL48-.Ltext0
+ 2351 0320 FA010000 		.4byte	.LVL50-.Ltext0
+ 2352 0324 0100     		.2byte	0x1
+ 2353 0326 54       		.byte	0x54
+ 2354 0327 FC010000 		.4byte	.LVL51-.Ltext0
+ 2355 032b 02020000 		.4byte	.LVL53-.Ltext0
+ 2356 032f 0100     		.2byte	0x1
+ 2357 0331 54       		.byte	0x54
+ 2358 0332 00000000 		.4byte	0
+ 2359 0336 00000000 		.4byte	0
+ 2360              	.LLST19:
+ 2361 033a 84010000 		.4byte	.LVL28-.Ltext0
+ 2362 033e A8010000 		.4byte	.LVL34-.Ltext0
+ 2363 0342 0200     		.2byte	0x2
+ 2364 0344 30       		.byte	0x30
+ 2365 0345 9F       		.byte	0x9f
+ 2366 0346 B0010000 		.4byte	.LVL35-.Ltext0
+ 2367 034a BE010000 		.4byte	.LVL36-.Ltext0
+ 2368 034e 0100     		.2byte	0x1
+ 2369 0350 50       		.byte	0x50
+ 2370 0351 CE010000 		.4byte	.LVL40-.Ltext0
+ 2371 0355 DA010000 		.4byte	.LVL44-.Ltext0
+ 2372 0359 0100     		.2byte	0x1
+ 2373 035b 50       		.byte	0x50
+ 2374 035c E8010000 		.4byte	.LVL49-.Ltext0
+ 2375 0360 FF010000 		.4byte	.LVL52-1-.Ltext0
+ 2376 0364 0100     		.2byte	0x1
+ 2377 0366 50       		.byte	0x50
+ 2378 0367 00000000 		.4byte	0
+ 2379 036b 00000000 		.4byte	0
+ 2380              	.LLST20:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 53
+
+
+ 2381 036f 84010000 		.4byte	.LVL28-.Ltext0
+ 2382 0373 A8010000 		.4byte	.LVL34-.Ltext0
+ 2383 0377 0200     		.2byte	0x2
+ 2384 0379 30       		.byte	0x30
+ 2385 037a 9F       		.byte	0x9f
+ 2386 037b A8010000 		.4byte	.LVL34-.Ltext0
+ 2387 037f D6010000 		.4byte	.LVL42-.Ltext0
+ 2388 0383 0100     		.2byte	0x1
+ 2389 0385 55       		.byte	0x55
+ 2390 0386 D8010000 		.4byte	.LVL43-.Ltext0
+ 2391 038a DC010000 		.4byte	.LVL45-.Ltext0
+ 2392 038e 0100     		.2byte	0x1
+ 2393 0390 55       		.byte	0x55
+ 2394 0391 E0010000 		.4byte	.LVL46-.Ltext0
+ 2395 0395 E2010000 		.4byte	.LVL47-.Ltext0
+ 2396 0399 0100     		.2byte	0x1
+ 2397 039b 55       		.byte	0x55
+ 2398 039c 00000000 		.4byte	0
+ 2399 03a0 00000000 		.4byte	0
+ 2400              	.LLST21:
+ 2401 03a4 08020000 		.4byte	.LFB8-.Ltext0
+ 2402 03a8 0A020000 		.4byte	.LCFI3-.Ltext0
+ 2403 03ac 0200     		.2byte	0x2
+ 2404 03ae 7D       		.byte	0x7d
+ 2405 03af 00       		.sleb128 0
+ 2406 03b0 0A020000 		.4byte	.LCFI3-.Ltext0
+ 2407 03b4 2E020000 		.4byte	.LFE8-.Ltext0
+ 2408 03b8 0200     		.2byte	0x2
+ 2409 03ba 7D       		.byte	0x7d
+ 2410 03bb 08       		.sleb128 8
+ 2411 03bc 00000000 		.4byte	0
+ 2412 03c0 00000000 		.4byte	0
+ 2413              	.LLST22:
+ 2414 03c4 08020000 		.4byte	.LVL55-.Ltext0
+ 2415 03c8 0C020000 		.4byte	.LVL56-.Ltext0
+ 2416 03cc 0200     		.2byte	0x2
+ 2417 03ce 30       		.byte	0x30
+ 2418 03cf 9F       		.byte	0x9f
+ 2419 03d0 10020000 		.4byte	.LVL57-.Ltext0
+ 2420 03d4 22020000 		.4byte	.LVL58-.Ltext0
+ 2421 03d8 0100     		.2byte	0x1
+ 2422 03da 50       		.byte	0x50
+ 2423 03db 26020000 		.4byte	.LVL59-.Ltext0
+ 2424 03df 28020000 		.4byte	.LVL60-.Ltext0
+ 2425 03e3 0100     		.2byte	0x1
+ 2426 03e5 50       		.byte	0x50
+ 2427 03e6 00000000 		.4byte	0
+ 2428 03ea 00000000 		.4byte	0
+ 2429              	.LLST23:
+ 2430 03ee 2E020000 		.4byte	.LFB9-.Ltext0
+ 2431 03f2 30020000 		.4byte	.LCFI4-.Ltext0
+ 2432 03f6 0200     		.2byte	0x2
+ 2433 03f8 7D       		.byte	0x7d
+ 2434 03f9 00       		.sleb128 0
+ 2435 03fa 30020000 		.4byte	.LCFI4-.Ltext0
+ 2436 03fe 4A020000 		.4byte	.LFE9-.Ltext0
+ 2437 0402 0200     		.2byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 54
+
+
+ 2438 0404 7D       		.byte	0x7d
+ 2439 0405 08       		.sleb128 8
+ 2440 0406 00000000 		.4byte	0
+ 2441 040a 00000000 		.4byte	0
+ 2442              	.LLST24:
+ 2443 040e 2E020000 		.4byte	.LVL61-.Ltext0
+ 2444 0412 32020000 		.4byte	.LVL62-.Ltext0
+ 2445 0416 0100     		.2byte	0x1
+ 2446 0418 50       		.byte	0x50
+ 2447 0419 32020000 		.4byte	.LVL62-.Ltext0
+ 2448 041d 4A020000 		.4byte	.LFE9-.Ltext0
+ 2449 0421 0400     		.2byte	0x4
+ 2450 0423 F3       		.byte	0xf3
+ 2451 0424 01       		.uleb128 0x1
+ 2452 0425 50       		.byte	0x50
+ 2453 0426 9F       		.byte	0x9f
+ 2454 0427 00000000 		.4byte	0
+ 2455 042b 00000000 		.4byte	0
+ 2456              	.LLST25:
+ 2457 042f 38020000 		.4byte	.LVL63-.Ltext0
+ 2458 0433 43020000 		.4byte	.LVL64-1-.Ltext0
+ 2459 0437 0100     		.2byte	0x1
+ 2460 0439 50       		.byte	0x50
+ 2461 043a 44020000 		.4byte	.LVL64-.Ltext0
+ 2462 043e 4A020000 		.4byte	.LFE9-.Ltext0
+ 2463 0442 0100     		.2byte	0x1
+ 2464 0444 50       		.byte	0x50
+ 2465 0445 00000000 		.4byte	0
+ 2466 0449 00000000 		.4byte	0
+ 2467              	.LLST26:
+ 2468 044d 4A020000 		.4byte	.LFB10-.Ltext0
+ 2469 0451 4C020000 		.4byte	.LCFI5-.Ltext0
+ 2470 0455 0200     		.2byte	0x2
+ 2471 0457 7D       		.byte	0x7d
+ 2472 0458 00       		.sleb128 0
+ 2473 0459 4C020000 		.4byte	.LCFI5-.Ltext0
+ 2474 045d 8C020000 		.4byte	.LFE10-.Ltext0
+ 2475 0461 0200     		.2byte	0x2
+ 2476 0463 7D       		.byte	0x7d
+ 2477 0464 18       		.sleb128 24
+ 2478 0465 00000000 		.4byte	0
+ 2479 0469 00000000 		.4byte	0
+ 2480              	.LLST27:
+ 2481 046d 4A020000 		.4byte	.LVL65-.Ltext0
+ 2482 0471 55020000 		.4byte	.LVL66-1-.Ltext0
+ 2483 0475 0100     		.2byte	0x1
+ 2484 0477 50       		.byte	0x50
+ 2485 0478 55020000 		.4byte	.LVL66-1-.Ltext0
+ 2486 047c 8C020000 		.4byte	.LFE10-.Ltext0
+ 2487 0480 0400     		.2byte	0x4
+ 2488 0482 F3       		.byte	0xf3
+ 2489 0483 01       		.uleb128 0x1
+ 2490 0484 50       		.byte	0x50
+ 2491 0485 9F       		.byte	0x9f
+ 2492 0486 00000000 		.4byte	0
+ 2493 048a 00000000 		.4byte	0
+ 2494              	.LLST28:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 55
+
+
+ 2495 048e 4A020000 		.4byte	.LVL65-.Ltext0
+ 2496 0492 55020000 		.4byte	.LVL66-1-.Ltext0
+ 2497 0496 0100     		.2byte	0x1
+ 2498 0498 51       		.byte	0x51
+ 2499 0499 55020000 		.4byte	.LVL66-1-.Ltext0
+ 2500 049d 6A020000 		.4byte	.LVL71-.Ltext0
+ 2501 04a1 0100     		.2byte	0x1
+ 2502 04a3 57       		.byte	0x57
+ 2503 04a4 6A020000 		.4byte	.LVL71-.Ltext0
+ 2504 04a8 7A020000 		.4byte	.LVL73-.Ltext0
+ 2505 04ac 0600     		.2byte	0x6
+ 2506 04ae 77       		.byte	0x77
+ 2507 04af 00       		.sleb128 0
+ 2508 04b0 75       		.byte	0x75
+ 2509 04b1 00       		.sleb128 0
+ 2510 04b2 22       		.byte	0x22
+ 2511 04b3 9F       		.byte	0x9f
+ 2512 04b4 7A020000 		.4byte	.LVL73-.Ltext0
+ 2513 04b8 80020000 		.4byte	.LVL74-.Ltext0
+ 2514 04bc 0800     		.2byte	0x8
+ 2515 04be 77       		.byte	0x77
+ 2516 04bf 00       		.sleb128 0
+ 2517 04c0 75       		.byte	0x75
+ 2518 04c1 00       		.sleb128 0
+ 2519 04c2 22       		.byte	0x22
+ 2520 04c3 31       		.byte	0x31
+ 2521 04c4 1C       		.byte	0x1c
+ 2522 04c5 9F       		.byte	0x9f
+ 2523 04c6 00000000 		.4byte	0
+ 2524 04ca 00000000 		.4byte	0
+ 2525              	.LLST29:
+ 2526 04ce 4A020000 		.4byte	.LVL65-.Ltext0
+ 2527 04d2 55020000 		.4byte	.LVL66-1-.Ltext0
+ 2528 04d6 0100     		.2byte	0x1
+ 2529 04d8 52       		.byte	0x52
+ 2530 04d9 55020000 		.4byte	.LVL66-1-.Ltext0
+ 2531 04dd 8C020000 		.4byte	.LFE10-.Ltext0
+ 2532 04e1 0400     		.2byte	0x4
+ 2533 04e3 F3       		.byte	0xf3
+ 2534 04e4 01       		.uleb128 0x1
+ 2535 04e5 52       		.byte	0x52
+ 2536 04e6 9F       		.byte	0x9f
+ 2537 04e7 00000000 		.4byte	0
+ 2538 04eb 00000000 		.4byte	0
+ 2539              	.LLST30:
+ 2540 04ef 4A020000 		.4byte	.LVL65-.Ltext0
+ 2541 04f3 58020000 		.4byte	.LVL67-.Ltext0
+ 2542 04f7 0200     		.2byte	0x2
+ 2543 04f9 30       		.byte	0x30
+ 2544 04fa 9F       		.byte	0x9f
+ 2545 04fb 58020000 		.4byte	.LVL67-.Ltext0
+ 2546 04ff 5E020000 		.4byte	.LVL68-.Ltext0
+ 2547 0503 0100     		.2byte	0x1
+ 2548 0505 50       		.byte	0x50
+ 2549 0506 5E020000 		.4byte	.LVL68-.Ltext0
+ 2550 050a 66020000 		.4byte	.LVL70-.Ltext0
+ 2551 050e 0100     		.2byte	0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 56
+
+
+ 2552 0510 54       		.byte	0x54
+ 2553 0511 66020000 		.4byte	.LVL70-.Ltext0
+ 2554 0515 6A020000 		.4byte	.LVL71-.Ltext0
+ 2555 0519 0100     		.2byte	0x1
+ 2556 051b 50       		.byte	0x50
+ 2557 051c 6A020000 		.4byte	.LVL71-.Ltext0
+ 2558 0520 78020000 		.4byte	.LVL72-.Ltext0
+ 2559 0524 0200     		.2byte	0x2
+ 2560 0526 31       		.byte	0x31
+ 2561 0527 9F       		.byte	0x9f
+ 2562 0528 78020000 		.4byte	.LVL72-.Ltext0
+ 2563 052c 80020000 		.4byte	.LVL74-.Ltext0
+ 2564 0530 0100     		.2byte	0x1
+ 2565 0532 50       		.byte	0x50
+ 2566 0533 80020000 		.4byte	.LVL74-.Ltext0
+ 2567 0537 86020000 		.4byte	.LVL76-.Ltext0
+ 2568 053b 0100     		.2byte	0x1
+ 2569 053d 54       		.byte	0x54
+ 2570 053e 00000000 		.4byte	0
+ 2571 0542 00000000 		.4byte	0
+ 2572              	.LLST31:
+ 2573 0546 4A020000 		.4byte	.LVL65-.Ltext0
+ 2574 054a 6A020000 		.4byte	.LVL71-.Ltext0
+ 2575 054e 0200     		.2byte	0x2
+ 2576 0550 30       		.byte	0x30
+ 2577 0551 9F       		.byte	0x9f
+ 2578 0552 6A020000 		.4byte	.LVL71-.Ltext0
+ 2579 0556 7A020000 		.4byte	.LVL73-.Ltext0
+ 2580 055a 0100     		.2byte	0x1
+ 2581 055c 55       		.byte	0x55
+ 2582 055d 00000000 		.4byte	0
+ 2583 0561 00000000 		.4byte	0
+ 2584              	.LLST32:
+ 2585 0565 8C020000 		.4byte	.LFB11-.Ltext0
+ 2586 0569 8E020000 		.4byte	.LCFI6-.Ltext0
+ 2587 056d 0200     		.2byte	0x2
+ 2588 056f 7D       		.byte	0x7d
+ 2589 0570 00       		.sleb128 0
+ 2590 0571 8E020000 		.4byte	.LCFI6-.Ltext0
+ 2591 0575 30030000 		.4byte	.LFE11-.Ltext0
+ 2592 0579 0200     		.2byte	0x2
+ 2593 057b 7D       		.byte	0x7d
+ 2594 057c 20       		.sleb128 32
+ 2595 057d 00000000 		.4byte	0
+ 2596 0581 00000000 		.4byte	0
+ 2597              	.LLST33:
+ 2598 0585 8C020000 		.4byte	.LVL77-.Ltext0
+ 2599 0589 97020000 		.4byte	.LVL78-1-.Ltext0
+ 2600 058d 0100     		.2byte	0x1
+ 2601 058f 50       		.byte	0x50
+ 2602 0590 97020000 		.4byte	.LVL78-1-.Ltext0
+ 2603 0594 30030000 		.4byte	.LFE11-.Ltext0
+ 2604 0598 0400     		.2byte	0x4
+ 2605 059a F3       		.byte	0xf3
+ 2606 059b 01       		.uleb128 0x1
+ 2607 059c 50       		.byte	0x50
+ 2608 059d 9F       		.byte	0x9f
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 57
+
+
+ 2609 059e 00000000 		.4byte	0
+ 2610 05a2 00000000 		.4byte	0
+ 2611              	.LLST34:
+ 2612 05a6 8C020000 		.4byte	.LVL77-.Ltext0
+ 2613 05aa 97020000 		.4byte	.LVL78-1-.Ltext0
+ 2614 05ae 0100     		.2byte	0x1
+ 2615 05b0 51       		.byte	0x51
+ 2616 05b1 97020000 		.4byte	.LVL78-1-.Ltext0
+ 2617 05b5 1C030000 		.4byte	.LVL102-.Ltext0
+ 2618 05b9 0100     		.2byte	0x1
+ 2619 05bb 57       		.byte	0x57
+ 2620 05bc 00000000 		.4byte	0
+ 2621 05c0 00000000 		.4byte	0
+ 2622              	.LLST35:
+ 2623 05c4 8C020000 		.4byte	.LVL77-.Ltext0
+ 2624 05c8 97020000 		.4byte	.LVL78-1-.Ltext0
+ 2625 05cc 0100     		.2byte	0x1
+ 2626 05ce 52       		.byte	0x52
+ 2627 05cf 97020000 		.4byte	.LVL78-1-.Ltext0
+ 2628 05d3 30030000 		.4byte	.LFE11-.Ltext0
+ 2629 05d7 0400     		.2byte	0x4
+ 2630 05d9 F3       		.byte	0xf3
+ 2631 05da 01       		.uleb128 0x1
+ 2632 05db 52       		.byte	0x52
+ 2633 05dc 9F       		.byte	0x9f
+ 2634 05dd 00000000 		.4byte	0
+ 2635 05e1 00000000 		.4byte	0
+ 2636              	.LLST36:
+ 2637 05e5 8C020000 		.4byte	.LVL77-.Ltext0
+ 2638 05e9 9A020000 		.4byte	.LVL79-.Ltext0
+ 2639 05ed 0200     		.2byte	0x2
+ 2640 05ef 30       		.byte	0x30
+ 2641 05f0 9F       		.byte	0x9f
+ 2642 05f1 9A020000 		.4byte	.LVL79-.Ltext0
+ 2643 05f5 9E020000 		.4byte	.LVL80-.Ltext0
+ 2644 05f9 0100     		.2byte	0x1
+ 2645 05fb 50       		.byte	0x50
+ 2646 05fc A6020000 		.4byte	.LVL82-.Ltext0
+ 2647 0600 B4020000 		.4byte	.LVL83-.Ltext0
+ 2648 0604 0100     		.2byte	0x1
+ 2649 0606 50       		.byte	0x50
+ 2650 0607 B4020000 		.4byte	.LVL83-.Ltext0
+ 2651 060b BE020000 		.4byte	.LVL84-.Ltext0
+ 2652 060f 0100     		.2byte	0x1
+ 2653 0611 53       		.byte	0x53
+ 2654 0612 EC020000 		.4byte	.LVL90-.Ltext0
+ 2655 0616 F8020000 		.4byte	.LVL91-.Ltext0
+ 2656 061a 0300     		.2byte	0x3
+ 2657 061c 09       		.byte	0x9
+ 2658 061d FD       		.byte	0xfd
+ 2659 061e 9F       		.byte	0x9f
+ 2660 061f F8020000 		.4byte	.LVL91-.Ltext0
+ 2661 0623 FE020000 		.4byte	.LVL93-.Ltext0
+ 2662 0627 0200     		.2byte	0x2
+ 2663 0629 31       		.byte	0x31
+ 2664 062a 9F       		.byte	0x9f
+ 2665 062b 0A030000 		.4byte	.LVL95-.Ltext0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 58
+
+
+ 2666 062f 0C030000 		.4byte	.LVL96-.Ltext0
+ 2667 0633 0300     		.2byte	0x3
+ 2668 0635 09       		.byte	0x9
+ 2669 0636 FF       		.byte	0xff
+ 2670 0637 9F       		.byte	0x9f
+ 2671 0638 0C030000 		.4byte	.LVL96-.Ltext0
+ 2672 063c 16030000 		.4byte	.LVL99-.Ltext0
+ 2673 0640 0100     		.2byte	0x1
+ 2674 0642 53       		.byte	0x53
+ 2675 0643 16030000 		.4byte	.LVL99-.Ltext0
+ 2676 0647 1C030000 		.4byte	.LVL101-.Ltext0
+ 2677 064b 0100     		.2byte	0x1
+ 2678 064d 54       		.byte	0x54
+ 2679 064e 00000000 		.4byte	0
+ 2680 0652 00000000 		.4byte	0
+ 2681              	.LLST37:
+ 2682 0656 8C020000 		.4byte	.LVL77-.Ltext0
+ 2683 065a B4020000 		.4byte	.LVL83-.Ltext0
+ 2684 065e 0200     		.2byte	0x2
+ 2685 0660 30       		.byte	0x30
+ 2686 0661 9F       		.byte	0x9f
+ 2687 0662 C2020000 		.4byte	.LVL85-.Ltext0
+ 2688 0666 E4020000 		.4byte	.LVL88-.Ltext0
+ 2689 066a 0100     		.2byte	0x1
+ 2690 066c 50       		.byte	0x50
+ 2691 066d FE020000 		.4byte	.LVL93-.Ltext0
+ 2692 0671 0C030000 		.4byte	.LVL96-.Ltext0
+ 2693 0675 0100     		.2byte	0x1
+ 2694 0677 50       		.byte	0x50
+ 2695 0678 00000000 		.4byte	0
+ 2696 067c 00000000 		.4byte	0
+ 2697              	.LLST38:
+ 2698 0680 8C020000 		.4byte	.LVL77-.Ltext0
+ 2699 0684 B4020000 		.4byte	.LVL83-.Ltext0
+ 2700 0688 0200     		.2byte	0x2
+ 2701 068a 30       		.byte	0x30
+ 2702 068b 9F       		.byte	0x9f
+ 2703 068c B4020000 		.4byte	.LVL83-.Ltext0
+ 2704 0690 06030000 		.4byte	.LVL94-.Ltext0
+ 2705 0694 0100     		.2byte	0x1
+ 2706 0696 54       		.byte	0x54
+ 2707 0697 0A030000 		.4byte	.LVL95-.Ltext0
+ 2708 069b 0E030000 		.4byte	.LVL97-.Ltext0
+ 2709 069f 0100     		.2byte	0x1
+ 2710 06a1 54       		.byte	0x54
+ 2711 06a2 12030000 		.4byte	.LVL98-.Ltext0
+ 2712 06a6 16030000 		.4byte	.LVL99-.Ltext0
+ 2713 06aa 0100     		.2byte	0x1
+ 2714 06ac 54       		.byte	0x54
+ 2715 06ad 00000000 		.4byte	0
+ 2716 06b1 00000000 		.4byte	0
+ 2717              	.LLST39:
+ 2718 06b5 DC020000 		.4byte	.LVL86-.Ltext0
+ 2719 06b9 E2020000 		.4byte	.LVL87-.Ltext0
+ 2720 06bd 0100     		.2byte	0x1
+ 2721 06bf 57       		.byte	0x57
+ 2722 06c0 00000000 		.4byte	0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 59
+
+
+ 2723 06c4 00000000 		.4byte	0
+ 2724              	.LLST40:
+ 2725 06c8 DC020000 		.4byte	.LVL86-.Ltext0
+ 2726 06cc E2020000 		.4byte	.LVL87-.Ltext0
+ 2727 06d0 0200     		.2byte	0x2
+ 2728 06d2 31       		.byte	0x31
+ 2729 06d3 9F       		.byte	0x9f
+ 2730 06d4 00000000 		.4byte	0
+ 2731 06d8 00000000 		.4byte	0
+ 2732              	.LLST42:
+ 2733 06dc E2020000 		.4byte	.LVL87-.Ltext0
+ 2734 06e0 EA020000 		.4byte	.LVL89-.Ltext0
+ 2735 06e4 0100     		.2byte	0x1
+ 2736 06e6 57       		.byte	0x57
+ 2737 06e7 00000000 		.4byte	0
+ 2738 06eb 00000000 		.4byte	0
+ 2739              	.LLST43:
+ 2740 06ef E2020000 		.4byte	.LVL87-.Ltext0
+ 2741 06f3 EA020000 		.4byte	.LVL89-.Ltext0
+ 2742 06f7 0200     		.2byte	0x2
+ 2743 06f9 30       		.byte	0x30
+ 2744 06fa 9F       		.byte	0x9f
+ 2745 06fb 00000000 		.4byte	0
+ 2746 06ff 00000000 		.4byte	0
+ 2747              	.LLST44:
+ 2748 0703 E2020000 		.4byte	.LVL87-.Ltext0
+ 2749 0707 EA020000 		.4byte	.LVL89-.Ltext0
+ 2750 070b 0200     		.2byte	0x2
+ 2751 070d 31       		.byte	0x31
+ 2752 070e 9F       		.byte	0x9f
+ 2753 070f 00000000 		.4byte	0
+ 2754 0713 00000000 		.4byte	0
+ 2755              	.LLST45:
+ 2756 0717 EC020000 		.4byte	.LVL90-.Ltext0
+ 2757 071b FA020000 		.4byte	.LVL92-.Ltext0
+ 2758 071f 0100     		.2byte	0x1
+ 2759 0721 57       		.byte	0x57
+ 2760 0722 FA020000 		.4byte	.LVL92-.Ltext0
+ 2761 0726 FE020000 		.4byte	.LVL93-.Ltext0
+ 2762 072a 0300     		.2byte	0x3
+ 2763 072c 77       		.byte	0x77
+ 2764 072d 7F       		.sleb128 -1
+ 2765 072e 9F       		.byte	0x9f
+ 2766 072f 00000000 		.4byte	0
+ 2767 0733 00000000 		.4byte	0
+ 2768              	.LLST46:
+ 2769 0737 EC020000 		.4byte	.LVL90-.Ltext0
+ 2770 073b FE020000 		.4byte	.LVL93-.Ltext0
+ 2771 073f 0200     		.2byte	0x2
+ 2772 0741 32       		.byte	0x32
+ 2773 0742 9F       		.byte	0x9f
+ 2774 0743 00000000 		.4byte	0
+ 2775 0747 00000000 		.4byte	0
+ 2776              	.LLST47:
+ 2777 074b EC020000 		.4byte	.LVL90-.Ltext0
+ 2778 074f FE020000 		.4byte	.LVL93-.Ltext0
+ 2779 0753 0200     		.2byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 60
+
+
+ 2780 0755 31       		.byte	0x31
+ 2781 0756 9F       		.byte	0x9f
+ 2782 0757 00000000 		.4byte	0
+ 2783 075b 00000000 		.4byte	0
+ 2784              		.section	.debug_aranges,"",%progbits
+ 2785 0000 1C000000 		.4byte	0x1c
+ 2786 0004 0200     		.2byte	0x2
+ 2787 0006 00000000 		.4byte	.Ldebug_info0
+ 2788 000a 04       		.byte	0x4
+ 2789 000b 00       		.byte	0
+ 2790 000c 0000     		.2byte	0
+ 2791 000e 0000     		.2byte	0
+ 2792 0010 00000000 		.4byte	.Ltext0
+ 2793 0014 30030000 		.4byte	.Letext0-.Ltext0
+ 2794 0018 00000000 		.4byte	0
+ 2795 001c 00000000 		.4byte	0
+ 2796              		.section	.debug_line,"",%progbits
+ 2797              	.Ldebug_line0:
+ 2798 0000 45010000 		.section	.debug_str,"MS",%progbits,1
+ 2798      02002900 
+ 2798      00000201 
+ 2798      FB0E0D00 
+ 2798      01010101 
+ 2799              	.LASF7:
+ 2800 0000 6C6F6E67 		.ascii	"long long int\000"
+ 2800      206C6F6E 
+ 2800      6720696E 
+ 2800      7400
+ 2801              	.LASF21:
+ 2802 000e 6932634D 		.ascii	"i2cMyWrite\000"
+ 2802      79577269 
+ 2802      746500
+ 2803              	.LASF10:
+ 2804 0019 69326343 		.ascii	"i2cCheckStatus\000"
+ 2804      6865636B 
+ 2804      53746174 
+ 2804      757300
+ 2805              	.LASF3:
+ 2806 0028 756E7369 		.ascii	"unsigned int\000"
+ 2806      676E6564 
+ 2806      20696E74 
+ 2806      00
+ 2807              	.LASF11:
+ 2808 0035 69326353 		.ascii	"i2cStart\000"
+ 2808      74617274 
+ 2808      00
+ 2809              	.LASF8:
+ 2810 003e 6D6F6465 		.ascii	"mode\000"
+ 2810      00
+ 2811              	.LASF26:
+ 2812 0043 69326347 		.ascii	"i2cGetChar\000"
+ 2812      65744368 
+ 2812      617200
+ 2813              	.LASF13:
+ 2814 004e 72657443 		.ascii	"retCode\000"
+ 2814      6F646500 
+ 2815              	.LASF15:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 61
+
+
+ 2816 0056 69326350 		.ascii	"i2cPutChar\000"
+ 2816      75744368 
+ 2816      617200
+ 2817              	.LASF12:
+ 2818 0061 73746174 		.ascii	"status\000"
+ 2818      757300
+ 2819              	.LASF27:
+ 2820 0068 69326349 		.ascii	"i2cInit\000"
+ 2820      6E697400 
+ 2821              	.LASF29:
+ 2822 0070 69326352 		.ascii	"i2cRead\000"
+ 2822      65616400 
+ 2823              	.LASF28:
+ 2824 0078 69326353 		.ascii	"i2cStop\000"
+ 2824      746F7000 
+ 2825              	.LASF4:
+ 2826 0080 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 2826      206C6F6E 
+ 2826      6720756E 
+ 2826      7369676E 
+ 2826      65642069 
+ 2827              	.LASF18:
+ 2828 0097 61646472 		.ascii	"addr\000"
+ 2828      00
+ 2829              	.LASF19:
+ 2830 009c 69326357 		.ascii	"i2cWaitTransmit\000"
+ 2830      61697454 
+ 2830      72616E73 
+ 2830      6D697400 
+ 2831              	.LASF22:
+ 2832 00ac 70427566 		.ascii	"pBuf\000"
+ 2832      00
+ 2833              	.LASF1:
+ 2834 00b1 756E7369 		.ascii	"unsigned char\000"
+ 2834      676E6564 
+ 2834      20636861 
+ 2834      7200
+ 2835              	.LASF20:
+ 2836 00bf 69326357 		.ascii	"i2cWriteWithWait\000"
+ 2836      72697465 
+ 2836      57697468 
+ 2836      57616974 
+ 2836      00
+ 2837              	.LASF17:
+ 2838 00d0 64617461 		.ascii	"data\000"
+ 2838      00
+ 2839              	.LASF14:
+ 2840 00d5 69326352 		.ascii	"i2cRepeatStart\000"
+ 2840      65706561 
+ 2840      74537461 
+ 2840      727400
+ 2841              	.LASF6:
+ 2842 00e4 73686F72 		.ascii	"short int\000"
+ 2842      7420696E 
+ 2842      7400
+ 2843              	.LASF25:
+ 2844 00ee 433A5C45 		.ascii	"C:\\Embedded\\2148MiniDemo\\2148\000"
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 62
+
+
+ 2844      6D626564 
+ 2844      6465645C 
+ 2844      32313438 
+ 2844      4D696E69 
+ 2845              	.LASF16:
+ 2846 010c 69326357 		.ascii	"i2cWrite\000"
+ 2846      72697465 
+ 2846      00
+ 2847              	.LASF2:
+ 2848 0115 73686F72 		.ascii	"short unsigned int\000"
+ 2848      7420756E 
+ 2848      7369676E 
+ 2848      65642069 
+ 2848      6E7400
+ 2849              	.LASF5:
+ 2850 0128 7369676E 		.ascii	"signed char\000"
+ 2850      65642063 
+ 2850      68617200 
+ 2851              	.LASF24:
+ 2852 0134 6932632E 		.ascii	"i2c.c\000"
+ 2852      6300
+ 2853              	.LASF0:
+ 2854 013a 74553136 		.ascii	"tU16\000"
+ 2854      00
+ 2855              	.LASF23:
+ 2856 013f 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 2856      43313120 
+ 2856      352E342E 
+ 2856      31203230 
+ 2856      31363036 
+ 2857 0172 616E6368 		.ascii	"anch revision 237715] -mcpu=arm7tdmi -mthumb -mthum"
+ 2857      20726576 
+ 2857      6973696F 
+ 2857      6E203233 
+ 2857      37373135 
+ 2858 01a5 622D696E 		.ascii	"b-interwork -gdwarf-2 -Os\000"
+ 2858      74657277 
+ 2858      6F726B20 
+ 2858      2D676477 
+ 2858      6172662D 
+ 2859              	.LASF9:
+ 2860 01bf 70446174 		.ascii	"pData\000"
+ 2860      6100
+ 2861              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s 			page 63
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2c.c
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:19     .text:00000000 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:24     .text:00000000 i2cCheckStatus
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:54     .text:00000010 $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:59     .text:00000018 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:64     .text:00000018 i2cInit
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:111    .text:0000004c $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:120    .text:00000064 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:125    .text:00000064 i2cStart
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:195    .text:000000a0 $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:200    .text:000000a8 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:205    .text:000000a8 i2cRepeatStart
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:274    .text:000000e0 $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:279    .text:000000e8 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:284    .text:000000e8 i2cStop
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:316    .text:00000104 $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:321    .text:0000010c $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:326    .text:0000010c i2cPutChar
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:367    .text:00000128 $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:373    .text:00000134 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:378    .text:00000134 i2cGetChar
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:452    .text:00000178 $d
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:458    .text:00000184 $t
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:463    .text:00000184 i2cWrite
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:608    .text:00000208 i2cWaitTransmit
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:662    .text:0000022e i2cWriteWithWait
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:705    .text:0000024a i2cMyWrite
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:783    .text:0000028c i2cRead
+C:\Users\embedded\AppData\Local\Temp\ccFOwvpL.s:955    .text:00000324 $d
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

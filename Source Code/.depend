@@ -1,0 +1,11 @@
+main.o: main.c general.h osapi.h startup/lpc2xxx.h startup/printf_P.h \
+ startup/config.h startup/consol.h startup/printf_init.h startup/consol.h \
+ startup/config.h irq/irq_handler.h timer.h VIC.h Common_Def.h i2c.h \
+ eeprom.h lcd.h lpc2xxx.h DHT11.h delays.h
+i2c.o: i2c.c general.h i2c.h startup/lpc2xxx.h
+eeprom.o: eeprom.c general.h i2c.h
+DHT11.o: DHT11.c DHT11.h startup/lpc2xxx.h general.h delays.h osapi.h \
+ startup/printf_P.h startup/config.h startup/consol.h timer.h
+lcd.o: lcd.c lcd.h general.h lpc2xxx.h
+delays.o: delays.c delays.h general.h osapi.h startup/lpc2xxx.h \
+ startup/printf_P.h startup/config.h startup/consol.h timer.h

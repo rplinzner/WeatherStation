@@ -1,0 +1,1106 @@
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu arm7tdmi
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"DHT11.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.align	1
+  20              		.global	dht11_request
+  21              		.code	16
+  22              		.thumb_func
+  23              		.type	dht11_request, %function
+  24              	dht11_request:
+  25              	.LFB0:
+  26              		.file 1 "DHT11.c"
+   1:DHT11.c       **** #include "DHT11.h"
+   2:DHT11.c       **** #include "delays.h"
+   3:DHT11.c       **** 
+   4:DHT11.c       **** void dht11_request(void)
+   5:DHT11.c       **** {
+  27              		.loc 1 5 0
+  28              		.cfi_startproc
+  29              		@ Function supports interworking.
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 10B5     		push	{r4, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 4, -8
+  36              		.cfi_offset 14, -4
+   6:DHT11.c       **** 	DHT11_OUTPUT();
+  37              		.loc 1 6 0
+  38 0002 1024     		movs	r4, #16
+  39 0004 064A     		ldr	r2, .L2
+  40 0006 1368     		ldr	r3, [r2]
+  41 0008 2343     		orrs	r3, r4
+  42 000a 1360     		str	r3, [r2]
+   7:DHT11.c       **** 	DHT11_CLR();
+  43              		.loc 1 7 0
+  44 000c 054B     		ldr	r3, .L2+4
+   8:DHT11.c       **** 	delay_ms(18);
+  45              		.loc 1 8 0
+  46 000e 1220     		movs	r0, #18
+   7:DHT11.c       **** 	DHT11_CLR();
+  47              		.loc 1 7 0
+  48 0010 1C60     		str	r4, [r3]
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 2
+
+
+  49              		.loc 1 8 0
+  50 0012 FFF7FEFF 		bl	delay_ms
+  51              	.LVL0:
+   9:DHT11.c       **** 	DHT11_SET();
+  52              		.loc 1 9 0
+  53 0016 044B     		ldr	r3, .L2+8
+  10:DHT11.c       **** }
+  54              		.loc 1 10 0
+  55              		@ sp needed
+   9:DHT11.c       **** 	DHT11_SET();
+  56              		.loc 1 9 0
+  57 0018 1C60     		str	r4, [r3]
+  58              		.loc 1 10 0
+  59 001a 10BC     		pop	{r4}
+  60 001c 01BC     		pop	{r0}
+  61 001e 0047     		bx	r0
+  62              	.L3:
+  63              		.align	2
+  64              	.L2:
+  65 0020 088002E0 		.word	-536707064
+  66 0024 0C8002E0 		.word	-536707060
+  67 0028 048002E0 		.word	-536707068
+  68              		.cfi_endproc
+  69              	.LFE0:
+  70              		.size	dht11_request, .-dht11_request
+  71              		.align	1
+  72              		.global	dht11_response
+  73              		.code	16
+  74              		.thumb_func
+  75              		.type	dht11_response, %function
+  76              	dht11_response:
+  77              	.LFB1:
+  11:DHT11.c       **** 
+  12:DHT11.c       **** void dht11_response(void)
+  13:DHT11.c       **** {
+  78              		.loc 1 13 0
+  79              		.cfi_startproc
+  80              		@ Function supports interworking.
+  81              		@ args = 0, pretend = 0, frame = 0
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  14:DHT11.c       **** 	DHT11_INPUT();
+  83              		.loc 1 14 0
+  84 002c 1023     		movs	r3, #16
+  85 002e 1149     		ldr	r1, .L26
+  86 0030 0A68     		ldr	r2, [r1]
+  87 0032 9A43     		bics	r2, r3
+  13:DHT11.c       **** 	DHT11_INPUT();
+  88              		.loc 1 13 0
+  89 0034 10B5     		push	{r4, lr}
+  90              	.LCFI1:
+  91              		.cfi_def_cfa_offset 8
+  92              		.cfi_offset 4, -8
+  93              		.cfi_offset 14, -4
+  94              		.loc 1 14 0
+  95 0036 0A60     		str	r2, [r1]
+  96              	.LVL1:
+  15:DHT11.c       **** 
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 3
+
+
+  16:DHT11.c       **** 	int err=0;
+  17:DHT11.c       **** 	while( IOPIN0 & 0x00000010 )//wait for HIGH
+  97              		.loc 1 17 0
+  98 0038 0F4C     		ldr	r4, .L26+4
+  99 003a 104A     		ldr	r2, .L26+8
+ 100              	.LVL2:
+ 101              	.L5:
+ 102 003c 2068     		ldr	r0, [r4]
+ 103 003e 0E49     		ldr	r1, .L26+4
+ 104 0040 1842     		tst	r0, r3
+ 105 0042 03D0     		beq	.L24
+ 106              	.LVL3:
+ 107 0044 013A     		subs	r2, r2, #1
+ 108              	.LVL4:
+  18:DHT11.c       **** 	{
+  19:DHT11.c       **** 		err++;
+  20:DHT11.c       **** 		if(err>=1000000)return;
+ 109              		.loc 1 20 0
+ 110 0046 002A     		cmp	r2, #0
+ 111 0048 F8D1     		bne	.L5
+ 112 004a 10E0     		b	.L4
+ 113              	.L24:
+  21:DHT11.c       **** 	}
+  22:DHT11.c       **** 	err=0;
+  23:DHT11.c       **** 
+  24:DHT11.c       **** 	while( (IOPIN0 & 0x00000010) == 0 ) //wait for LOW
+ 114              		.loc 1 24 0
+ 115 004c 1022     		movs	r2, #16
+ 116              	.LVL5:
+ 117 004e 0B4B     		ldr	r3, .L26+8
+ 118              	.L9:
+ 119              	.LVL6:
+ 120 0050 0868     		ldr	r0, [r1]
+ 121 0052 1042     		tst	r0, r2
+ 122 0054 03D1     		bne	.L25
+ 123              	.LVL7:
+ 124 0056 013B     		subs	r3, r3, #1
+ 125              	.LVL8:
+  25:DHT11.c       **** 	{
+  26:DHT11.c       **** 		err++;
+  27:DHT11.c       **** 		if(err>=1000000)return;
+ 126              		.loc 1 27 0
+ 127 0058 002B     		cmp	r3, #0
+ 128 005a F9D1     		bne	.L9
+ 129 005c 07E0     		b	.L4
+ 130              	.L25:
+  28:DHT11.c       **** 	}
+  29:DHT11.c       **** 	err=0;
+  30:DHT11.c       **** 
+  31:DHT11.c       **** 	while(IOPIN0 & 0x00000010) //wait for HIGH
+ 131              		.loc 1 31 0
+ 132 005e 1022     		movs	r2, #16
+ 133 0060 064B     		ldr	r3, .L26+8
+ 134              	.LVL9:
+ 135              	.L12:
+ 136 0062 0868     		ldr	r0, [r1]
+ 137 0064 1042     		tst	r0, r2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 4
+
+
+ 138 0066 02D0     		beq	.L4
+ 139              	.LVL10:
+ 140 0068 013B     		subs	r3, r3, #1
+ 141              	.LVL11:
+  32:DHT11.c       **** 	{
+  33:DHT11.c       **** 		err++;
+  34:DHT11.c       **** 		if(err>=1000000) return;
+ 142              		.loc 1 34 0
+ 143 006a 002B     		cmp	r3, #0
+ 144 006c F9D1     		bne	.L12
+ 145              	.LVL12:
+ 146              	.L4:
+  35:DHT11.c       **** 	}
+  36:DHT11.c       **** }
+ 147              		.loc 1 36 0
+ 148              		@ sp needed
+ 149 006e 10BC     		pop	{r4}
+ 150 0070 01BC     		pop	{r0}
+ 151 0072 0047     		bx	r0
+ 152              	.L27:
+ 153              		.align	2
+ 154              	.L26:
+ 155 0074 088002E0 		.word	-536707064
+ 156 0078 008002E0 		.word	-536707072
+ 157 007c 40420F00 		.word	1000000
+ 158              		.cfi_endproc
+ 159              	.LFE1:
+ 160              		.size	dht11_response, .-dht11_response
+ 161              		.align	1
+ 162              		.global	dht11_data
+ 163              		.code	16
+ 164              		.thumb_func
+ 165              		.type	dht11_data, %function
+ 166              	dht11_data:
+ 167              	.LFB2:
+  37:DHT11.c       **** 
+  38:DHT11.c       **** tU8 dht11_data(void)
+  39:DHT11.c       **** {
+ 168              		.loc 1 39 0
+ 169              		.cfi_startproc
+ 170              		@ Function supports interworking.
+ 171              		@ args = 0, pretend = 0, frame = 0
+ 172              		@ frame_needed = 0, uses_anonymous_args = 0
+ 173              	.LVL13:
+ 174 0080 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 175              	.LCFI2:
+ 176              		.cfi_def_cfa_offset 24
+ 177              		.cfi_offset 3, -24
+ 178              		.cfi_offset 4, -20
+ 179              		.cfi_offset 5, -16
+ 180              		.cfi_offset 6, -12
+ 181              		.cfi_offset 7, -8
+ 182              		.cfi_offset 14, -4
+ 183              		.loc 1 39 0
+ 184 0082 0825     		movs	r5, #8
+  40:DHT11.c       **** 
+  41:DHT11.c       **** 	int err=0;
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 5
+
+
+  42:DHT11.c       **** 	int count;
+  43:DHT11.c       **** 	tU8 data = 0;
+ 185              		.loc 1 43 0
+ 186 0084 0024     		movs	r4, #0
+  44:DHT11.c       **** 	for(count = 0; count<8 ; count++)	/* 8 bits of data */
+  45:DHT11.c       **** 	{
+  46:DHT11.c       **** 		while( (IOPIN0 & 0x00000010) == 0 )	/* Wait till response is LOW */
+ 187              		.loc 1 46 0
+ 188 0086 1027     		movs	r7, #16
+ 189              	.LVL14:
+ 190              	.L29:
+  43:DHT11.c       **** 	for(count = 0; count<8 ; count++)	/* 8 bits of data */
+ 191              		.loc 1 43 0
+ 192 0088 134B     		ldr	r3, .L46
+ 193              		.loc 1 46 0
+ 194 008a 1449     		ldr	r1, .L46+4
+ 195              	.LVL15:
+ 196              	.L30:
+ 197 008c 0A68     		ldr	r2, [r1]
+ 198 008e 134E     		ldr	r6, .L46+4
+ 199 0090 3A42     		tst	r2, r7
+ 200 0092 04D1     		bne	.L44
+ 201              	.LVL16:
+ 202 0094 013B     		subs	r3, r3, #1
+ 203              	.LVL17:
+  47:DHT11.c       **** 		{
+  48:DHT11.c       **** 				err++;
+  49:DHT11.c       **** 				if(err>=1000000) return 0;
+ 204              		.loc 1 49 0
+ 205 0096 002B     		cmp	r3, #0
+ 206 0098 F8D1     		bne	.L30
+ 207              	.LVL18:
+ 208              	.L35:
+ 209 009a 0020     		movs	r0, #0
+ 210 009c 19E0     		b	.L31
+ 211              	.LVL19:
+ 212              	.L44:
+  50:DHT11.c       **** 		}
+  51:DHT11.c       **** 		err=0;
+  52:DHT11.c       **** 		delay_us(30);	/* delay greater than 24 usec */
+ 213              		.loc 1 52 0
+ 214 009e 1E20     		movs	r0, #30
+ 215 00a0 FFF7FEFF 		bl	delay_us
+ 216              	.LVL20:
+  53:DHT11.c       **** 		if ( IOPIN0 & 0x00000010 ) /* If response is HIGH, 1 is received */
+ 217              		.loc 1 53 0
+ 218 00a4 1022     		movs	r2, #16
+ 219 00a6 3368     		ldr	r3, [r6]
+ 220 00a8 1342     		tst	r3, r2
+ 221 00aa 04D0     		beq	.L33
+  54:DHT11.c       **** 			data = ( (data<<1) | 0x01 );
+ 222              		.loc 1 54 0
+ 223 00ac 0123     		movs	r3, #1
+ 224 00ae 6400     		lsls	r4, r4, #1
+ 225              	.LVL21:
+ 226 00b0 1C43     		orrs	r4, r3
+ 227 00b2 2406     		lsls	r4, r4, #24
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 6
+
+
+ 228 00b4 00E0     		b	.L43
+ 229              	.LVL22:
+ 230              	.L33:
+  55:DHT11.c       **** 		else	/* If response is LOW, 0 is received */
+  56:DHT11.c       **** 			data = (data<<1);
+ 231              		.loc 1 56 0
+ 232 00b6 6406     		lsls	r4, r4, #25
+ 233              	.LVL23:
+ 234              	.L43:
+  43:DHT11.c       **** 	for(count = 0; count<8 ; count++)	/* 8 bits of data */
+ 235              		.loc 1 43 0
+ 236 00b8 074B     		ldr	r3, .L46
+ 237              		.loc 1 56 0
+ 238 00ba 240E     		lsrs	r4, r4, #24
+ 239              	.LVL24:
+ 240              	.L36:
+  57:DHT11.c       **** 		while( IOPIN0 & 0x00000010 )	/* Wait till response is HIGH (happens if 1 is received) */
+ 241              		.loc 1 57 0
+ 242 00bc 3268     		ldr	r2, [r6]
+ 243 00be 3A42     		tst	r2, r7
+ 244 00c0 03D0     		beq	.L45
+ 245              	.LVL25:
+ 246 00c2 013B     		subs	r3, r3, #1
+ 247              	.LVL26:
+  58:DHT11.c       **** 		{
+  59:DHT11.c       **** 				err++;
+  60:DHT11.c       **** 				if(err>=1000000) return 0;
+ 248              		.loc 1 60 0
+ 249 00c4 002B     		cmp	r3, #0
+ 250 00c6 F9D1     		bne	.L36
+ 251 00c8 E7E7     		b	.L35
+ 252              	.L45:
+ 253              	.LVL27:
+ 254 00ca 013D     		subs	r5, r5, #1
+ 255              	.LVL28:
+  44:DHT11.c       **** 	{
+ 256              		.loc 1 44 0 discriminator 2
+ 257 00cc 002D     		cmp	r5, #0
+ 258 00ce DBD1     		bne	.L29
+ 259 00d0 2000     		movs	r0, r4
+ 260              	.LVL29:
+ 261              	.L31:
+  61:DHT11.c       **** 		}
+  62:DHT11.c       **** 		err=0;
+  63:DHT11.c       **** 	}
+  64:DHT11.c       **** 
+  65:DHT11.c       **** 	return data;
+  66:DHT11.c       **** }
+ 262              		.loc 1 66 0
+ 263              		@ sp needed
+ 264              	.LVL30:
+ 265 00d2 F8BC     		pop	{r3, r4, r5, r6, r7}
+ 266 00d4 02BC     		pop	{r1}
+ 267 00d6 0847     		bx	r1
+ 268              	.L47:
+ 269              		.align	2
+ 270              	.L46:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 7
+
+
+ 271 00d8 40420F00 		.word	1000000
+ 272 00dc 008002E0 		.word	-536707072
+ 273              		.cfi_endproc
+ 274              	.LFE2:
+ 275              		.size	dht11_data, .-dht11_data
+ 276              	.Letext0:
+ 277              		.file 2 "delays.h"
+ 278              		.file 3 "general.h"
+ 279              		.section	.debug_info,"",%progbits
+ 280              	.Ldebug_info0:
+ 281 0000 35010000 		.4byte	0x135
+ 282 0004 0200     		.2byte	0x2
+ 283 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 284 000a 04       		.byte	0x4
+ 285 000b 01       		.uleb128 0x1
+ 286 000c 52000000 		.4byte	.LASF14
+ 287 0010 0C       		.byte	0xc
+ 288 0011 2E010000 		.4byte	.LASF15
+ 289 0015 36010000 		.4byte	.LASF16
+ 290 0019 00000000 		.4byte	.Ltext0
+ 291 001d E0000000 		.4byte	.Letext0
+ 292 0021 00000000 		.4byte	.Ldebug_line0
+ 293 0025 02       		.uleb128 0x2
+ 294 0026 74553800 		.ascii	"tU8\000"
+ 295 002a 03       		.byte	0x3
+ 296 002b 12       		.byte	0x12
+ 297 002c 30000000 		.4byte	0x30
+ 298 0030 03       		.uleb128 0x3
+ 299 0031 01       		.byte	0x1
+ 300 0032 08       		.byte	0x8
+ 301 0033 19000000 		.4byte	.LASF0
+ 302 0037 03       		.uleb128 0x3
+ 303 0038 02       		.byte	0x2
+ 304 0039 07       		.byte	0x7
+ 305 003a 30000000 		.4byte	.LASF1
+ 306 003e 03       		.uleb128 0x3
+ 307 003f 04       		.byte	0x4
+ 308 0040 07       		.byte	0x7
+ 309 0041 D2000000 		.4byte	.LASF2
+ 310 0045 03       		.uleb128 0x3
+ 311 0046 08       		.byte	0x8
+ 312 0047 07       		.byte	0x7
+ 313 0048 DF000000 		.4byte	.LASF3
+ 314 004c 03       		.uleb128 0x3
+ 315 004d 01       		.byte	0x1
+ 316 004e 06       		.byte	0x6
+ 317 004f 22010000 		.4byte	.LASF4
+ 318 0053 03       		.uleb128 0x3
+ 319 0054 02       		.byte	0x2
+ 320 0055 05       		.byte	0x5
+ 321 0056 0D010000 		.4byte	.LASF5
+ 322 005a 04       		.uleb128 0x4
+ 323 005b 04       		.byte	0x4
+ 324 005c 05       		.byte	0x5
+ 325 005d 696E7400 		.ascii	"int\000"
+ 326 0061 03       		.uleb128 0x3
+ 327 0062 08       		.byte	0x8
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 8
+
+
+ 328 0063 05       		.byte	0x5
+ 329 0064 FF000000 		.4byte	.LASF6
+ 330 0068 03       		.uleb128 0x3
+ 331 0069 04       		.byte	0x4
+ 332 006a 07       		.byte	0x7
+ 333 006b F6000000 		.4byte	.LASF7
+ 334 006f 05       		.uleb128 0x5
+ 335 0070 01       		.byte	0x1
+ 336 0071 00000000 		.4byte	.LASF8
+ 337 0075 01       		.byte	0x1
+ 338 0076 04       		.byte	0x4
+ 339 0077 01       		.byte	0x1
+ 340 0078 00000000 		.4byte	.LFB0
+ 341 007c 2C000000 		.4byte	.LFE0
+ 342 0080 00000000 		.4byte	.LLST0
+ 343 0084 01       		.byte	0x1
+ 344 0085 99000000 		.4byte	0x99
+ 345 0089 06       		.uleb128 0x6
+ 346 008a 16000000 		.4byte	.LVL0
+ 347 008e 1E010000 		.4byte	0x11e
+ 348 0092 07       		.uleb128 0x7
+ 349 0093 01       		.byte	0x1
+ 350 0094 50       		.byte	0x50
+ 351 0095 01       		.byte	0x1
+ 352 0096 42       		.byte	0x42
+ 353 0097 00       		.byte	0
+ 354 0098 00       		.byte	0
+ 355 0099 05       		.uleb128 0x5
+ 356 009a 01       		.byte	0x1
+ 357 009b 43000000 		.4byte	.LASF9
+ 358 009f 01       		.byte	0x1
+ 359 00a0 0C       		.byte	0xc
+ 360 00a1 01       		.byte	0x1
+ 361 00a2 2C000000 		.4byte	.LFB1
+ 362 00a6 80000000 		.4byte	.LFE1
+ 363 00aa 20000000 		.4byte	.LLST1
+ 364 00ae 01       		.byte	0x1
+ 365 00af C3000000 		.4byte	0xc3
+ 366 00b3 08       		.uleb128 0x8
+ 367 00b4 65727200 		.ascii	"err\000"
+ 368 00b8 01       		.byte	0x1
+ 369 00b9 10       		.byte	0x10
+ 370 00ba 5A000000 		.4byte	0x5a
+ 371 00be 40000000 		.4byte	.LLST2
+ 372 00c2 00       		.byte	0
+ 373 00c3 09       		.uleb128 0x9
+ 374 00c4 01       		.byte	0x1
+ 375 00c5 17010000 		.4byte	.LASF17
+ 376 00c9 01       		.byte	0x1
+ 377 00ca 26       		.byte	0x26
+ 378 00cb 01       		.byte	0x1
+ 379 00cc 25000000 		.4byte	0x25
+ 380 00d0 80000000 		.4byte	.LFB2
+ 381 00d4 E0000000 		.4byte	.LFE2
+ 382 00d8 EC000000 		.4byte	.LLST3
+ 383 00dc 01       		.byte	0x1
+ 384 00dd 1E010000 		.4byte	0x11e
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 9
+
+
+ 385 00e1 08       		.uleb128 0x8
+ 386 00e2 65727200 		.ascii	"err\000"
+ 387 00e6 01       		.byte	0x1
+ 388 00e7 29       		.byte	0x29
+ 389 00e8 5A000000 		.4byte	0x5a
+ 390 00ec 0C010000 		.4byte	.LLST4
+ 391 00f0 0A       		.uleb128 0xa
+ 392 00f1 0E000000 		.4byte	.LASF10
+ 393 00f5 01       		.byte	0x1
+ 394 00f6 2A       		.byte	0x2a
+ 395 00f7 5A000000 		.4byte	0x5a
+ 396 00fb AA010000 		.4byte	.LLST5
+ 397 00ff 0A       		.uleb128 0xa
+ 398 0100 14000000 		.4byte	.LASF11
+ 399 0104 01       		.byte	0x1
+ 400 0105 2B       		.byte	0x2b
+ 401 0106 25000000 		.4byte	0x25
+ 402 010a EB010000 		.4byte	.LLST6
+ 403 010e 06       		.uleb128 0x6
+ 404 010f A4000000 		.4byte	.LVL20
+ 405 0113 2B010000 		.4byte	0x12b
+ 406 0117 07       		.uleb128 0x7
+ 407 0118 01       		.byte	0x1
+ 408 0119 50       		.byte	0x50
+ 409 011a 01       		.byte	0x1
+ 410 011b 4E       		.byte	0x4e
+ 411 011c 00       		.byte	0
+ 412 011d 00       		.byte	0
+ 413 011e 0B       		.uleb128 0xb
+ 414 011f 01       		.byte	0x1
+ 415 0120 01       		.byte	0x1
+ 416 0121 27000000 		.4byte	.LASF12
+ 417 0125 27000000 		.4byte	.LASF12
+ 418 0129 02       		.byte	0x2
+ 419 012a 12       		.byte	0x12
+ 420 012b 0B       		.uleb128 0xb
+ 421 012c 01       		.byte	0x1
+ 422 012d 01       		.byte	0x1
+ 423 012e 54010000 		.4byte	.LASF13
+ 424 0132 54010000 		.4byte	.LASF13
+ 425 0136 02       		.byte	0x2
+ 426 0137 11       		.byte	0x11
+ 427 0138 00       		.byte	0
+ 428              		.section	.debug_abbrev,"",%progbits
+ 429              	.Ldebug_abbrev0:
+ 430 0000 01       		.uleb128 0x1
+ 431 0001 11       		.uleb128 0x11
+ 432 0002 01       		.byte	0x1
+ 433 0003 25       		.uleb128 0x25
+ 434 0004 0E       		.uleb128 0xe
+ 435 0005 13       		.uleb128 0x13
+ 436 0006 0B       		.uleb128 0xb
+ 437 0007 03       		.uleb128 0x3
+ 438 0008 0E       		.uleb128 0xe
+ 439 0009 1B       		.uleb128 0x1b
+ 440 000a 0E       		.uleb128 0xe
+ 441 000b 11       		.uleb128 0x11
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 10
+
+
+ 442 000c 01       		.uleb128 0x1
+ 443 000d 12       		.uleb128 0x12
+ 444 000e 01       		.uleb128 0x1
+ 445 000f 10       		.uleb128 0x10
+ 446 0010 06       		.uleb128 0x6
+ 447 0011 00       		.byte	0
+ 448 0012 00       		.byte	0
+ 449 0013 02       		.uleb128 0x2
+ 450 0014 16       		.uleb128 0x16
+ 451 0015 00       		.byte	0
+ 452 0016 03       		.uleb128 0x3
+ 453 0017 08       		.uleb128 0x8
+ 454 0018 3A       		.uleb128 0x3a
+ 455 0019 0B       		.uleb128 0xb
+ 456 001a 3B       		.uleb128 0x3b
+ 457 001b 0B       		.uleb128 0xb
+ 458 001c 49       		.uleb128 0x49
+ 459 001d 13       		.uleb128 0x13
+ 460 001e 00       		.byte	0
+ 461 001f 00       		.byte	0
+ 462 0020 03       		.uleb128 0x3
+ 463 0021 24       		.uleb128 0x24
+ 464 0022 00       		.byte	0
+ 465 0023 0B       		.uleb128 0xb
+ 466 0024 0B       		.uleb128 0xb
+ 467 0025 3E       		.uleb128 0x3e
+ 468 0026 0B       		.uleb128 0xb
+ 469 0027 03       		.uleb128 0x3
+ 470 0028 0E       		.uleb128 0xe
+ 471 0029 00       		.byte	0
+ 472 002a 00       		.byte	0
+ 473 002b 04       		.uleb128 0x4
+ 474 002c 24       		.uleb128 0x24
+ 475 002d 00       		.byte	0
+ 476 002e 0B       		.uleb128 0xb
+ 477 002f 0B       		.uleb128 0xb
+ 478 0030 3E       		.uleb128 0x3e
+ 479 0031 0B       		.uleb128 0xb
+ 480 0032 03       		.uleb128 0x3
+ 481 0033 08       		.uleb128 0x8
+ 482 0034 00       		.byte	0
+ 483 0035 00       		.byte	0
+ 484 0036 05       		.uleb128 0x5
+ 485 0037 2E       		.uleb128 0x2e
+ 486 0038 01       		.byte	0x1
+ 487 0039 3F       		.uleb128 0x3f
+ 488 003a 0C       		.uleb128 0xc
+ 489 003b 03       		.uleb128 0x3
+ 490 003c 0E       		.uleb128 0xe
+ 491 003d 3A       		.uleb128 0x3a
+ 492 003e 0B       		.uleb128 0xb
+ 493 003f 3B       		.uleb128 0x3b
+ 494 0040 0B       		.uleb128 0xb
+ 495 0041 27       		.uleb128 0x27
+ 496 0042 0C       		.uleb128 0xc
+ 497 0043 11       		.uleb128 0x11
+ 498 0044 01       		.uleb128 0x1
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 11
+
+
+ 499 0045 12       		.uleb128 0x12
+ 500 0046 01       		.uleb128 0x1
+ 501 0047 40       		.uleb128 0x40
+ 502 0048 06       		.uleb128 0x6
+ 503 0049 9742     		.uleb128 0x2117
+ 504 004b 0C       		.uleb128 0xc
+ 505 004c 01       		.uleb128 0x1
+ 506 004d 13       		.uleb128 0x13
+ 507 004e 00       		.byte	0
+ 508 004f 00       		.byte	0
+ 509 0050 06       		.uleb128 0x6
+ 510 0051 898201   		.uleb128 0x4109
+ 511 0054 01       		.byte	0x1
+ 512 0055 11       		.uleb128 0x11
+ 513 0056 01       		.uleb128 0x1
+ 514 0057 31       		.uleb128 0x31
+ 515 0058 13       		.uleb128 0x13
+ 516 0059 00       		.byte	0
+ 517 005a 00       		.byte	0
+ 518 005b 07       		.uleb128 0x7
+ 519 005c 8A8201   		.uleb128 0x410a
+ 520 005f 00       		.byte	0
+ 521 0060 02       		.uleb128 0x2
+ 522 0061 0A       		.uleb128 0xa
+ 523 0062 9142     		.uleb128 0x2111
+ 524 0064 0A       		.uleb128 0xa
+ 525 0065 00       		.byte	0
+ 526 0066 00       		.byte	0
+ 527 0067 08       		.uleb128 0x8
+ 528 0068 34       		.uleb128 0x34
+ 529 0069 00       		.byte	0
+ 530 006a 03       		.uleb128 0x3
+ 531 006b 08       		.uleb128 0x8
+ 532 006c 3A       		.uleb128 0x3a
+ 533 006d 0B       		.uleb128 0xb
+ 534 006e 3B       		.uleb128 0x3b
+ 535 006f 0B       		.uleb128 0xb
+ 536 0070 49       		.uleb128 0x49
+ 537 0071 13       		.uleb128 0x13
+ 538 0072 02       		.uleb128 0x2
+ 539 0073 06       		.uleb128 0x6
+ 540 0074 00       		.byte	0
+ 541 0075 00       		.byte	0
+ 542 0076 09       		.uleb128 0x9
+ 543 0077 2E       		.uleb128 0x2e
+ 544 0078 01       		.byte	0x1
+ 545 0079 3F       		.uleb128 0x3f
+ 546 007a 0C       		.uleb128 0xc
+ 547 007b 03       		.uleb128 0x3
+ 548 007c 0E       		.uleb128 0xe
+ 549 007d 3A       		.uleb128 0x3a
+ 550 007e 0B       		.uleb128 0xb
+ 551 007f 3B       		.uleb128 0x3b
+ 552 0080 0B       		.uleb128 0xb
+ 553 0081 27       		.uleb128 0x27
+ 554 0082 0C       		.uleb128 0xc
+ 555 0083 49       		.uleb128 0x49
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 12
+
+
+ 556 0084 13       		.uleb128 0x13
+ 557 0085 11       		.uleb128 0x11
+ 558 0086 01       		.uleb128 0x1
+ 559 0087 12       		.uleb128 0x12
+ 560 0088 01       		.uleb128 0x1
+ 561 0089 40       		.uleb128 0x40
+ 562 008a 06       		.uleb128 0x6
+ 563 008b 9742     		.uleb128 0x2117
+ 564 008d 0C       		.uleb128 0xc
+ 565 008e 01       		.uleb128 0x1
+ 566 008f 13       		.uleb128 0x13
+ 567 0090 00       		.byte	0
+ 568 0091 00       		.byte	0
+ 569 0092 0A       		.uleb128 0xa
+ 570 0093 34       		.uleb128 0x34
+ 571 0094 00       		.byte	0
+ 572 0095 03       		.uleb128 0x3
+ 573 0096 0E       		.uleb128 0xe
+ 574 0097 3A       		.uleb128 0x3a
+ 575 0098 0B       		.uleb128 0xb
+ 576 0099 3B       		.uleb128 0x3b
+ 577 009a 0B       		.uleb128 0xb
+ 578 009b 49       		.uleb128 0x49
+ 579 009c 13       		.uleb128 0x13
+ 580 009d 02       		.uleb128 0x2
+ 581 009e 06       		.uleb128 0x6
+ 582 009f 00       		.byte	0
+ 583 00a0 00       		.byte	0
+ 584 00a1 0B       		.uleb128 0xb
+ 585 00a2 2E       		.uleb128 0x2e
+ 586 00a3 00       		.byte	0
+ 587 00a4 3F       		.uleb128 0x3f
+ 588 00a5 0C       		.uleb128 0xc
+ 589 00a6 3C       		.uleb128 0x3c
+ 590 00a7 0C       		.uleb128 0xc
+ 591 00a8 8740     		.uleb128 0x2007
+ 592 00aa 0E       		.uleb128 0xe
+ 593 00ab 03       		.uleb128 0x3
+ 594 00ac 0E       		.uleb128 0xe
+ 595 00ad 3A       		.uleb128 0x3a
+ 596 00ae 0B       		.uleb128 0xb
+ 597 00af 3B       		.uleb128 0x3b
+ 598 00b0 0B       		.uleb128 0xb
+ 599 00b1 00       		.byte	0
+ 600 00b2 00       		.byte	0
+ 601 00b3 00       		.byte	0
+ 602              		.section	.debug_loc,"",%progbits
+ 603              	.Ldebug_loc0:
+ 604              	.LLST0:
+ 605 0000 00000000 		.4byte	.LFB0-.Ltext0
+ 606 0004 02000000 		.4byte	.LCFI0-.Ltext0
+ 607 0008 0200     		.2byte	0x2
+ 608 000a 7D       		.byte	0x7d
+ 609 000b 00       		.sleb128 0
+ 610 000c 02000000 		.4byte	.LCFI0-.Ltext0
+ 611 0010 2C000000 		.4byte	.LFE0-.Ltext0
+ 612 0014 0200     		.2byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 13
+
+
+ 613 0016 7D       		.byte	0x7d
+ 614 0017 08       		.sleb128 8
+ 615 0018 00000000 		.4byte	0
+ 616 001c 00000000 		.4byte	0
+ 617              	.LLST1:
+ 618 0020 2C000000 		.4byte	.LFB1-.Ltext0
+ 619 0024 36000000 		.4byte	.LCFI1-.Ltext0
+ 620 0028 0200     		.2byte	0x2
+ 621 002a 7D       		.byte	0x7d
+ 622 002b 00       		.sleb128 0
+ 623 002c 36000000 		.4byte	.LCFI1-.Ltext0
+ 624 0030 80000000 		.4byte	.LFE1-.Ltext0
+ 625 0034 0200     		.2byte	0x2
+ 626 0036 7D       		.byte	0x7d
+ 627 0037 08       		.sleb128 8
+ 628 0038 00000000 		.4byte	0
+ 629 003c 00000000 		.4byte	0
+ 630              	.LLST2:
+ 631 0040 38000000 		.4byte	.LVL1-.Ltext0
+ 632 0044 3C000000 		.4byte	.LVL2-.Ltext0
+ 633 0048 0200     		.2byte	0x2
+ 634 004a 30       		.byte	0x30
+ 635 004b 9F       		.byte	0x9f
+ 636 004c 3C000000 		.4byte	.LVL2-.Ltext0
+ 637 0050 44000000 		.4byte	.LVL3-.Ltext0
+ 638 0054 0900     		.2byte	0x9
+ 639 0056 0C       		.byte	0xc
+ 640 0057 40420F00 		.4byte	0xf4240
+ 641 005b 72       		.byte	0x72
+ 642 005c 00       		.sleb128 0
+ 643 005d 1C       		.byte	0x1c
+ 644 005e 9F       		.byte	0x9f
+ 645 005f 44000000 		.4byte	.LVL3-.Ltext0
+ 646 0063 46000000 		.4byte	.LVL4-.Ltext0
+ 647 0067 0900     		.2byte	0x9
+ 648 0069 0C       		.byte	0xc
+ 649 006a 41420F00 		.4byte	0xf4241
+ 650 006e 72       		.byte	0x72
+ 651 006f 00       		.sleb128 0
+ 652 0070 1C       		.byte	0x1c
+ 653 0071 9F       		.byte	0x9f
+ 654 0072 46000000 		.4byte	.LVL4-.Ltext0
+ 655 0076 4E000000 		.4byte	.LVL5-.Ltext0
+ 656 007a 0900     		.2byte	0x9
+ 657 007c 0C       		.byte	0xc
+ 658 007d 40420F00 		.4byte	0xf4240
+ 659 0081 72       		.byte	0x72
+ 660 0082 00       		.sleb128 0
+ 661 0083 1C       		.byte	0x1c
+ 662 0084 9F       		.byte	0x9f
+ 663 0085 50000000 		.4byte	.LVL6-.Ltext0
+ 664 0089 56000000 		.4byte	.LVL7-.Ltext0
+ 665 008d 0900     		.2byte	0x9
+ 666 008f 0C       		.byte	0xc
+ 667 0090 40420F00 		.4byte	0xf4240
+ 668 0094 73       		.byte	0x73
+ 669 0095 00       		.sleb128 0
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 14
+
+
+ 670 0096 1C       		.byte	0x1c
+ 671 0097 9F       		.byte	0x9f
+ 672 0098 56000000 		.4byte	.LVL7-.Ltext0
+ 673 009c 58000000 		.4byte	.LVL8-.Ltext0
+ 674 00a0 0900     		.2byte	0x9
+ 675 00a2 0C       		.byte	0xc
+ 676 00a3 41420F00 		.4byte	0xf4241
+ 677 00a7 73       		.byte	0x73
+ 678 00a8 00       		.sleb128 0
+ 679 00a9 1C       		.byte	0x1c
+ 680 00aa 9F       		.byte	0x9f
+ 681 00ab 58000000 		.4byte	.LVL8-.Ltext0
+ 682 00af 68000000 		.4byte	.LVL10-.Ltext0
+ 683 00b3 0900     		.2byte	0x9
+ 684 00b5 0C       		.byte	0xc
+ 685 00b6 40420F00 		.4byte	0xf4240
+ 686 00ba 73       		.byte	0x73
+ 687 00bb 00       		.sleb128 0
+ 688 00bc 1C       		.byte	0x1c
+ 689 00bd 9F       		.byte	0x9f
+ 690 00be 68000000 		.4byte	.LVL10-.Ltext0
+ 691 00c2 6A000000 		.4byte	.LVL11-.Ltext0
+ 692 00c6 0900     		.2byte	0x9
+ 693 00c8 0C       		.byte	0xc
+ 694 00c9 41420F00 		.4byte	0xf4241
+ 695 00cd 73       		.byte	0x73
+ 696 00ce 00       		.sleb128 0
+ 697 00cf 1C       		.byte	0x1c
+ 698 00d0 9F       		.byte	0x9f
+ 699 00d1 6A000000 		.4byte	.LVL11-.Ltext0
+ 700 00d5 6E000000 		.4byte	.LVL12-.Ltext0
+ 701 00d9 0900     		.2byte	0x9
+ 702 00db 0C       		.byte	0xc
+ 703 00dc 40420F00 		.4byte	0xf4240
+ 704 00e0 73       		.byte	0x73
+ 705 00e1 00       		.sleb128 0
+ 706 00e2 1C       		.byte	0x1c
+ 707 00e3 9F       		.byte	0x9f
+ 708 00e4 00000000 		.4byte	0
+ 709 00e8 00000000 		.4byte	0
+ 710              	.LLST3:
+ 711 00ec 80000000 		.4byte	.LFB2-.Ltext0
+ 712 00f0 82000000 		.4byte	.LCFI2-.Ltext0
+ 713 00f4 0200     		.2byte	0x2
+ 714 00f6 7D       		.byte	0x7d
+ 715 00f7 00       		.sleb128 0
+ 716 00f8 82000000 		.4byte	.LCFI2-.Ltext0
+ 717 00fc E0000000 		.4byte	.LFE2-.Ltext0
+ 718 0100 0200     		.2byte	0x2
+ 719 0102 7D       		.byte	0x7d
+ 720 0103 18       		.sleb128 24
+ 721 0104 00000000 		.4byte	0
+ 722 0108 00000000 		.4byte	0
+ 723              	.LLST4:
+ 724 010c 80000000 		.4byte	.LVL13-.Ltext0
+ 725 0110 8C000000 		.4byte	.LVL15-.Ltext0
+ 726 0114 0200     		.2byte	0x2
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 15
+
+
+ 727 0116 30       		.byte	0x30
+ 728 0117 9F       		.byte	0x9f
+ 729 0118 8C000000 		.4byte	.LVL15-.Ltext0
+ 730 011c 94000000 		.4byte	.LVL16-.Ltext0
+ 731 0120 0900     		.2byte	0x9
+ 732 0122 0C       		.byte	0xc
+ 733 0123 40420F00 		.4byte	0xf4240
+ 734 0127 73       		.byte	0x73
+ 735 0128 00       		.sleb128 0
+ 736 0129 1C       		.byte	0x1c
+ 737 012a 9F       		.byte	0x9f
+ 738 012b 94000000 		.4byte	.LVL16-.Ltext0
+ 739 012f 96000000 		.4byte	.LVL17-.Ltext0
+ 740 0133 0900     		.2byte	0x9
+ 741 0135 0C       		.byte	0xc
+ 742 0136 41420F00 		.4byte	0xf4241
+ 743 013a 73       		.byte	0x73
+ 744 013b 00       		.sleb128 0
+ 745 013c 1C       		.byte	0x1c
+ 746 013d 9F       		.byte	0x9f
+ 747 013e 96000000 		.4byte	.LVL17-.Ltext0
+ 748 0142 9A000000 		.4byte	.LVL18-.Ltext0
+ 749 0146 0900     		.2byte	0x9
+ 750 0148 0C       		.byte	0xc
+ 751 0149 40420F00 		.4byte	0xf4240
+ 752 014d 73       		.byte	0x73
+ 753 014e 00       		.sleb128 0
+ 754 014f 1C       		.byte	0x1c
+ 755 0150 9F       		.byte	0x9f
+ 756 0151 9E000000 		.4byte	.LVL19-.Ltext0
+ 757 0155 BC000000 		.4byte	.LVL24-.Ltext0
+ 758 0159 0200     		.2byte	0x2
+ 759 015b 30       		.byte	0x30
+ 760 015c 9F       		.byte	0x9f
+ 761 015d BC000000 		.4byte	.LVL24-.Ltext0
+ 762 0161 C2000000 		.4byte	.LVL25-.Ltext0
+ 763 0165 0900     		.2byte	0x9
+ 764 0167 0C       		.byte	0xc
+ 765 0168 40420F00 		.4byte	0xf4240
+ 766 016c 73       		.byte	0x73
+ 767 016d 00       		.sleb128 0
+ 768 016e 1C       		.byte	0x1c
+ 769 016f 9F       		.byte	0x9f
+ 770 0170 C2000000 		.4byte	.LVL25-.Ltext0
+ 771 0174 C4000000 		.4byte	.LVL26-.Ltext0
+ 772 0178 0900     		.2byte	0x9
+ 773 017a 0C       		.byte	0xc
+ 774 017b 41420F00 		.4byte	0xf4241
+ 775 017f 73       		.byte	0x73
+ 776 0180 00       		.sleb128 0
+ 777 0181 1C       		.byte	0x1c
+ 778 0182 9F       		.byte	0x9f
+ 779 0183 C4000000 		.4byte	.LVL26-.Ltext0
+ 780 0187 CA000000 		.4byte	.LVL27-.Ltext0
+ 781 018b 0900     		.2byte	0x9
+ 782 018d 0C       		.byte	0xc
+ 783 018e 40420F00 		.4byte	0xf4240
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 16
+
+
+ 784 0192 73       		.byte	0x73
+ 785 0193 00       		.sleb128 0
+ 786 0194 1C       		.byte	0x1c
+ 787 0195 9F       		.byte	0x9f
+ 788 0196 CA000000 		.4byte	.LVL27-.Ltext0
+ 789 019a D2000000 		.4byte	.LVL29-.Ltext0
+ 790 019e 0200     		.2byte	0x2
+ 791 01a0 30       		.byte	0x30
+ 792 01a1 9F       		.byte	0x9f
+ 793 01a2 00000000 		.4byte	0
+ 794 01a6 00000000 		.4byte	0
+ 795              	.LLST5:
+ 796 01aa 80000000 		.4byte	.LVL13-.Ltext0
+ 797 01ae 88000000 		.4byte	.LVL14-.Ltext0
+ 798 01b2 0200     		.2byte	0x2
+ 799 01b4 30       		.byte	0x30
+ 800 01b5 9F       		.byte	0x9f
+ 801 01b6 88000000 		.4byte	.LVL14-.Ltext0
+ 802 01ba CA000000 		.4byte	.LVL27-.Ltext0
+ 803 01be 0500     		.2byte	0x5
+ 804 01c0 38       		.byte	0x38
+ 805 01c1 75       		.byte	0x75
+ 806 01c2 00       		.sleb128 0
+ 807 01c3 1C       		.byte	0x1c
+ 808 01c4 9F       		.byte	0x9f
+ 809 01c5 CA000000 		.4byte	.LVL27-.Ltext0
+ 810 01c9 CC000000 		.4byte	.LVL28-.Ltext0
+ 811 01cd 0500     		.2byte	0x5
+ 812 01cf 39       		.byte	0x39
+ 813 01d0 75       		.byte	0x75
+ 814 01d1 00       		.sleb128 0
+ 815 01d2 1C       		.byte	0x1c
+ 816 01d3 9F       		.byte	0x9f
+ 817 01d4 CC000000 		.4byte	.LVL28-.Ltext0
+ 818 01d8 D2000000 		.4byte	.LVL29-.Ltext0
+ 819 01dc 0500     		.2byte	0x5
+ 820 01de 38       		.byte	0x38
+ 821 01df 75       		.byte	0x75
+ 822 01e0 00       		.sleb128 0
+ 823 01e1 1C       		.byte	0x1c
+ 824 01e2 9F       		.byte	0x9f
+ 825 01e3 00000000 		.4byte	0
+ 826 01e7 00000000 		.4byte	0
+ 827              	.LLST6:
+ 828 01eb 80000000 		.4byte	.LVL13-.Ltext0
+ 829 01ef 88000000 		.4byte	.LVL14-.Ltext0
+ 830 01f3 0200     		.2byte	0x2
+ 831 01f5 30       		.byte	0x30
+ 832 01f6 9F       		.byte	0x9f
+ 833 01f7 88000000 		.4byte	.LVL14-.Ltext0
+ 834 01fb B0000000 		.4byte	.LVL21-.Ltext0
+ 835 01ff 0100     		.2byte	0x1
+ 836 0201 54       		.byte	0x54
+ 837 0202 B6000000 		.4byte	.LVL22-.Ltext0
+ 838 0206 B8000000 		.4byte	.LVL23-.Ltext0
+ 839 020a 0100     		.2byte	0x1
+ 840 020c 54       		.byte	0x54
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 17
+
+
+ 841 020d BC000000 		.4byte	.LVL24-.Ltext0
+ 842 0211 D2000000 		.4byte	.LVL30-.Ltext0
+ 843 0215 0100     		.2byte	0x1
+ 844 0217 54       		.byte	0x54
+ 845 0218 00000000 		.4byte	0
+ 846 021c 00000000 		.4byte	0
+ 847              		.section	.debug_aranges,"",%progbits
+ 848 0000 1C000000 		.4byte	0x1c
+ 849 0004 0200     		.2byte	0x2
+ 850 0006 00000000 		.4byte	.Ldebug_info0
+ 851 000a 04       		.byte	0x4
+ 852 000b 00       		.byte	0
+ 853 000c 0000     		.2byte	0
+ 854 000e 0000     		.2byte	0
+ 855 0010 00000000 		.4byte	.Ltext0
+ 856 0014 E0000000 		.4byte	.Letext0-.Ltext0
+ 857 0018 00000000 		.4byte	0
+ 858 001c 00000000 		.4byte	0
+ 859              		.section	.debug_line,"",%progbits
+ 860              	.Ldebug_line0:
+ 861 0000 7B000000 		.section	.debug_str,"MS",%progbits,1
+ 861      02003700 
+ 861      00000201 
+ 861      FB0E0D00 
+ 861      01010101 
+ 862              	.LASF8:
+ 863 0000 64687431 		.ascii	"dht11_request\000"
+ 863      315F7265 
+ 863      71756573 
+ 863      7400
+ 864              	.LASF10:
+ 865 000e 636F756E 		.ascii	"count\000"
+ 865      7400
+ 866              	.LASF11:
+ 867 0014 64617461 		.ascii	"data\000"
+ 867      00
+ 868              	.LASF0:
+ 869 0019 756E7369 		.ascii	"unsigned char\000"
+ 869      676E6564 
+ 869      20636861 
+ 869      7200
+ 870              	.LASF12:
+ 871 0027 64656C61 		.ascii	"delay_ms\000"
+ 871      795F6D73 
+ 871      00
+ 872              	.LASF1:
+ 873 0030 73686F72 		.ascii	"short unsigned int\000"
+ 873      7420756E 
+ 873      7369676E 
+ 873      65642069 
+ 873      6E7400
+ 874              	.LASF9:
+ 875 0043 64687431 		.ascii	"dht11_response\000"
+ 875      315F7265 
+ 875      73706F6E 
+ 875      736500
+ 876              	.LASF14:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 18
+
+
+ 877 0052 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 877      43313120 
+ 877      352E342E 
+ 877      31203230 
+ 877      31363036 
+ 878 0085 616E6368 		.ascii	"anch revision 237715] -mcpu=arm7tdmi -mthumb -mthum"
+ 878      20726576 
+ 878      6973696F 
+ 878      6E203233 
+ 878      37373135 
+ 879 00b8 622D696E 		.ascii	"b-interwork -gdwarf-2 -Os\000"
+ 879      74657277 
+ 879      6F726B20 
+ 879      2D676477 
+ 879      6172662D 
+ 880              	.LASF2:
+ 881 00d2 756E7369 		.ascii	"unsigned int\000"
+ 881      676E6564 
+ 881      20696E74 
+ 881      00
+ 882              	.LASF3:
+ 883 00df 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 883      206C6F6E 
+ 883      6720756E 
+ 883      7369676E 
+ 883      65642069 
+ 884              	.LASF7:
+ 885 00f6 73697A65 		.ascii	"sizetype\000"
+ 885      74797065 
+ 885      00
+ 886              	.LASF6:
+ 887 00ff 6C6F6E67 		.ascii	"long long int\000"
+ 887      206C6F6E 
+ 887      6720696E 
+ 887      7400
+ 888              	.LASF5:
+ 889 010d 73686F72 		.ascii	"short int\000"
+ 889      7420696E 
+ 889      7400
+ 890              	.LASF17:
+ 891 0117 64687431 		.ascii	"dht11_data\000"
+ 891      315F6461 
+ 891      746100
+ 892              	.LASF4:
+ 893 0122 7369676E 		.ascii	"signed char\000"
+ 893      65642063 
+ 893      68617200 
+ 894              	.LASF15:
+ 895 012e 44485431 		.ascii	"DHT11.c\000"
+ 895      312E6300 
+ 896              	.LASF16:
+ 897 0136 433A5C45 		.ascii	"C:\\Embedded\\2148MiniDemo\\2148\000"
+ 897      6D626564 
+ 897      6465645C 
+ 897      32313438 
+ 897      4D696E69 
+ 898              	.LASF13:
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 19
+
+
+ 899 0154 64656C61 		.ascii	"delay_us\000"
+ 899      795F7573 
+ 899      00
+ 900              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran
+ARM GAS  C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s 			page 20
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 DHT11.c
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:19     .text:00000000 $t
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:24     .text:00000000 dht11_request
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:65     .text:00000020 $d
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:71     .text:0000002c $t
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:76     .text:0000002c dht11_response
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:155    .text:00000074 $d
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:161    .text:00000080 $t
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:166    .text:00000080 dht11_data
+C:\Users\embedded\AppData\Local\Temp\cc9cUqYg.s:271    .text:000000d8 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+delay_ms
+delay_us
